@@ -1,0 +1,20 @@
+{
+  "orchestrator": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "deep-worker": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "prometheus": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "atlas": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "bio-orchestrator": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "explorer": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "librarian": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "oracle": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "designer": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "fixer": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "council": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "councillor": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "metis": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "momus": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "multimodal-looker": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"],
+  "reviewer": ["deepseek/deepseek-chat", "deepseek/deepseek-chat"]
+}
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "orchestrator": ["openai/gpt-5.5", "openai/gpt-5.4"],
+  "deep-worker": ["openai/gpt-5.4", "openai/gpt-5.4-mini"],
+  "prometheus": ["openai/gpt-5.5", "openai/gpt-5.4"],
+  "atlas": ["openai/gpt-5.4", "openai/gpt-5.4-mini"],
+  "bio-orchestrator": ["openai/gpt-5.5", "openai/gpt-5.4"],
+  "explorer": ["openai/gpt-5.4-mini", "openai/gpt-5.4"],
+  "librarian": ["openai/gpt-5.4-mini", "openai/gpt-5.4"],
+  "oracle": ["openai/gpt-5.4-mini", "openai/gpt-5.4"],
+  "designer": ["openai/gpt-5.4-mini", "openai/gpt-5.4"],
+  "fixer": ["openai/gpt-5.4-mini", "openai/gpt-5.4"],
+  "council": ["openai/gpt-5.4-mini", "openai/gpt-5.4"],
+  "councillor": ["openai/gpt-5.4-mini", "openai/gpt-5.4"],
+  "metis": ["openai/gpt-5.4-mini", "openai/gpt-5.4"],
+  "momus": ["openai/gpt-5.4-mini", "openai/gpt-5.4"],
+  "multimodal-looker": ["openai/gpt-5.4-mini", "openai/gpt-5.4"],
+  "reviewer": ["openai/gpt-5.4-mini", "openai/gpt-5.4"]
+}
+  }
+}
