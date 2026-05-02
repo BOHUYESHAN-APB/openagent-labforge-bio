@@ -6,8 +6,6 @@ const WINDOWS_SHELL_SHIMS = new Set([
   'pnpx',
   'yarn',
   'yarnpkg',
-  'uvx',
-  'uv',
 ]);
 
 export function normalizeLocalMcpCommand(
