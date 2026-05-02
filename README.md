@@ -129,9 +129,9 @@ See [`openagent-labforge.example.jsonc`](openagent-labforge.example.jsonc) for t
 
 | Mode | Source | Use Case |
 |------|--------|----------|
-| **Light** (default) | OMOS native | Daily development, balanced delegation |
-| **Heavy** | Omo-inspired | Complex tasks, Phase 0-3 workflow, failure recovery |
-| **Turbo** | OLD-2-inspired | Fast execution, minimal overhead |
+| **Light** (default) | [oh-my-opencode-slim](https://github.com/alvinunreal/oh-my-opencode-slim) | Daily development, balanced delegation |
+| **Heavy** | Inspired by [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) | Complex tasks, Phase 0-3 workflow, failure recovery |
+| **Turbo** | Inspired by [opencode-workspace](https://github.com/kdcokenny/opencode-workspace) | Fast execution, minimal overhead |
 
 Switch at runtime: `/ol-light`, `/ol-heavy`, `/ol-turbo`
 
@@ -253,9 +253,17 @@ bun run check:ci
 
 ## Credits
 
-- Base: [oh-my-opencode-slim](https://github.com/alvinunreal/oh-my-opencode-slim) by Boring Dystopia Development
-- Agent architecture inspired by [oh-my-openagent](https://github.com/anomalyco/oh-my-openagent)
-- Design reference: [openagent-labforge](https://github.com/bohuyeshan/openagent-labforge)
+**Direct base** (MIT):
+- [oh-my-opencode-slim](https://github.com/alvinunreal/oh-my-opencode-slim) — Slimmed agent orchestration plugin for OpenCode. This project is a fork that extends the original 9-agent system.
+
+**Architecture inspiration** (design patterns, NOT code):
+- [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) — Inspired the agent architecture (primary agents, delegation model, planning tier), three-tier prompt system (heavy/light/turbo), keyword mode detection, and command system design.
+
+**Turbo mode inspiration** (MIT):
+- [opencode-workspace](https://github.com/kdcokenny/opencode-workspace) — Inspired the turbo mode prompt ("KEEP GOING" philosophy) and lightweight agent design.
+
+**Future integration** (MIT):
+- [DeepSeek-TUI](https://github.com/Hmbown/DeepSeek-TUI) — Terminal UI for DeepSeek models. Planned plugin integration.
 
 ---
 
@@ -320,9 +328,9 @@ bun run build
 
 | 模式 | 来源 | 适用场景 |
 |------|------|---------|
-| **轻量**（默认） | OMOS 原生 | 日常开发 |
-| **重量** | Omo 启发 | 复杂任务，Phase 0-3 工作流 |
-| **极速** | OLD-2 启发 | 快速执行 |
+| **轻量**（默认） | [oh-my-opencode-slim](https://github.com/alvinunreal/oh-my-opencode-slim) | 日常开发 |
+| **重量** | 启发自 [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) | 复杂任务，Phase 0-3 工作流 |
+| **极速** | 启发自 [opencode-workspace](https://github.com/kdcokenny/opencode-workspace) | 快速执行 |
 
 切换：`/ol-light`、`/ol-heavy`、`/ol-turbo`
 
@@ -341,3 +349,17 @@ bun run build
 ### 许可证
 
 [Apache-2.0](LICENSE)
+
+### 致谢
+
+**直接基础**（MIT）：
+- [oh-my-opencode-slim](https://github.com/alvinunreal/oh-my-opencode-slim) — 轻量级 OpenCode 代理编排插件。本项目是其扩展分支。
+
+**架构启发**（设计模式，非代码）：
+- [oh-my-openagent](https://github.com/code-yeongyu/oh-my-openagent) — 启发了代理架构（主代理、委派模型、规划层）、三层提示词系统、关键词模式检测和指令系统设计。
+
+**极速模式启发**（MIT）：
+- [opencode-workspace](https://github.com/kdcokenny/opencode-workspace) — 启发了极速模式提示词（"KEEP GOING" 哲学）和轻量代理设计。
+
+**未来集成**（MIT）：
+- [DeepSeek-TUI](https://github.com/Hmbown/DeepSeek-TUI) — DeepSeek 终端 UI，计划开发插件集成。

@@ -621,6 +621,36 @@ export function getAgentConfigs(
     entries.push([a.name, sdkConfig]);
   }
 
+  // 5. Hide upstream OpenCode "plan" and "build" agents by overriding them
+  //    as hidden subagents in the plugin's agent return. This is more reliable
+  //    than hiding in the config hook because OpenCode merges plugin agents
+  //    after its own built-in registration.
+  const hidePlan = config?.hide_upstream_agents?.plan ?? true;
+  const hideBuild = config?.hide_upstream_agents?.build ?? true;
+
+  if (hidePlan) {
+    entries.push([
+      'plan',
+      {
+        mode: 'subagent',
+        hidden: true,
+        description:
+          'Upstream plan agent (hidden by openagent-labforge, use prometheus instead)',
+      },
+    ]);
+  }
+  if (hideBuild) {
+    entries.push([
+      'build',
+      {
+        mode: 'subagent',
+        hidden: true,
+        description:
+          'Upstream build agent (hidden by openagent-labforge, use orchestrator/deep-worker instead)',
+      },
+    ]);
+  }
+
   return Object.fromEntries(entries);
 }
 
