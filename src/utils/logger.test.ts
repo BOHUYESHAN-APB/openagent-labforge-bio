@@ -111,19 +111,29 @@ describe('logger', () => {
     expect(content2).toContain('from session2');
   });
 
-  test('cleanup deletes files older than 7 days', () => {
-    const oldFileName = 'openagent-labforge.20260301T000000.log';
-    const oldPath = path.join(tmpDir, oldFileName);
-    fs.writeFileSync(oldPath, 'old log\n');
-
-    const eightDaysAgo = Date.now() - 8 * 24 * 60 * 60 * 1000;
-    fs.utimesSync(oldPath, new Date(eightDaysAgo), new Date(eightDaysAgo));
+  test('cleanup keeps only 10 most recent log files', () => {
+    // Create 12 log files with different timestamps
+    const now = Date.now();
+    for (let i = 0; i < 12; i++) {
+      const fileName = `openagent-labforge.file${i}.log`;
+      const filePath = path.join(tmpDir, fileName);
+      fs.writeFileSync(filePath, `log ${i}\n`);
+      // Set mtime: older files have older timestamps
+      const mtime = now - (12 - i) * 60 * 1000; // 1 minute apart
+      fs.utimesSync(filePath, new Date(mtime), new Date(mtime));
+    }
 
     initLogger('current');
     log('init');
 
-    const files = fs.readdirSync(tmpDir);
-    expect(files).not.toContain(oldFileName);
+    const files = fs.readdirSync(tmpDir).filter((f) => f.startsWith('openagent-labforge.'));
+    // Should have 10 files + current = 11 total (cleanup keeps 10, then we create 1 more)
+    expect(files.length).toBeLessThanOrEqual(11);
+    // The oldest files (file0, file1) should be deleted
+    expect(files).not.toContain('openagent-labforge.file0.log');
+    expect(files).not.toContain('openagent-labforge.file1.log');
+    // The newest files should be kept
+    expect(files).toContain('openagent-labforge.file11.log');
     expect(files.find((f) => f.includes('current'))).toBeDefined();
   });
 
@@ -138,22 +148,27 @@ describe('logger', () => {
     expect(files).toContain(recentFileName);
   });
 
-  test('cleanup with mixed-age files deletes only old ones', () => {
+  test('cleanup with mixed-age files keeps most recent', () => {
+    const now = Date.now();
+    
+    // Create an old file
     const oldFileName = 'openagent-labforge.old.log';
     const oldPath = path.join(tmpDir, oldFileName);
     fs.writeFileSync(oldPath, 'old log\n');
-    const eightDaysAgo = Date.now() - 8 * 24 * 60 * 60 * 1000;
-    fs.utimesSync(oldPath, new Date(eightDaysAgo), new Date(eightDaysAgo));
+    fs.utimesSync(oldPath, new Date(now - 1000000), new Date(now - 1000000));
 
+    // Create a recent file
     const recentFileName = 'openagent-labforge.recent.log';
     const recentPath = path.join(tmpDir, recentFileName);
     fs.writeFileSync(recentPath, 'recent log\n');
+    fs.utimesSync(recentPath, new Date(now - 1000), new Date(now - 1000));
 
     initLogger('current');
     log('init');
 
     const files = fs.readdirSync(tmpDir);
-    expect(files).not.toContain(oldFileName);
+    // Both should be kept since we have < 10 files total
+    expect(files).toContain(oldFileName);
     expect(files).toContain(recentFileName);
     expect(files.find((f) => f.includes('current'))).toBeDefined();
   });

@@ -64,6 +64,49 @@ function removeAuthFile(port: number): void {
   }
 }
 
+/**
+ * Clean up stale dashboard auth files on startup.
+ * Removes files where the PID no longer exists.
+ */
+function cleanupStaleAuthFiles(): void {
+  try {
+    const dataHome =
+      process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local', 'share');
+    const dir = path.join(dataHome, 'opencode');
+    const entries = fsSync.readdirSync(dir);
+
+    for (const entry of entries) {
+      if (!entry.startsWith('.dashboard-') || !entry.endsWith('.json')) {
+        continue;
+      }
+
+      const filePath = path.join(dir, entry);
+      try {
+        const content = fsSync.readFileSync(filePath, 'utf8');
+        const data = JSON.parse(content) as { pid: number };
+
+        // Check if PID is still alive
+        try {
+          process.kill(data.pid, 0);
+          // PID exists, keep the file
+        } catch {
+          // PID doesn't exist, delete the file
+          fsSync.unlinkSync(filePath);
+        }
+      } catch {
+        // File read/parse error, delete it
+        try {
+          fsSync.unlinkSync(filePath);
+        } catch {
+          // Ignore deletion errors
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist or other error, ignore
+  }
+}
+
 export async function readDashboardAuthFile(
   port: number,
 ): Promise<{ token: string; pid: number; startedAt: number } | null> {
@@ -1006,6 +1049,9 @@ export function createDashboardServer(config: DashboardConfig): {
 
   function start(): Promise<string> {
     if (baseUrl) return Promise.resolve(baseUrl);
+
+    // Clean up stale auth files from crashed dashboards
+    cleanupStaleAuthFiles();
 
     return new Promise((resolve, reject) => {
       const server = createServer((request, response) => {

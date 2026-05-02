@@ -5,7 +5,8 @@ import * as path from 'node:path';
 
 const LOG_PREFIX = 'openagent-labforge.';
 const LOG_SUFFIX = '.log';
-const RETENTION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const MAX_LOG_FILES = 10; // Keep only the 10 most recent log files
+const BG_TASK_RETENTION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 let logFile: string | null = null;
 let writeChain: Promise<void> = Promise.resolve();
@@ -20,25 +21,37 @@ function getLogDir(): string {
 function cleanupOldLogs(logDir: string): void {
   try {
     const entries = fs.readdirSync(logDir);
-    const now = Date.now();
+    const logFiles: Array<{ name: string; mtime: number }> = [];
+
+    // Collect all log files with their modification times
     for (const entry of entries) {
       if (entry.startsWith(LOG_PREFIX) && entry.endsWith(LOG_SUFFIX)) {
         const filePath = path.join(logDir, entry);
         try {
           const stat = fs.statSync(filePath);
-          if (now - stat.mtimeMs > RETENTION_MS) {
-            fs.unlinkSync(filePath);
-          }
+          logFiles.push({ name: entry, mtime: stat.mtimeMs });
         } catch {
           // Skip individual file errors
         }
+      }
+    }
+
+    // Sort by modification time (newest first)
+    logFiles.sort((a, b) => b.mtime - a.mtime);
+
+    // Delete files beyond the retention limit
+    for (let i = MAX_LOG_FILES; i < logFiles.length; i++) {
+      try {
+        fs.unlinkSync(path.join(logDir, logFiles[i].name));
+      } catch {
+        // Skip deletion errors
       }
     }
   } catch {
     // Directory may not exist yet — that's fine
   }
 
-  // Apply the same 7-day retention to persisted background task files
+  // Apply 7-day retention to persisted background task files
   try {
     const bgTaskDir = path.join(logDir, 'bg-tasks');
     const taskFiles = fs.readdirSync(bgTaskDir);
@@ -48,7 +61,7 @@ function cleanupOldLogs(logDir: string): void {
       const filePath = path.join(bgTaskDir, entry);
       try {
         const stat = fs.statSync(filePath);
-        if (now - stat.mtimeMs > RETENTION_MS) {
+        if (now - stat.mtimeMs > BG_TASK_RETENTION_MS) {
           fs.unlinkSync(filePath);
         }
       } catch {

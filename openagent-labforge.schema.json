@@ -540,6 +540,36 @@
         }
       }
     },
+    "checkpoint": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Enable automatic checkpoint cleanup on startup",
+          "type": "boolean"
+        },
+        "maxAgeMs": {
+          "default": 2592000000,
+          "description": "Maximum age of checkpoints in milliseconds (default: 30 days)",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "maxCheckpointsPerSession": {
+          "default": 50,
+          "description": "Maximum number of checkpoints to keep per session",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxTotalSizeMb": {
+          "default": 100,
+          "description": "Maximum total size of checkpoint storage in MB (0 = unlimited)",
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
     "bioSkills": {
       "type": "object",
       "properties": {
