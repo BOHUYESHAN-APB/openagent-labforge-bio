@@ -69,7 +69,41 @@ export function detectUserIntent(userMessage: string): UserIntent {
     };
   }
 
-  // 2. Satisfaction signals
+  // 2. Continue signals. This must run before satisfaction signals so
+  // phrases like "好的，继续" / "ok continue" do not accidentally disable
+  // full-auto mode just because they contain "好的" / "ok".
+  const continueSignals = [
+    // Chinese
+    '继续',
+    '下一步',
+    '接着',
+    '然后',
+    '还要',
+    '还需要',
+    // English
+    'continue',
+    'next',
+    'then',
+    'also',
+    'need more',
+    'keep going',
+  ];
+
+  for (const signal of continueSignals) {
+    if (lowerMessage.includes(signal)) {
+      foundSignals.push(signal);
+    }
+  }
+
+  if (foundSignals.length > 0) {
+    return {
+      type: 'continue_work',
+      confidence: 'high',
+      signals: foundSignals,
+    };
+  }
+
+  // 3. Satisfaction signals
   const satisfiedSignals = [
     // Chinese
     '完成了',
@@ -103,38 +137,6 @@ export function detectUserIntent(userMessage: string): UserIntent {
     return {
       type: 'user_satisfied',
       confidence: 'medium',
-      signals: foundSignals,
-    };
-  }
-
-  // 3. Continue signals
-  const continueSignals = [
-    // Chinese
-    '继续',
-    '下一步',
-    '接着',
-    '然后',
-    '还要',
-    '还需要',
-    // English
-    'continue',
-    'next',
-    'then',
-    'also',
-    'need more',
-    'keep going',
-  ];
-
-  for (const signal of continueSignals) {
-    if (lowerMessage.includes(signal)) {
-      foundSignals.push(signal);
-    }
-  }
-
-  if (foundSignals.length > 0) {
-    return {
-      type: 'continue_work',
-      confidence: 'high',
       signals: foundSignals,
     };
   }

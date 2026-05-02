@@ -64,10 +64,14 @@ const QUESTION_PHRASES = [
 // Statuses that indicate a todo is terminal (won't be worked on further).
 // Uses denylist approach: any status not listed here is considered incomplete.
 const TERMINAL_TODO_STATUSES = ['completed', 'cancelled'];
+const PRIMARY_AGENT_NAMES = new Set(['orchestrator', 'bio-orchestrator']);
 
 interface ContinuationState {
+  // Fallback default for legacy tool calls that do not provide sessionID.
   enabled: boolean;
+  enabledBySession: Map<string, boolean>;
   consecutiveContinuations: number;
+  consecutiveContinuationsBySession: Map<string, number>;
   pendingTimer: ReturnType<typeof setTimeout> | null;
   pendingTimerSessionId: string | null;
   suppressUntil: number;
@@ -160,6 +164,10 @@ interface LastExternalUserMessage {
   signature: string;
 }
 
+function isPrimaryAgentName(agent: string | undefined): boolean {
+  return Boolean(agent && PRIMARY_AGENT_NAMES.has(agent));
+}
+
 interface Message {
   info?: MessageInfo;
   parts?: MessagePart[];
@@ -176,6 +184,8 @@ function cancelPendingTimer(state: ContinuationState): void {
 function resetState(state: ContinuationState): void {
   cancelPendingTimer(state);
   state.consecutiveContinuations = 0;
+  state.enabledBySession.clear();
+  state.consecutiveContinuationsBySession.clear();
   state.suppressUntil = 0;
   state.isAutoInjecting = false;
   state.notifyingSessionIds.clear();
@@ -230,7 +240,9 @@ export function createTodoContinuationHook(
 
   const state: ContinuationState = {
     enabled: false,
+    enabledBySession: new Map(),
     consecutiveContinuations: 0,
+    consecutiveContinuationsBySession: new Map(),
     pendingTimer: null,
     pendingTimerSessionId: null,
     suppressUntil: 0,
@@ -369,7 +381,7 @@ export function createTodoContinuationHook(
       return;
     }
 
-    if (lastUserMessage.agent && lastUserMessage.agent !== 'orchestrator') {
+    if (lastUserMessage.agent && !isPrimaryAgentName(lastUserMessage.agent)) {
       return;
     }
 
@@ -382,7 +394,7 @@ export function createTodoContinuationHook(
     }
 
     const knownOrchestrator = isOrchestratorSession(lastUserMessage.sessionID);
-    if (lastUserMessage.agent === 'orchestrator') {
+    if (isPrimaryAgentName(lastUserMessage.agent)) {
       registerOrchestratorSession(lastUserMessage.sessionID);
     } else if (!knownOrchestrator) {
       return;
@@ -413,7 +425,7 @@ export function createTodoContinuationHook(
       const intent = detectUserIntent(userMessageText);
       if (shouldSkipContinuation(intent)) {
         // User wants to stop or is satisfied - disable continuation
-        state.enabled = false;
+        setContinuationEnabled(state, lastUserMessage.sessionID, false);
         cancelPendingTimer(state);
         log(`[${HOOK_NAME}] User intent detected: ${intent.type} - disabling continuation`, {
           sessionID: lastUserMessage.sessionID,
@@ -498,7 +510,7 @@ export function createTodoContinuationHook(
     }
 
     state.sawChatMessage = true;
-    if (input.agent === 'orchestrator') {
+    if (isPrimaryAgentName(input.agent)) {
       registerOrchestratorSession(input.sessionID);
     }
   }
@@ -507,10 +519,16 @@ export function createTodoContinuationHook(
     description:
       'Toggle auto-continuation for incomplete todos. When enabled, the orchestrator will automatically continue working through its todo list when it stops with incomplete items.',
     args: { enabled: tool.schema.boolean() },
-    execute: async (args) => {
+    execute: async (args, toolContext) => {
       const enabled = args.enabled;
-      state.enabled = enabled;
-      state.consecutiveContinuations = 0;
+      const sessionID =
+        toolContext &&
+        typeof toolContext === 'object' &&
+        'sessionID' in toolContext
+          ? (toolContext as { sessionID?: string }).sessionID
+          : undefined;
+      setContinuationEnabled(state, sessionID, enabled);
+      setConsecutiveContinuations(state, sessionID, 0);
 
       if (enabled) {
         state.suppressUntil = 0;
@@ -570,7 +588,7 @@ export function createTodoContinuationHook(
 
       // Auto-enable check: if configured, not yet enabled, and enough
       // todos exist, automatically enable auto-continue.
-      if (autoEnable && !state.enabled) {
+      if (autoEnable && !isContinuationEnabled(state, sessionID)) {
         try {
           const todosResult = await ctx.client.session.todo({
             path: { id: sessionID },
@@ -580,8 +598,8 @@ export function createTodoContinuationHook(
             (t) => !TERMINAL_TODO_STATUSES.includes(t.status),
           ).length;
           if (incompleteCount >= autoEnableThreshold) {
-            state.enabled = true;
-            state.consecutiveContinuations = 0;
+            setContinuationEnabled(state, sessionID, true);
+            setConsecutiveContinuations(state, sessionID, 0);
             state.suppressUntil = 0;
             log(
               `[${HOOK_NAME}] Auto-enabled: ${incompleteCount} incomplete todos >= threshold ${autoEnableThreshold}`,
@@ -605,7 +623,7 @@ export function createTodoContinuationHook(
       }
 
       // Safety gate 1: enabled
-      if (!state.enabled) {
+      if (!isContinuationEnabled(state, sessionID)) {
         log(`[${HOOK_NAME}] Skipped: auto-continue not enabled`, {
           sessionID,
         });
@@ -719,7 +737,7 @@ export function createTodoContinuationHook(
               parts: [createInternalAgentTextPart(REVIEW_PROMPT)],
             },
           });
-          state.consecutiveContinuations++;
+          incrementConsecutiveContinuations(state, sessionID);
         } catch (error) {
           log(`[${HOOK_NAME}] Error: failed to inject review prompt`, {
             sessionID,
@@ -768,10 +786,10 @@ export function createTodoContinuationHook(
       }
 
       // Safety gate 4: below max continuations
-      if (state.consecutiveContinuations >= maxContinuations) {
+      if (getConsecutiveContinuations(state, sessionID) >= maxContinuations) {
         log(`[${HOOK_NAME}] Skipped: max continuations reached`, {
           sessionID,
-          consecutive: state.consecutiveContinuations,
+          consecutive: getConsecutiveContinuations(state, sessionID),
           max: maxContinuations,
         });
         return;
@@ -834,7 +852,7 @@ export function createTodoContinuationHook(
         clearNotificationState(sessionID);
 
         // Guard: may have been disabled during cooldown
-        if (!state.enabled) {
+        if (!isContinuationEnabled(state, sessionID)) {
           log(`[${HOOK_NAME}] Cancelled: disabled during cooldown`, {
             sessionID,
           });
@@ -849,10 +867,13 @@ export function createTodoContinuationHook(
               parts: [createInternalAgentTextPart(CONTINUATION_PROMPT)],
             },
           });
-          state.consecutiveContinuations++;
+          const consecutive = incrementConsecutiveContinuations(
+            state,
+            sessionID,
+          );
           log(`[${HOOK_NAME}] Continuation injected`, {
             sessionID,
-            consecutive: state.consecutiveContinuations,
+            consecutive,
           });
         } catch (error) {
           log(`[${HOOK_NAME}] Error: failed to inject continuation`, {
@@ -886,9 +907,9 @@ export function createTodoContinuationHook(
           !state.isAutoInjecting &&
           !isNotification &&
           isOrchestrator &&
-          state.consecutiveContinuations > 0
+          getConsecutiveContinuations(state, sessionID) > 0
         ) {
-          state.consecutiveContinuations = 0;
+          setConsecutiveContinuations(state, sessionID, 0);
           log(`[${HOOK_NAME}] Reset consecutive count on user activity`, {
             sessionID,
           });
@@ -932,6 +953,8 @@ export function createTodoContinuationHook(
         }
 
         state.orchestratorSessionIds.delete(deletedSessionId);
+        state.enabledBySession.delete(deletedSessionId);
+        state.consecutiveContinuationsBySession.delete(deletedSessionId);
         clearNotificationState(deletedSessionId);
         if (state.orchestratorSessionIds.size === 0) {
           resetState(state);
@@ -971,11 +994,11 @@ export function createTodoContinuationHook(
     } else if (arg === 'off') {
       newEnabled = false;
     } else {
-      newEnabled = !state.enabled;
+      newEnabled = !isContinuationEnabled(state, input.sessionID);
     }
 
-    state.enabled = newEnabled;
-    state.consecutiveContinuations = 0;
+    setContinuationEnabled(state, input.sessionID, newEnabled);
+    setConsecutiveContinuations(state, input.sessionID, 0);
 
     if (!newEnabled) {
       // Cancel any pending timer on disable
@@ -1037,4 +1060,54 @@ export function createTodoContinuationHook(
     handleChatMessage,
     handleCommandExecuteBefore,
   };
+}
+
+function isContinuationEnabled(
+  state: ContinuationState,
+  sessionID: string,
+): boolean {
+  return state.enabledBySession.get(sessionID) ?? state.enabled;
+}
+
+function setContinuationEnabled(
+  state: ContinuationState,
+  sessionID: string | undefined,
+  enabled: boolean,
+): void {
+  if (sessionID) {
+    state.enabledBySession.set(sessionID, enabled);
+    return;
+  }
+  state.enabled = enabled;
+}
+
+function getConsecutiveContinuations(
+  state: ContinuationState,
+  sessionID: string,
+): number {
+  return (
+    state.consecutiveContinuationsBySession.get(sessionID) ??
+    state.consecutiveContinuations
+  );
+}
+
+function setConsecutiveContinuations(
+  state: ContinuationState,
+  sessionID: string | undefined,
+  count: number,
+): void {
+  if (sessionID) {
+    state.consecutiveContinuationsBySession.set(sessionID, count);
+    return;
+  }
+  state.consecutiveContinuations = count;
+}
+
+function incrementConsecutiveContinuations(
+  state: ContinuationState,
+  sessionID: string,
+): number {
+  const next = getConsecutiveContinuations(state, sessionID) + 1;
+  setConsecutiveContinuations(state, sessionID, next);
+  return next;
 }
