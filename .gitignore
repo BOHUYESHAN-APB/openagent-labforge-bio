@@ -59,6 +59,10 @@ REVIEW.md
 docs/plans
 docs/superpowers
 
+# Internal design docs
+designer-*.md
+*-handoff.md
+
 # Python
 __pycache__/
 *.py[cod]
