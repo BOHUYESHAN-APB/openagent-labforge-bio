@@ -6,13 +6,11 @@ import {
   browser_puppeteer,
   chrome_devtools_mcp,
   deepwiki_mcp,
-  fetch_browser,
   open_websearch_mcp,
   paper_search_mcp,
   semantic_scholar_fastmcp,
 } from './extended';
 import { grep_app } from './grep-app';
-import { bioNext, uniprot } from './bioinformatics.js';
 import type { McpConfig } from './types';
 import { createWebsearchConfig, websearch } from './websearch';
 
@@ -29,13 +27,10 @@ const allBuiltinMcps: Record<McpName, McpConfig> = {
   arxiv_mcp,
   browser_puppeteer,
   chrome_devtools_mcp,
-  fetch_browser,
   deepwiki_mcp,
   open_websearch_mcp,
   paper_search_mcp,
   semantic_scholar_fastmcp,
-  bioNext,
-  uniprot,
 };
 
 /**

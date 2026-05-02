@@ -51,17 +51,9 @@
     "arxiv_mcp",
     "browser_puppeteer",
     "chrome_devtools_mcp",
-    "fetch_browser",
     "deepwiki_mcp",
     "open_websearch_mcp",
     "paper_search_mcp"
-    
-    // Bio MCP（默认禁用，按需启用）
-    // "ncbi_eutils",
-    // "uniprot",
-    // "pdb",
-    // "ensembl",
-    // "biocyc"
   ],
 
   // ========== Agent 配置 ==========

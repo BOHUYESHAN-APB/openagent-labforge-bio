@@ -172,12 +172,14 @@ Switch at runtime: `/ol-light`, `/ol-heavy`, `/ol-turbo`
 
 ## Bioinformatics
 
-### Integrated Bio MCPs
+### Project-installable Bio MCPs
 
 | MCP | License | Status |
 |-----|---------|--------|
-| [UniProt MCP](https://github.com/TakumiY235/uniprot-mcp-server) | MIT | Bundled (disabled by default) |
-| [BioNext MCP](https://github.com/Cherine0205/BioNext-mcp) | MIT | Bundled (disabled by default) |
+| [UniProt MCP](https://github.com/TakumiY235/uniprot-mcp-server) | MIT | Project install required |
+| [BioNext MCP](https://github.com/Cherine0205/BioNext-mcp) | MIT | Project install required |
+
+Project-installed MCPs should live under `.opencode/openagent-labforge/mcp/servers/` in the active repository. They are not started by default because they require clone/build steps and project-local environments.
 
 ### Recommended Bio MCPs (user-installable)
 

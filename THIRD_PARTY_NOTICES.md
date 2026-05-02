@@ -32,18 +32,17 @@ integrated by openagent-labforge.
 | arxiv_mcp | [arxiv-mcp-server](https://github.com/) | Apache-2.0 | `uvx arxiv-mcp-server` |
 | browser_puppeteer | [@modelcontextprotocol/server-puppeteer](https://github.com/modelcontextprotocol/servers) | MIT | `npx -y @modelcontextprotocol/server-puppeteer` |
 | chrome_devtools_mcp | [chrome-devtools-mcp](https://github.com/) | MIT | `npx -y chrome-devtools-mcp@latest` |
-| fetch_browser | [@TheSethRose/Fetch-Browser](https://github.com/) | MIT | `npx -y @TheSethRose/Fetch-Browser` |
 | deepwiki_mcp | [mcp.deepwiki.com](https://mcp.deepwiki.com) | Proprietary | Remote MCP |
 | open_websearch_mcp | [open-websearch](https://github.com/) | Apache-2.0 | `npx -y open-websearch@2.0.0` |
 | paper_search_mcp | [paper-search-mcp](https://github.com/) | MIT | `uvx --from paper-search-mcp ...` |
 | semantic_scholar_fastmcp | [semantic-scholar-fastmcp](https://github.com/) | MIT | `uvx --from semantic-scholar-fastmcp<3.0 ...` |
 
-### Bioinformatics MCPs (Integrated)
+### Bioinformatics MCPs (Project-installable templates)
 
 | Component | Upstream | License (verified) | Command | Notes |
 |-----------|----------|-------------------|---------|-------|
-| bioNext | [Cherine0205/BioNext-mcp](https://github.com/Cherine0205/BioNext-mcp) | MIT | `node` (local install) | General bioinformatics workflow engine |
-| uniprot | [TakumiY235/uniprot-mcp-server](https://github.com/TakumiY235/uniprot-mcp-server) | MIT | `uv --directory ... run uniprot-mcp-server` | Protein sequence/function data |
+| bioNext | [Cherine0205/BioNext-mcp](https://github.com/Cherine0205/BioNext-mcp) | MIT | project-local clone/build required | General bioinformatics workflow engine |
+| uniprot | [TakumiY235/uniprot-mcp-server](https://github.com/TakumiY235/uniprot-mcp-server) | MIT | project-local clone/build required | Protein sequence/function data |
 
 ### Bioinformatics MCPs (Recommended, User-Installable)
 
@@ -84,9 +83,9 @@ Before enabling any MCP in default profiles:
 ## Section 4: Usage Notes
 
 - All MCPs are `enabled: false` by default except: websearch, context7, grep_app, semantic_scholar_fastmcp
-- Bio MCPs (bioNext, uniprot) require local installation of their respective packages
+- Project-installable Bio MCPs (bioNext, uniprot) require clone/build under `.opencode/openagent-labforge/mcp/servers/` before use
 - Windows users need `uv` installed (`pip install uv`) for Python-based MCPs
-- Local MCP commands are automatically wrapped with `cmd /c` on Windows
+- Windows local MCP commands: npm-family shims are wrapped with `cmd /c`; `uv`/`uvx` run directly
 - `semantic_scholar_fastmcp` uses `SEMANTIC_SCHOLAR_ENABLE_HTTP_BRIDGE=0` env var (not `--no-http` flag, which is invalid)
 - Augmented-Nature servers (PDB, AlphaFold, GeneOntology, STRING) have non-commercial licenses — NOT integrated
 - PubMed MCP (NCBI) and Semantic Scholar (Allen AI) serve different databases — no conflict, can coexist

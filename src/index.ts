@@ -1,7 +1,6 @@
 import type { Plugin } from '@opencode-ai/plugin';
 import { existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { createAgents, getAgentConfigs, getDisabledAgents } from './agents';
 import { buildOrchestratorPrompt } from './agents/orchestrator';
 import {
@@ -52,6 +51,7 @@ import { detectBioTaskTool } from './tools/detect-bio-task.js';
 import { CheckpointManager } from './checkpoint';
 import { PromptModeManager } from './prompt-mode/manager.js';
 import { createModeCommandHandler } from './prompt-mode/commands.js';
+import { getPackageResourceDir, getPackageRoot } from './paths/plugin-paths';
 import {
   ORCHESTRATOR_HEAVY_PROMPT,
   ORCHESTRATOR_TURBO_PROMPT,
@@ -88,7 +88,7 @@ import { initLogger, log } from './utils/logger';
 import { SubagentDepthTracker } from './utils/subagent-depth';
 import { collapseSystemInPlace } from './utils/system-collapse';
 
-const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
+const packageRoot = getPackageRoot(import.meta.url);
 
 function resolveBioSkillsRepoPath(
   configuredPath: string | undefined,
@@ -96,7 +96,7 @@ function resolveBioSkillsRepoPath(
 ): string {
   const candidates = [
     configuredPath,
-    join(packageRoot, 'resources', 'bioSkills'),
+    getPackageResourceDir(packageRoot, 'bioSkills'),
     join(packageRoot, 'Future', 'clone', 'bioSkills'),
     join(workspaceRoot, 'resources', 'bioSkills'),
     join(workspaceRoot, 'Future', 'clone', 'bioSkills'),

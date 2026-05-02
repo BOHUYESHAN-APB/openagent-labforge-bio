@@ -13,7 +13,7 @@ export const DEFAULT_AGENT_MCPS: Record<AgentName, string[]> = {
   'deep-worker': ['*', '!context7'],
   prometheus: [],
   atlas: [],
-  'bio-orchestrator': ['*', '!context7', 'ncbi_eutils', 'uniprot', 'pdb', 'ensembl', 'biocyc'],
+  'bio-orchestrator': ['*', '!context7'],
   // Existing subagents
   designer: [],
   oracle: [],
