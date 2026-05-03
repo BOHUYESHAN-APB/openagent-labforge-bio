@@ -1,5 +1,6 @@
 import type { McpName, WebsearchConfig } from '../config';
 import { normalizeLocalMcpCommand } from '../utils/mcp-command-normalizer';
+import { bioNext, uniprot } from './bioinformatics';
 import { context7 } from './context7';
 import {
   arxiv_mcp,
@@ -31,6 +32,8 @@ const allBuiltinMcps: Record<McpName, McpConfig> = {
   open_websearch_mcp,
   paper_search_mcp,
   semantic_scholar_fastmcp,
+  bioNext,
+  uniprot,
 };
 
 /**
