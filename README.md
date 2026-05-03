@@ -167,6 +167,19 @@ Switch at runtime: `/ol-light`, `/ol-heavy`, `/ol-turbo`
 | `/auto-continue [on\|off]` | Toggle or explicitly enable/disable auto-continuation |
 | `/preset [name]` | Switch agent presets |
 | `/interview [idea]` | Start product interview |
+| `/ol-karpathy [task-or-review-target]` | Apply Karpathy coding guidelines as a prompt command |
+
+### Guidance Skills
+
+| Skill | Description |
+|-------|-------------|
+| `karpathy-guidelines` | Full migrated Karpathy prompt for reducing LLM coding mistakes: think before coding, simplicity first, surgical changes, and goal-driven verification |
+
+Use `/ol-karpathy` when you want the current session to apply the Karpathy
+behavior without manually loading a skill. The full prompt is also available as
+the `karpathy-guidelines` skill for agents that support skill loading. It is
+especially useful before implementation, refactoring, code review, or any task
+where assumptions, overengineering, or broad accidental diffs are likely.
 
 ### Media / Visual QA Tools
 

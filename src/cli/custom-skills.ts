@@ -40,6 +40,13 @@ export const CUSTOM_SKILLS: CustomSkill[] = [
     allowedAgents: ['orchestrator'],
     sourcePath: 'src/skills/codemap',
   },
+  {
+    name: 'karpathy-guidelines',
+    description:
+      'Behavioral coding guidelines for assumptions, simplicity, surgical diffs, and verifiable goals',
+    allowedAgents: ['orchestrator', 'oracle', 'fixer', 'reviewer'],
+    sourcePath: 'src/skills/karpathy-guidelines',
+  },
 ];
 
 /**

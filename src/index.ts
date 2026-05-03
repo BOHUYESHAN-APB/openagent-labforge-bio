@@ -28,6 +28,7 @@ import {
   CHECKPOINT_RESUME_TEMPLATE,
   CHECKPOINT_TEMPLATE,
   HANDOFF_TEMPLATE,
+  KARPATHY_TEMPLATE,
   RALPH_LOOP_TEMPLATE,
   START_WORK_TEMPLATE,
   STOP_CONTINUATION_TEMPLATE,
@@ -916,6 +917,14 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         ] = {
           template: STOP_CONTINUATION_TEMPLATE,
           description: 'Stop all continuation mechanisms for current session',
+        };
+      }
+      if (!configCommand?.['ol-karpathy']) {
+        (opencodeConfig.command as Record<string, unknown>)['ol-karpathy'] = {
+          template: KARPATHY_TEMPLATE,
+          description:
+            'Apply Karpathy coding guidelines: assumptions, simplicity, surgical diffs, verifiable goals',
+          argumentHint: '[task-or-review-target]',
         };
       }
     },
