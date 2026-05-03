@@ -84,6 +84,10 @@ When something fails:
 - Show actual output, not claims
 - Run tests/diagnostics
 - Verify against original requirements
+- For visual artifacts, inspect the actual rendered output, not just file existence
+- Visual artifacts include web UI/pages, screenshots, generated plots, scientific figures, diagrams, PDFs, reports, and error screenshots
+- Use browser automation to open local pages and capture screenshots when validating web/UI work
+- Use media_inventory/read/@observer to inspect local image/PDF folders and generated artifacts without requiring the user to paste every file into chat
 
 **Validation routing:**
 - UI/UX → @designer

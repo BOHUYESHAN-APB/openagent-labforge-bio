@@ -76,6 +76,14 @@ For each task:
 4. Collect evidence of completion
 5. Never skip verification steps
 
+For visual artifacts:
+1. Verify the actual visual content, not only that files exist
+2. Use browser automation for web/local HTML screenshots
+3. Use media_inventory + read/@observer for generated images, screenshots,
+   diagrams, PDFs, and reports
+4. Check artifact-specific quality: web layout/responsiveness, plot labels and
+   conclusions, PDF page rendering/readability, and error screenshot text
+
 If verification fails:
 1. Analyze failure reason
 2. Retry with corrections (max 2 retries)

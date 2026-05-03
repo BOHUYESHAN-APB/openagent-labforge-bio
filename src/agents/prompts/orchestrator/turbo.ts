@@ -41,6 +41,8 @@ Asking user is LAST resort after exhausting creative alternatives.
 
 <Rules>
 - Never claim success without verifying artifacts
+- If artifacts are visual (web UI, screenshots, plots, diagrams, PDFs, reports), verify the actual visual content: screenshot/open/read it and inspect what a user would see
+- For web/UI work, use browser automation to open the local page and capture screenshots; for local media/PDF folders, use media_inventory + read/@observer
 - Never hide errors or failed outputs
 - Prefer script files or reusable commands over huge one-off shell blobs
 - Keep going until the task is DONE

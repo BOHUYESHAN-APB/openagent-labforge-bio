@@ -168,6 +168,51 @@ Switch at runtime: `/ol-light`, `/ol-heavy`, `/ol-turbo`
 | `/preset [name]` | Switch agent presets |
 | `/interview [idea]` | Start product interview |
 
+### Media / Visual QA Tools
+
+| Tool | Description |
+|------|-------------|
+| `media_inventory` | Discover image/PDF files in a file or directory and return absolute paths for `read` or `@observer` analysis |
+
+Use `media_inventory` when you generate plots, screenshots, diagrams, or PDF
+artifacts and want the AI to inspect them. OpenCode's native `read` tool can
+load returned image/PDF paths as multimodal attachments for a vision-capable
+model; `@observer` is the preferred agent for batch visual QA because it keeps
+raw image bytes out of the main context.
+
+By default, the tool scans only the requested file or directory (not
+subdirectories), includes PDFs, returns up to 50 media files, and has a hard cap
+of 500 returned files. Set `recursive: true` to scan subdirectories. Large scans
+are bounded and may report incomplete results if the entry/dir budget is reached.
+`@observer` should be configured with a vision-capable model for actual image or
+PDF interpretation.
+
+Recommended checks for generated images include blank/corrupt output, missing
+labels or legends, unreadable text, poor contrast, problematic color palettes,
+and whether the figure visually supports the intended engineering or
+bioinformatics conclusion.
+
+Visual QA is not bioinformatics-specific. Any agent planning or completing work
+that produces visual artifacts should verify what a user would actually see:
+
+- **Web/UI work**: open the local app or generated HTML with browser automation,
+  capture screenshots, then inspect rendering, layout, responsive behavior,
+  overflow, blank pages, and visible errors.
+- **Reference screenshots**: read the image/PDF from disk first; do not require
+  users to paste every UI reference into the chat window.
+- **Scientific/bioinformatics figures**: check labels, legends, units,
+  statistical annotations, color distinguishability, and whether the figure
+  supports the stated conclusion.
+- **PDFs/reports**: check page rendering, readability, embedded tables/figures,
+  truncation, missing pages, and OCR-critical text.
+- **Diagrams and engineering charts**: check node/edge clarity, axes/ranges,
+  legend consistency, and whether the visual communicates the intended flow or
+  trend.
+
+For one or two target files, the main agent can call `read` directly after
+`media_inventory`. For directories or batches, delegate visual interpretation to
+`@observer` / `multimodal-looker` so raw media does not pollute the main context.
+
 ---
 
 ## Bioinformatics

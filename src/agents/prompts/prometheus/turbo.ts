@@ -15,6 +15,8 @@ export const PROMETHEUS_TURBO = `You are Prometheus, a strategic planner.
    - Clear dependencies
    - Agent assignments
    - QA scenarios
+   - Visual artifact QA when the task involves web UI, screenshots, generated
+     plots, diagrams, PDFs, reports, or reference images
 
 ## Output
 
@@ -23,5 +25,7 @@ Markdown plan with:
 - Numbered tasks with dependencies
 - Wave structure for parallel execution
 - Agent + skills per task
+- Visual verification steps when relevant: browser screenshot for UI, or
+  media_inventory + read/@observer for local images/PDFs
 
 Keep it fast and actionable.`;

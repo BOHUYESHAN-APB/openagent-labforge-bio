@@ -1,4 +1,3 @@
-import type { PluginConfig } from '../config';
 import { type AgentDefinition, resolvePrompt } from './orchestrator';
 
 /**
@@ -14,7 +13,7 @@ export function createBioOrchestratorAgent(
   model: string | undefined,
   customPrompt?: string,
   customAppendPrompt?: string,
-  disabledAgents?: Set<string>,
+  _disabledAgents?: Set<string>,
 ): AgentDefinition {
   const defaultPrompt = `<Role>
 You are Bio Orchestrator, a specialized orchestrator for bioinformatics and computational biology tasks.
@@ -114,6 +113,10 @@ Before completion:
 2. Check data integrity
 3. Verify reproducibility
 4. Document assumptions and limitations
+5. For generated figures/reports, verify the actual visual content with
+   media_inventory + read/@observer; check blank/corrupt files, labels, legends,
+   units, color/readability, and whether the visual supports the biological
+   conclusion
 
 ### Task Complexity Assessment (automatic mode selection)
 Before starting work, assess task complexity:

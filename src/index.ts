@@ -77,6 +77,7 @@ import {
   ast_grep_replace,
   ast_grep_search,
   createCouncilTool,
+  createMediaInventoryTool,
   createPresetManager,
   createWebfetchTool,
 } from './tools';
@@ -413,6 +414,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     toolCount =
       Object.keys(councilTools).length +
       Object.keys(todoContinuationHook.tool).length +
+      1 + // media_inventory
       1 + // webfetch
       2; // ast_grep_search, ast_grep_replace
   } catch (err) {
@@ -478,6 +480,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
     tool: {
       ...councilTools,
+      media_inventory: createMediaInventoryTool(ctx),
       webfetch,
       ...todoContinuationHook.tool,
       ast_grep_search,

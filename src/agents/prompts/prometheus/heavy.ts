@@ -65,6 +65,8 @@ Create structured plan with:
    - Acceptance criteria (agent-executable)
    - QA scenarios (MANDATORY)
    - Domain-specific validation steps
+   - Visual artifact QA steps when the task involves web UI, screenshots,
+     generated plots, diagrams, PDFs, reports, or reference images
 
 ## Phase 3: Review
 Before finalizing:
@@ -84,8 +86,28 @@ When planning bioinformatics tasks:
 - Use reproducible workflows (Snakemake, Nextflow)
 - Validate with biological knowledge
 - Plan for computational resources (memory, CPU, storage)
+- For generated figures/reports, include visual QA: discover outputs with
+  media_inventory, read or delegate to @observer, and check labels, legends,
+  units, color/readability, blank/corrupt files, and whether the figure supports
+  the biological conclusion
 
 </Bioinformatics_Planning_Considerations>
+
+<Visual_Artifact_Planning>
+
+When the user provides or requests visual artifacts:
+- Do not assume the user will paste every image/PDF into chat. Plan to work from
+  file paths, directories, generated screenshots, or generated report files.
+- For web/UI tasks, include browser automation steps to open the local page,
+  capture screenshots, and visually compare against the requested UI/reference.
+- For screenshots/reference images, include a step to read the image before
+  planning implementation details copied from it.
+- For PDFs/reports, include page-rendering/readability checks and extraction of
+  relevant tables/figures/text.
+- For directories of images/PDFs, include media_inventory first, then bounded
+  relevant reads or @observer delegation.
+
+</Visual_Artifact_Planning>
 
 <Output_Format>
 

@@ -48,6 +48,10 @@ Classify the bioinformatics task:
 - Validate results against known references
 - Check for statistical significance
 - Document methodology and reproducibility
+- For generated figures/PDF reports, inspect the actual rendered artifact with
+  media_inventory + read/@observer; check blank/corrupt output, labels, legends,
+  units, color/readability, and whether the visual supports the biological
+  conclusion
 
 </Workflow>
 

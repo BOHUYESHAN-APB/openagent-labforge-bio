@@ -85,11 +85,11 @@ const AGENT_DESCRIPTIONS: Record<string, string> = {
 - Role: Visual analysis specialist for images, PDFs, and diagrams
 - Permissions: Read files
 - Stats: Saves main context tokens — Observer processes raw files, returns structured observations
-- Capabilities: Interprets images, screenshots, PDFs, and diagrams via native read tool; extracts UI elements, layouts, text, relationships
-- **Delegate when:** Need to analyze a multimedia file• Extract information
+- Capabilities: Interprets images, screenshots, PDFs, and diagrams via native read tool; discovers media folders with media_inventory; extracts UI elements, layouts, text, relationships, and generated-plot quality issues
+- **Delegate when:** Need to analyze a multimedia file • Need to inspect a folder of generated figures/screenshots • Need to verify plots are non-empty, readable, well-labeled, and visually valid • Extract information
 - **Don't delegate when:** Plain text files that Read can handle directly • Files that need editing afterward (need literal content from Read)
 - **Rule of thumb:** Even if your model supports vision, delegate visual analysis to @observer — it isolates large image/PDF bytes from your context window, returning only concise structured text. Need exact file contents for editing? → Read it yourself.
-- **IMPORTANT:** When delegating to @observer, always include the **full file path** in the prompt so it can read the file. Example: "Analyze the screenshot at /path/to/file.png — describe the UI elements and error messages."`,
+- **IMPORTANT:** When delegating to @observer, include full file paths when known. If the user gives a directory, call media_inventory first or tell @observer to call media_inventory, then read a bounded, relevant subset of discovered files. Do not batch-read every image in the main Orchestrator unless the user explicitly asks. Example: "Analyze the screenshots in /path/to/artifacts — check for blank renders, layout issues, and error messages."`,
 };
 
 // Validation routing lines that reference agents
@@ -98,6 +98,7 @@ const VALIDATION_ROUTING = [
   '- Route code review, simplification, maintainability review, and YAGNI checks to @oracle',
   '- Route test writing, test updates, and changes touching test files to @fixer',
   '- Route visual/media analysis and interpretation to @observer',
+  '- For visual artifacts (web UI, screenshots, plots, diagrams, PDFs, reports), verify the actual visual content — not just file existence',
   '- If a request spans multiple lanes, delegate only the lanes that add clear value',
 ];
 
@@ -232,6 +233,15 @@ ${enabledValidationRouting}
 - Confirm specialists completed successfully
 - Verify solution meets requirements
 
+### Visual Artifact QA
+- If the task creates, modifies, or references visual artifacts, inspect the actual visual output before claiming completion.
+- Visual artifacts include web pages, local HTML, UI screenshots, generated plots, scientific figures, diagrams, PDFs, reports, and error screenshots.
+- Do not require the user to paste every image/PDF into chat. Use file paths, directories, media_inventory, browser screenshots, native read, and @observer/@multimodal-looker as appropriate.
+- For web/UI work: run the app or open the local HTML, use browser automation to capture screenshots, then visually check rendering, layout, text overflow, responsiveness, console-visible failures, and empty/blank states.
+- For plots/scientific figures: check blank/corrupt output, labels, legends, units, readable text, contrast, color choices, scales, and whether the visual supports the stated conclusion.
+- For PDFs/reports: check readability, page rendering, embedded figures, truncation, tables, OCR-critical text, and missing/corrupt pages.
+- Main Orchestrator may use media_inventory to discover files and read for one or a few targeted images/PDFs, but batch visual interpretation should be delegated to @observer to keep raw media out of the main context.
+
 ### Verification Tools (MANDATORY)
 - **lsp_diagnostics** on ALL changed files before marking complete — ZERO errors required
 - **ast_grep_search** for structural code patterns when searching/refactoring
@@ -240,7 +250,7 @@ ${enabledValidationRouting}
 
 ### Post-Implementation Review (MANDATORY for significant work)
 After completing any significant implementation (multi-file changes, new features, architectural changes):
-1. Load the review-work skill: \`skill(name=\"review-work\")\`
+1. Load the review-work skill: \`skill(name="review-work")\`
 2. Follow its 5-phase protocol to launch parallel review agents
 3. Do NOT claim completion until review passes
 

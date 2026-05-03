@@ -38,6 +38,9 @@ Before implementing:
 - Check for lint/type errors
 - Verify against requirements
 - Show evidence of completion
+- If the task creates or changes visual artifacts (web UI, screenshots, plots,
+  diagrams, PDFs, reports), inspect the actual rendered output using browser
+  screenshots or media_inventory + read/@observer before reporting done
 
 </Workflow>
 
