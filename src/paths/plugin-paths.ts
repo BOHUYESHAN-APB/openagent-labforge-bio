@@ -39,6 +39,14 @@ export function getProjectCheckpointDir(workspaceRoot: string): string {
   return join(getProjectStateDir(workspaceRoot), 'checkpoints');
 }
 
+export function getProjectPlansDir(workspaceRoot: string): string {
+  return join(getProjectStateDir(workspaceRoot), 'plans');
+}
+
+export function getProjectBoulderFile(workspaceRoot: string): string {
+  return join(getProjectStateDir(workspaceRoot), 'boulder.json');
+}
+
 export function getProjectImagesDir(workspaceRoot: string): string {
   return join(getProjectStateDir(workspaceRoot), 'images');
 }

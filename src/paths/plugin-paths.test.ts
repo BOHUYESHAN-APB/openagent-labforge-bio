@@ -10,11 +10,13 @@ import {
   getGlobalStateDir,
   getOpenCodeDataDir,
   getPackageResourceDir,
+  getProjectBoulderFile,
   getProjectCheckpointDir,
   getProjectImagesDir,
   getProjectMcpDir,
   getProjectMcpServersDir,
   getProjectMemoryDir,
+  getProjectPlansDir,
   getProjectStateDir,
 } from './plugin-paths';
 
@@ -41,6 +43,12 @@ describe('plugin paths', () => {
     );
     expect(getProjectCheckpointDir(root)).toBe(
       join(root, '.opencode', 'openagent-labforge', 'checkpoints'),
+    );
+    expect(getProjectPlansDir(root)).toBe(
+      join(root, '.opencode', 'openagent-labforge', 'plans'),
+    );
+    expect(getProjectBoulderFile(root)).toBe(
+      join(root, '.opencode', 'openagent-labforge', 'boulder.json'),
     );
     expect(getProjectImagesDir(root)).toBe(
       join(root, '.opencode', 'openagent-labforge', 'images'),

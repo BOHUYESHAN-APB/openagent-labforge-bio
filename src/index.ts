@@ -58,6 +58,7 @@ import {
   createModeDetectorHook,
   createPhaseReminderHook,
   createPostFileToolNudgeHook,
+  createStartWorkHook,
   createTaskSessionManagerHook,
   createTodoContinuationHook,
   ForegroundFallbackManager,
@@ -193,6 +194,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   let thinkingLanguageHook: ReturnType<typeof createThinkingLanguageHook>;
   let interviewManager: ReturnType<typeof createInterviewManager>;
   let presetManager: ReturnType<typeof createPresetManager>;
+  let startWorkHook: ReturnType<typeof createStartWorkHook>;
   let councilTools: Record<string, unknown>;
   let webfetch: ReturnType<typeof createWebfetchTool>;
   let rewriteDisplayNameMentions: ReturnType<
@@ -411,6 +413,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     thinkingLanguageHook = createThinkingLanguageHook();
     interviewManager = createInterviewManager(ctx, config);
     presetManager = createPresetManager(ctx, config);
+    startWorkHook = createStartWorkHook(ctx);
 
     toolCount =
       Object.keys(councilTools).length +
@@ -890,9 +893,9 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         };
       }
 
-      // Register workflow commands (/start-work, /ralph-loop, /cancel-ralph, /stop-continuation)
-      if (!configCommand?.['start-work']) {
-        (opencodeConfig.command as Record<string, unknown>)['start-work'] = {
+      // Register workflow commands (/ol-start-work, /ralph-loop, /cancel-ralph, /stop-continuation)
+      if (!configCommand?.['ol-start-work']) {
+        (opencodeConfig.command as Record<string, unknown>)['ol-start-work'] = {
           template: START_WORK_TEMPLATE,
           description: 'Start work session from Prometheus plan',
           argumentHint: '[plan-name] [--worktree <path>]',
@@ -1050,6 +1053,18 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           arguments: string;
         },
         output as { parts: Array<{ type: string; text?: string }> },
+      );
+
+      await startWorkHook.handleCommandExecuteBefore(
+        input as {
+          command: string;
+          sessionID: string;
+          arguments: string;
+        },
+        output as {
+          parts: Array<{ type: string; text?: string }>;
+          message?: { agent?: string };
+        },
       );
 
       // Handle prompt mode commands (/ol-light, /ol-heavy, /ol-turbo)

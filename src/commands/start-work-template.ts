@@ -1,74 +1,63 @@
-export const START_WORK_TEMPLATE = `You are starting a work session from a plan.
+export const START_WORK_TEMPLATE = `You are starting an OpenAgent Labforge work session from a Prometheus plan.
 
-## ARGUMENTS
+## COMMAND
 
-- \`/start-work [plan-name] [--worktree <path>]\`
-  - \`plan-name\` (optional): name or partial match of the plan to start
-  - \`--worktree <path>\` (optional): absolute path to an existing git worktree to work in
+- /ol-start-work [plan-name] [--worktree <path>]
+- The old /start-work spelling is intentionally not advertised. User-facing workflow commands must use the ol- prefix.
 
-## WHAT TO DO
+## WHAT THE HOOK ALREADY DID
 
-1. **Find available plans**: Search for plan files at \`.sisyphus/plans/\` or \`.opencode/openagent-labforge/plans/\`
+The command hook should have:
+1. Located a plan file under .opencode/openagent-labforge/plans/ or legacy .sisyphus/plans/.
+2. Created or updated .opencode/openagent-labforge/boulder.json.
+3. Appended the current session ID to boulder state.
+4. Injected the selected plan path, progress, and executor context.
+5. Selected Atlas as the execution agent when the host supports backend switching.
 
-2. **Check for active boulder state**: Read \`.sisyphus/boulder.json\` or \`.opencode/openagent-labforge/boulder.json\` if it exists
+If the hook reports no matching plan, do not invent work. Ask the user to ask Prometheus to create a saved plan first.
 
-3. **Decision logic**:
-   - If boulder.json exists AND plan is NOT complete (has unchecked boxes):
-     - **APPEND** current session to session_ids
-     - Continue work on existing plan
-   - If no active plan OR plan is complete:
-     - List available plan files
-     - If ONE plan: auto-select it
-     - If MULTIPLE plans: show list with timestamps, ask user to select
+## EXECUTION CONTRACT
 
-4. **Worktree Setup** (ONLY when \`--worktree\` was explicitly specified):
-   1. \`git worktree list --porcelain\` - see available worktrees
-   2. Create: \`git worktree add <absolute-path> <branch-or-HEAD>\`
-   3. Update boulder.json to add \`"worktree_path": "<absolute-path>"\`
+1. Read the FULL plan file before delegating or editing anything.
+2. Create todos for every incomplete top-level plan checkbox before starting work.
+3. Execute from the first unchecked top-level checkbox.
+4. Use granular todos for substeps, but the plan file checkboxes are the cross-session source of truth.
+5. When a top-level plan task is complete, update its checkbox in the plan file from [ ] to [x].
+6. Continue until all implementation tasks and final review tasks are complete, unless blocked or user input is required.
 
-5. **Create/Update boulder.json**:
-   \`\`\`json
-   {
-     "active_plan": "/absolute/path/to/plan.md",
-     "started_at": "ISO_TIMESTAMP",
-     "session_ids": ["session_id_1", "session_id_2"],
-     "plan_name": "plan-name",
-     "worktree_path": "/absolute/path/to/git/worktree"
-   }
-   \`\`\`
+## PLAN CHECKBOX FORMAT
 
-6. **Read the plan file** and start executing tasks
+Only top-level structured checkboxes count for boulder progress:
 
-## TASK BREAKDOWN (MANDATORY)
+- [ ] 1. Implementation task title
+- [ ] 2. Implementation task title
+- [ ] F1. Plan Compliance Audit
+- [ ] F2. Code Quality Review
+- [ ] F3. Real Manual QA
+- [ ] F4. Scope Fidelity Check
 
-After reading the plan file, you MUST decompose every plan task into granular sub-steps and register ALL of them as todo items BEFORE starting any work.
+Nested checkboxes are acceptance criteria or evidence items; do not count them as top-level progress.
 
-**How to break down**:
-- Each plan checkbox item must be split into concrete, actionable sub-tasks
-- Sub-tasks should be specific enough that each one touches a clear set of files/functions
-- Include: file to modify, what to change, expected behavior, and how to verify
-- Do NOT leave any task vague
+## REVIEW AND COUNCIL
 
-**Example**:
-Plan task: \`- [ ] Add rate limiting to API\`
-  1. Create \`src/middleware/rate-limiter.ts\` with sliding window algorithm
-  2. Add RateLimiter middleware to \`src/app.ts\` router chain
-  3. Add rate limit headers to response
-  4. Add test: verify 429 response after exceeding limit
+- Run the final review wave before claiming completion.
+- Use @oracle or @reviewer for normal code-quality and plan-compliance review.
+- Use @council only when multi-model consensus is useful for high-risk architecture, security, data integrity, ambiguous trade-offs, or when the user explicitly asks for multiple independent opinions.
+- @council is not the executor and must not be used to perform implementation tasks.
 
 ## WORKTREE COMPLETION
 
 When working in a worktree and ALL plan tasks are complete:
-1. Commit all remaining changes in the worktree
-2. Sync state back to main repo
-3. Switch to the main working directory
-4. Merge the worktree branch: \`git merge <worktree-branch>\`
-5. Clean up: \`git worktree remove <worktree-path>\`
-6. Remove the boulder.json state
+1. Commit all remaining changes in the worktree only if the user requested commits.
+2. Sync state back to the main repo.
+3. Switch to the main working directory.
+4. Merge the worktree branch only if the user requested it.
+5. Clean up the worktree only when safe.
+6. Remove boulder.json only after all plan and review tasks are complete.
 
 ## CRITICAL
 
-- Always update boulder.json BEFORE starting work
-- Read the FULL plan file before delegating any tasks
-- Follow delegation protocols for task execution
-- Track progress with todos throughout the session`
+- Do not stop just because one wave is complete if plan checkboxes remain unchecked.
+- Do not mark a plan checkbox [x] until the task is verified.
+- Do not claim completion without evidence.
+- If the visible UI agent did not switch to Atlas, tell the user to switch it manually, but continue following this injected execution context.`;

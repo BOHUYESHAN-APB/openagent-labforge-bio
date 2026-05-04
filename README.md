@@ -156,7 +156,7 @@ Switch at runtime: `/ol-light`, `/ol-heavy`, `/ol-turbo`
 ### Workflow Commands (AI-executed)
 | Command | Description |
 |---------|-------------|
-| `/start-work [plan-name]` | Start work session from plan |
+| `/ol-start-work [plan-name] [--worktree <path>]` | Start plan execution with Atlas (hook-backed) |
 | `/ralph-loop "task" [--max-iterations=N]` | Self-referential loop until completion |
 | `/cancel-ralph` | Cancel active Ralph Loop |
 | `/stop-continuation` | Stop all continuation mechanisms |
