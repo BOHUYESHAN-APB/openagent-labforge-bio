@@ -1544,6 +1544,106 @@ describe('createTodoContinuationHook', () => {
       });
     });
 
+    test('approved batch summary can feed safe auto preference capture via callback', async () => {
+      const summaries: Array<{ sessionID: string; summary: string }> = [];
+      const ctx = createMockContext({
+        todoResult: {
+          data: [
+            {
+              id: '1',
+              content: 'todo1',
+              status: 'completed',
+              priority: 'high',
+            },
+          ],
+        },
+        messagesResult: {
+          data: [
+            {
+              info: { role: 'assistant' },
+              parts: [
+                {
+                  type: 'text',
+                  text: '[APPROVE] Prefer test -> build -> deploy order for release work.',
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const hook = createTodoContinuationHook(ctx, {
+        cooldownMs: 50,
+        onBatchSummary: async (payload) => {
+          summaries.push(payload);
+        },
+      });
+
+      await hook.tool.auto_continue.execute({ enabled: true });
+      await hook.handleEvent({
+        event: {
+          type: 'session.idle',
+          properties: { sessionID: 'session-summary-auto-pref' },
+        },
+      });
+      await hook.handleEvent({
+        event: {
+          type: 'session.idle',
+          properties: { sessionID: 'session-summary-auto-pref' },
+        },
+      });
+
+      expect(summaries).toEqual([
+        {
+          sessionID: 'session-summary-auto-pref',
+          summary: 'Prefer test -> build -> deploy order for release work.',
+        },
+      ]);
+    });
+
+    test('reject verdict does not emit batch summary callback', async () => {
+      const onBatchSummary = mock(async () => {});
+      const ctx = createMockContext({
+        todoResult: {
+          data: [
+            {
+              id: '1',
+              content: 'todo1',
+              status: 'completed',
+              priority: 'high',
+            },
+          ],
+        },
+        messagesResult: {
+          data: [
+            {
+              info: { role: 'assistant' },
+              parts: [{ type: 'text', text: '[REJECT: run tests first]' }],
+            },
+          ],
+        },
+      });
+      const hook = createTodoContinuationHook(ctx, {
+        cooldownMs: 50,
+        onBatchSummary,
+      });
+
+      await hook.tool.auto_continue.execute({ enabled: true });
+      await hook.handleEvent({
+        event: {
+          type: 'session.idle',
+          properties: { sessionID: 'session-no-summary-on-reject' },
+        },
+      });
+      await hook.handleEvent({
+        event: {
+          type: 'session.idle',
+          properties: { sessionID: 'session-no-summary-on-reject' },
+        },
+      });
+
+      expect(onBatchSummary).not.toHaveBeenCalled();
+    });
+
     test('review reject forces rework instead of disabling auto', async () => {
       const ctx = createMockContext({
         todoResult: {

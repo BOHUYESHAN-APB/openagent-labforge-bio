@@ -396,6 +396,9 @@ is unambiguous, while keeping full words available for readability.
 Use these commands to store or remove explicit development preferences and workflow habits.
 Only record concrete engineering preferences such as test/build/deploy order, tool choices,
 review expectations, or preferred operating flow. Do not store emotional or personality judgments.
+ExtendAI Lab may also auto-capture a very small allowlisted subset of workflow/tooling
+preferences from approved batch summaries, but only when the summary matches a conservative
+safe pattern. Reject, blocked, speculative, or emotional summaries must not be written as memory.
 
 ```bash
 /ol-memory-write kind=workflow scope=repository content="Prefer test -> build -> deploy order for release work"

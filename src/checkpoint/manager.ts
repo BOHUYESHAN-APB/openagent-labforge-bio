@@ -15,6 +15,10 @@ import {
   registerWorkspace,
 } from './global-index';
 import { loadCheckpointStorage, saveCheckpointStorage } from './persistence';
+import {
+  classifyAutoPreference,
+  validatePreferenceContent,
+} from './preference-rules';
 import { RepositoryMemoryStore } from './repository-memory';
 import { SessionMemoryStore } from './session-memory';
 import { WorkingMemoryStore } from './working-memory';
@@ -470,7 +474,8 @@ export class CheckpointManager {
     }
 
     const normalizedContent = input.content.trim();
-    if (!normalizedContent) {
+    const validation = validatePreferenceContent(normalizedContent);
+    if (!validation.ok) {
       return null;
     }
 
@@ -512,6 +517,61 @@ export class CheckpointManager {
     this.workingMemory.addDecision(
       sessionID,
       `Recorded manual ${input.kind} preference (${input.scope}): ${normalizedContent}`,
+    );
+    this.persist();
+    return id;
+  }
+
+  recordAutoPreferenceHint(sessionID: string, content: string): string | null {
+    const session = this.sessionMemory.get(sessionID);
+    if (!session) {
+      return null;
+    }
+
+    const normalizedContent = content.trim();
+    const classification = classifyAutoPreference(normalizedContent);
+    if (!classification) {
+      return null;
+    }
+
+    const id = `pref_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const entry: PreferenceMemoryEntry = {
+      id,
+      kind: classification.kind,
+      content: normalizedContent,
+      source: 'auto',
+      scope: classification.scope,
+      createdAt: Date.now(),
+    };
+
+    if (classification.scope === 'repository' && session.repositoryId) {
+      this.repositoryMemory.addPreference(session.repositoryId, entry);
+      this.repositoryMemory.addKnowledge(
+        session.repositoryId,
+        `Preference (${classification.kind}): ${normalizedContent}`,
+      );
+      this.repositoryMemory.addPattern(
+        session.repositoryId,
+        `preference:${classification.kind}`,
+      );
+      addGlobalKnowledge(
+        session.repositoryId,
+        `Preference (${classification.kind}): ${normalizedContent}`,
+      );
+      addGlobalPattern(session.repositoryId, `preference:${classification.kind}`);
+    } else {
+      this.workspaceMemory.addPreference(session.workspaceRoot, entry);
+      this.workspaceMemory.setGlobalContext(
+        session.workspaceRoot,
+        `preference:${id}`,
+        entry,
+      );
+    }
+
+    this.sessionMemory.setMetadata(sessionID, 'lastAutoPreference', entry);
+    this.workingMemory.addDecision(
+      sessionID,
+      `Captured auto ${classification.kind} preference (${classification.scope}): ${normalizedContent}`,
     );
     this.persist();
     return id;

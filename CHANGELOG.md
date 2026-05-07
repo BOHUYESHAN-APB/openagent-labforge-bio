@@ -10,6 +10,28 @@ checkpoint 式迭代，早期版本条目为基于现有提交历史和功能阶
 - No changes yet.
 - 暂无变更。
 
+## v1.0.17 - 2026-05-07
+
+### Added / 新增
+
+- Added safer manual memory preference handling with explicit write/list/delete
+  commands and focused tests for workspace/repository persistence.
+- 新增更安全的手动记忆偏好处理，提供明确的写入 / 列出 / 删除命令，并补充 workspace / repository 持久化测试。
+
+- Added a minimal allowlisted auto-preference capture path for approved batch
+  summaries, limited to low-risk workflow/tooling patterns.
+- 新增一条最小自动偏好沉淀链路：仅从已批准批次 summary 中提取低风险的流程 / 工具偏好白名单模式。
+
+### Changed / 变更
+
+- Manual and automatic preference capture now reject emotional or personality
+  judgments instead of storing them as memory.
+- 手动与自动偏好沉淀现在都会拒绝情绪化或人格判断类内容，而不会把它们写入记忆。
+
+- Repository preference deletion now preserves shared knowledge/pattern entries
+  until the last duplicate preference is removed.
+- repository 级偏好删除现在会在最后一个重复偏好被删除前保留共享 knowledge / pattern，避免过早清除共用记忆痕迹。
+
 ## v1.0.16 - 2026-05-07
 
 ### Breaking / 破坏性变更

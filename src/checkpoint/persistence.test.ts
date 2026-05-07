@@ -417,4 +417,86 @@ describe('checkpoint persistence', () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+
+  test('records a minimal auto preference hint only for allowed workflow/tooling patterns', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ol-auto-pref-'));
+    try {
+      const manager = new CheckpointManager(root);
+      manager.initializeSession(
+        'session-auto-pref',
+        root,
+        'repo-auto-pref',
+        'conversation-auto-pref',
+      );
+
+      const autoId = manager.recordAutoPreferenceHint(
+        'session-auto-pref',
+        'Prefer test -> build -> deploy order',
+      );
+      expect(autoId).toBeTruthy();
+      expect(
+        manager.repositoryMemory.get('repo-auto-pref')?.preferences,
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: autoId,
+            source: 'auto',
+            kind: 'workflow',
+            scope: 'repository',
+          }),
+        ]),
+      );
+      expect(
+        manager.sessionMemory.get('session-auto-pref')?.metadata.lastAutoPreference,
+      ).toMatchObject({
+        id: autoId,
+        source: 'auto',
+      });
+
+      expect(
+        manager.recordAutoPreferenceHint(
+          'session-auto-pref',
+          'User gets angry easily when tests fail',
+        ),
+      ).toBeNull();
+      expect(manager.listManualPreferences('session-auto-pref')).toHaveLength(1);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test('can auto-capture focused validation preference as workspace memory', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ol-auto-pref-workspace-'));
+    try {
+      const manager = new CheckpointManager(root);
+      manager.initializeSession('session-auto-workspace', root);
+
+      const id = manager.recordAutoPreferenceHint(
+        'session-auto-workspace',
+        'Prefer focused validation before full suite reruns.',
+      );
+
+      expect(id).toBeTruthy();
+      expect(manager.workspaceMemory.get(root)?.preferences).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id,
+            source: 'auto',
+            scope: 'workspace',
+            kind: 'preference',
+          }),
+        ]),
+      );
+      expect(
+        manager.sessionMemory.get('session-auto-workspace')?.metadata
+          .lastAutoPreference,
+      ).toMatchObject({
+        id,
+        scope: 'workspace',
+        kind: 'preference',
+      });
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

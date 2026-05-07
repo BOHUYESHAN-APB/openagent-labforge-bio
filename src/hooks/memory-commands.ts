@@ -1,13 +1,11 @@
 import type { PluginInput } from '@opencode-ai/plugin';
+import { validatePreferenceContent } from '../checkpoint/preference-rules';
 import { createInternalAgentTextPart } from '../utils';
 import type { CheckpointManager } from '../checkpoint/manager';
 
 const WRITE_COMMAND = 'ol-memory-write';
 const DELETE_COMMAND = 'ol-memory-delete';
 const LIST_COMMAND = 'ol-memory-list';
-
-const EMOTIONAL_PATTERN =
-  /\b(angry|anger|furious|upset|annoyed|frustrated|frustrating|mad|rage|rude|emotional|emotion|愤怒|生气|恼火|暴躁|情绪化|容易生气|容易愤怒)\b/i;
 
 type MemoryScope = 'workspace' | 'repository' | 'all';
 type PreferenceKind = 'workflow' | 'preference' | 'tooling';
@@ -143,7 +141,8 @@ export function createMemoryCommandsHook(
         output.parts.push(createInternalAgentTextPart(buildUsage(WRITE_COMMAND)));
         return;
       }
-      if (EMOTIONAL_PATTERN.test(content)) {
+      const validation = validatePreferenceContent(content);
+      if (!validation.ok) {
         output.parts.push(
           createInternalAgentTextPart(
             '[Memory write rejected: only workflow habits, tooling preferences, and development process rules may be stored. Do not store emotional or personality judgments about the user.]',

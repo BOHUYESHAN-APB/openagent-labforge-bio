@@ -103,6 +103,12 @@ Rules:
 - Do **not** store emotional or personality judgments about the user.
 - `repository` scope is for repo-wide habits; `workspace` scope is for the
   current local workspace.
+- Automatic preference capture is stricter than manual capture: only a small
+  allowlisted set of workflow/tooling patterns should be auto-written, and any
+  emotional, personality-based, or speculative phrasing must be rejected.
+- Current safe trigger for auto capture is approved batch-summary text when it
+  cleanly matches an allowlisted pattern. Reject/blocked review outcomes must
+  not write preferences automatically.
 
 ---
 

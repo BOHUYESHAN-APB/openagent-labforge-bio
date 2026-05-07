@@ -1,6 +1,6 @@
 {
   "name": "extendai-lab",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "ExtendAI Lab: agent orchestration system for OpenCode with DeepSeek-TUI adapter groundwork and discipline-pack architecture",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

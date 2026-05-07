@@ -440,6 +440,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           `workspace:${ctx.directory}`,
         );
         checkpointManager.recordBatchSummary(sessionID, summary);
+        checkpointManager.recordAutoPreferenceHint(sessionID, summary);
       },
       onAutoPause: ({ sessionID, reason, details }) => {
         checkpointManager.ensureSession(

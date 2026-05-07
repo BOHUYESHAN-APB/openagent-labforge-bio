@@ -15,7 +15,7 @@ export interface PreferenceMemoryEntry {
   id: string;
   kind: 'workflow' | 'preference' | 'tooling';
   content: string;
-  source: 'manual';
+  source: 'manual' | 'auto';
   scope: 'workspace' | 'repository';
   createdAt: number;
 }
