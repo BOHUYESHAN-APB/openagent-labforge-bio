@@ -10,6 +10,26 @@ checkpoint 式迭代，早期版本条目为基于现有提交历史和功能阶
 - No changes yet.
 - 暂无变更。
 
+## v1.0.16 - 2026-05-07
+
+### Breaking / 破坏性变更
+
+- Removed all legacy `openagent-labforge` fallback paths, config basenames,
+  state directories, bin alias, schema file, and example file. The planned
+  compatibility window has closed.
+- 移除所有 `openagent-labforge` 旧名 fallback 路径、配置名、状态目录、
+  bin 别名、schema 文件和示例文件。兼容窗口按计划关闭。
+
+### Added / 新增
+
+- Added manual memory commands for safe preference capture and deletion:
+  `/ol-memory-write`, `/ol-memory-list`, and `/ol-memory-delete`.
+- 新增手动记忆命令：`/ol-memory-write`、`/ol-memory-list`、`/ol-memory-delete`，用于安全写入、查看和删除偏好记忆。
+
+- Added manual preference persistence across workspace/repository memory, with
+  explicit rejection of emotional or personality judgments.
+- 新增手动偏好记忆在 workspace / repository 层的持久化，并明确拒绝情绪化或人格判断类内容。
+
 ## v1.0.15 - 2026-05-07
 
 ### Added / 新增

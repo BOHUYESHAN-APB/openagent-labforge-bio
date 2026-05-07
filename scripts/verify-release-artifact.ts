@@ -18,8 +18,8 @@ const repoRoot = path.resolve(__dirname, '..');
 const distDir = path.join(repoRoot, 'dist');
 
 const suspiciousPathPatterns = [
-  /\/Users\/[^\s'"`]+(?:node_modules|extendai-lab|openagent-labforge)[^\s'"`]*/,
-  /\/home\/[^\s'"`]+(?:node_modules|extendai-lab|openagent-labforge)[^\s'"`]*/,
+  /\/Users\/[^\s'"`]+(?:node_modules|extendai-lab)[^\s'"`]*/,
+  /\/home\/[^\s'"`]+(?:node_modules|extendai-lab)[^\s'"`]*/,
 ];
 
 const packagedRequiredFiles = [
@@ -30,9 +30,7 @@ const packagedRequiredFiles = [
   'dist/index.d.ts',
   'dist/cli/index.js',
   SCHEMA_FILE_NAME,
-  'openagent-labforge.schema.json',
   'extendai-lab.example.jsonc',
-  'openagent-labforge.example.jsonc',
   'src/skills/simplify/SKILL.md',
   'src/skills/codemap/SKILL.md',
   'src/skills/karpathy-guidelines/SKILL.md',

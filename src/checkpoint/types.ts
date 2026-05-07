@@ -11,6 +11,15 @@ export interface ContextCheckpoint {
   tokenCount: number;
 }
 
+export interface PreferenceMemoryEntry {
+  id: string;
+  kind: 'workflow' | 'preference' | 'tooling';
+  content: string;
+  source: 'manual';
+  scope: 'workspace' | 'repository';
+  createdAt: number;
+}
+
 export interface WorkingMemory {
   sessionID: string;
   currentTask?: string;
@@ -44,6 +53,7 @@ export interface WorkspaceMemory {
   repositoryId?: string;
   sessions: Map<string, SessionMemory>;
   globalContext: Record<string, unknown>;
+  preferences: PreferenceMemoryEntry[];
   lastActivity: number;
 }
 
@@ -52,6 +62,7 @@ export interface RepositoryMemory {
   workspaces: Map<string, WorkspaceMemory>;
   globalKnowledge: string[];
   patterns: string[];
+  preferences: PreferenceMemoryEntry[];
   lastActivity: number;
 }
 

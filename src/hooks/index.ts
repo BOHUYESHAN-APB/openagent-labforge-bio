@@ -11,6 +11,7 @@ export {
 } from './foreground-fallback';
 export { processImageAttachments } from './image-hook';
 export { createJsonErrorRecoveryHook } from './json-error-recovery';
+export { createMemoryCommandsHook } from './memory-commands';
 export { createModeDetectorHook } from './mode-detector';
 export { createPhaseReminderHook } from './phase-reminder';
 export { createPostFileToolNudgeHook } from './post-file-tool-nudge';

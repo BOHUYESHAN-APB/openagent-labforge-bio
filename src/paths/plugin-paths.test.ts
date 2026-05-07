@@ -8,9 +8,6 @@ import {
   getGlobalMcpDir,
   getGlobalMemoryDir,
   getGlobalStateDir,
-  getLegacyGlobalDataDirs,
-  getLegacyGlobalStateDirs,
-  getLegacyProjectStateDirs,
   getOpenCodeDataDir,
   getPackageResourceDir,
   getProjectBoulderFile,
@@ -25,8 +22,8 @@ import {
 
 describe('plugin paths', () => {
   test('resolves package resources under package root', () => {
-    expect(getPackageResourceDir('/pkg/openagent-labforge', 'bioSkills')).toBe(
-      join('/pkg/openagent-labforge', 'resources', 'bioSkills'),
+    expect(getPackageResourceDir('/pkg/extendai-lab', 'bioSkills')).toBe(
+      join('/pkg/extendai-lab', 'resources', 'bioSkills'),
     );
   });
 
@@ -35,9 +32,6 @@ describe('plugin paths', () => {
     expect(getProjectStateDir(root)).toBe(
       join(root, '.opencode', 'extendai-lab'),
     );
-    expect(getLegacyProjectStateDirs(root)).toEqual([
-      join(root, '.opencode', 'openagent-labforge'),
-    ]);
     expect(getProjectMcpDir(root)).toBe(
       join(root, '.opencode', 'extendai-lab', 'mcp'),
     );
@@ -66,9 +60,6 @@ describe('plugin paths', () => {
     expect(getGlobalStateDir('win32', env)).toBe(
       join(env.APPDATA, 'opencode', 'extendai-lab'),
     );
-    expect(getLegacyGlobalStateDirs('win32', env)).toEqual([
-      join(env.APPDATA, 'opencode', 'openagent-labforge'),
-    ]);
     expect(getGlobalMemoryDir('win32', env)).toBe(
       join(env.APPDATA, 'opencode', 'extendai-lab', 'memory'),
     );
@@ -90,9 +81,6 @@ describe('plugin paths', () => {
     expect(getGlobalDataDir(env)).toBe(
       join(env.XDG_DATA_HOME, 'opencode', 'extendai-lab'),
     );
-    expect(getLegacyGlobalDataDirs(env)).toEqual([
-      join(env.XDG_DATA_HOME, 'opencode', 'openagent-labforge'),
-    ]);
     expect(getGlobalLogDir(env)).toBe(
       join(env.XDG_DATA_HOME, 'opencode', 'extendai-lab', 'logs'),
     );

@@ -1,7 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  getLegacyProjectStateDirs,
   getProjectMemoryDir,
 } from '../paths/plugin-paths';
 import type {
@@ -31,12 +30,7 @@ function storageFile(workspaceRoot: string): string {
 }
 
 function storageFileCandidates(workspaceRoot: string): string[] {
-  return [
-    storageFile(workspaceRoot),
-    ...getLegacyProjectStateDirs(workspaceRoot).map((dir) =>
-      join(dir, 'memory', 'checkpoint-state.json'),
-    ),
-  ];
+  return [storageFile(workspaceRoot)];
 }
 
 export function loadCheckpointStorage(
@@ -74,6 +68,7 @@ export function loadCheckpointStorage(
           .map((session) => [session.sessionID, session]),
       ),
       globalContext: workspace.globalContext,
+      preferences: workspace.preferences ?? [],
       lastActivity: workspace.lastActivity,
     });
   }
@@ -91,6 +86,7 @@ export function loadCheckpointStorage(
       ),
       globalKnowledge: repository.globalKnowledge,
       patterns: repository.patterns,
+      preferences: repository.preferences ?? [],
       lastActivity: repository.lastActivity,
     });
   }
@@ -113,6 +109,7 @@ export function saveCheckpointStorage(
         repositoryId: workspace.repositoryId,
         sessionIDs: Array.from(workspace.sessions.keys()),
         globalContext: workspace.globalContext,
+        preferences: workspace.preferences,
         lastActivity: workspace.lastActivity,
       }),
     ),
@@ -122,6 +119,7 @@ export function saveCheckpointStorage(
         workspaceRoots: Array.from(repository.workspaces.keys()),
         globalKnowledge: repository.globalKnowledge,
         patterns: repository.patterns,
+        preferences: repository.preferences,
         lastActivity: repository.lastActivity,
       }),
     ),

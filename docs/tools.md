@@ -87,6 +87,25 @@ Configuration lives under `compression.profiles.engineering` and
 
 ---
 
+## Memory Commands
+
+ExtendAI Lab supports a small manual memory command layer for explicit
+development preferences and workflow habits:
+
+- `/ol-memory-write kind=<workflow|preference|tooling> scope=<workspace|repository> content="..."`
+- `/ol-memory-list [workspace|repository|all]`
+- `/ol-memory-delete id=<pref_...> [scope=<workspace|repository|all>]`
+
+Rules:
+
+- Only store concrete engineering habits and process rules: test/build/deploy
+  order, tooling preferences, review expectations, preferred operational flow.
+- Do **not** store emotional or personality judgments about the user.
+- `repository` scope is for repo-wide habits; `workspace` scope is for the
+  current local workspace.
+
+---
+
 ## Todo Continuation
 
 Auto-continue has its own guide now:

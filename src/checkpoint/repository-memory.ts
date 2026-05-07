@@ -17,6 +17,7 @@ export class RepositoryMemoryStore {
       workspaces: new Map(),
       globalKnowledge: [],
       patterns: [],
+      preferences: [],
       lastActivity: Date.now(),
     };
     this.storage.set(repositoryId, memory);
@@ -49,6 +50,56 @@ export class RepositoryMemoryStore {
       memory.patterns.push(pattern);
       memory.lastActivity = Date.now();
     }
+  }
+
+  removeKnowledge(repositoryId: string, knowledge: string): boolean {
+    const memory = this.get(repositoryId);
+    if (!memory) return false;
+    const before = memory.globalKnowledge.length;
+    memory.globalKnowledge = memory.globalKnowledge.filter(
+      (item) => item !== knowledge,
+    );
+    const removed = memory.globalKnowledge.length !== before;
+    if (removed) {
+      memory.lastActivity = Date.now();
+    }
+    return removed;
+  }
+
+  removePattern(repositoryId: string, pattern: string): boolean {
+    const memory = this.get(repositoryId);
+    if (!memory) return false;
+    const before = memory.patterns.length;
+    memory.patterns = memory.patterns.filter((item) => item !== pattern);
+    const removed = memory.patterns.length !== before;
+    if (removed) {
+      memory.lastActivity = Date.now();
+    }
+    return removed;
+  }
+
+  addPreference(
+    repositoryId: string,
+    entry: RepositoryMemory['preferences'][number],
+  ): void {
+    const memory = this.get(repositoryId);
+    if (!memory) return;
+    if (!memory.preferences.some((item) => item.id === entry.id)) {
+      memory.preferences.push(entry);
+      memory.lastActivity = Date.now();
+    }
+  }
+
+  removePreference(repositoryId: string, entryId: string): boolean {
+    const memory = this.get(repositoryId);
+    if (!memory) return false;
+    const before = memory.preferences.length;
+    memory.preferences = memory.preferences.filter((item) => item.id !== entryId);
+    const removed = memory.preferences.length !== before;
+    if (removed) {
+      memory.lastActivity = Date.now();
+    }
+    return removed;
   }
 
   getWorkspaces(repositoryId: string): WorkspaceMemory[] {

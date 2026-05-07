@@ -1,7 +1,7 @@
 import { describe, expect, mock, spyOn, test } from 'bun:test';
 import * as fs from 'node:fs';
 import path from 'node:path';
-import { LEGACY_PACKAGE_NAMES, PACKAGE_NAME } from '../../config/product';
+import { PACKAGE_NAME } from '../../config/product';
 
 // Mock logger to avoid noise
 mock.module('../../utils/logger', () => ({
@@ -137,11 +137,7 @@ describe('auto-update-checker/cache', () => {
     test('keeps working when dependency is already on target version', async () => {
       // Use actual CACHE_DIR from constants for platform compatibility
       const legacyPkgJson = path.join(CACHE_DIR, 'package.json');
-      const legacyNodeModules = path.join(
-        CACHE_DIR,
-        'node_modules',
-        LEGACY_PACKAGE_NAMES[0],
-      );
+      const legacyNodeModules = path.join(CACHE_DIR, 'node_modules', PACKAGE_NAME);
 
       const existsSpy = spyOn(fs, 'existsSync').mockImplementation(
         (p: string) => p === legacyPkgJson || p === legacyNodeModules,
@@ -149,7 +145,7 @@ describe('auto-update-checker/cache', () => {
       const readSpy = spyOn(fs, 'readFileSync').mockReturnValue(
         JSON.stringify({
           dependencies: {
-            [LEGACY_PACKAGE_NAMES[0]]: '1.0.1',
+            [PACKAGE_NAME]: '1.0.1',
           },
         }),
       );
@@ -161,7 +157,7 @@ describe('auto-update-checker/cache', () => {
 
       const result = preparePackageUpdate(
         '1.0.1',
-        LEGACY_PACKAGE_NAMES[0],
+        PACKAGE_NAME,
         null,
       );
 

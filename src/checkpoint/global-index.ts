@@ -2,7 +2,6 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   getGlobalMemoryDir,
-  getLegacyGlobalStateDirs,
 } from '../paths/plugin-paths';
 
 export interface GlobalMemoryIndex {
@@ -34,12 +33,7 @@ function globalIndexFile(): string {
 }
 
 function globalIndexCandidates(): string[] {
-  return [
-    globalIndexFile(),
-    ...getLegacyGlobalStateDirs().map((dir) =>
-      join(dir, 'memory', 'global-memory-index.json'),
-    ),
-  ];
+  return [globalIndexFile()];
 }
 
 export function loadGlobalIndex(): GlobalMemoryIndex {
@@ -126,6 +120,42 @@ export function addGlobalPattern(repositoryId: string, pattern: string): void {
     repo.lastActivity = Date.now();
     saveGlobalIndex(index);
   }
+}
+
+export function removeGlobalKnowledge(
+  repositoryId: string,
+  knowledge: string,
+): boolean {
+  const index = loadGlobalIndex();
+  const repo = index.repositories.get(repositoryId);
+
+  if (!repo) return false;
+  const before = repo.globalKnowledge.length;
+  repo.globalKnowledge = repo.globalKnowledge.filter((item) => item !== knowledge);
+  const removed = repo.globalKnowledge.length !== before;
+  if (removed) {
+    repo.lastActivity = Date.now();
+    saveGlobalIndex(index);
+  }
+  return removed;
+}
+
+export function removeGlobalPattern(
+  repositoryId: string,
+  pattern: string,
+): boolean {
+  const index = loadGlobalIndex();
+  const repo = index.repositories.get(repositoryId);
+
+  if (!repo) return false;
+  const before = repo.patterns.length;
+  repo.patterns = repo.patterns.filter((item) => item !== pattern);
+  const removed = repo.patterns.length !== before;
+  if (removed) {
+    repo.lastActivity = Date.now();
+    saveGlobalIndex(index);
+  }
+  return removed;
 }
 
 export function getRepositoryWorkspaces(repositoryId: string): string[] {

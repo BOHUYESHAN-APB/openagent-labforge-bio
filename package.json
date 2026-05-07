@@ -1,6 +1,6 @@
 {
   "name": "extendai-lab",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "ExtendAI Lab: agent orchestration system for OpenCode with DeepSeek-TUI adapter groundwork and discipline-pack architecture",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,8 +15,7 @@
     }
   },
   "bin": {
-    "extendai-lab": "./dist/cli/index.js",
-    "openagent-labforge": "./dist/cli/index.js"
+    "extendai-lab": "./dist/cli/index.js"
   },
   "type": "module",
   "license": "Apache-2.0",
@@ -49,9 +48,7 @@
     "resources/bioSkills",
     "src/config/presets",
     "extendai-lab.schema.json",
-    "openagent-labforge.schema.json",
     "extendai-lab.example.jsonc",
-    "openagent-labforge.example.jsonc",
     "README.md",
     "LICENSE"
   ],

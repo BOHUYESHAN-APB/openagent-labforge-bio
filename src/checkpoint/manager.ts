@@ -1,11 +1,17 @@
 import type { CheckpointCleanupConfig } from '../config/schema';
-import type { CheckpointStorage, ContextCheckpoint } from './types';
+import type {
+  CheckpointStorage,
+  ContextCheckpoint,
+  PreferenceMemoryEntry,
+} from './types';
 import { cleanupCheckpoints } from './cleaner';
 import { ConversationMemoryStore } from './conversation-memory';
 import {
   addGlobalKnowledge,
   addGlobalPattern,
   getRepositoryWorkspaces,
+  removeGlobalKnowledge,
+  removeGlobalPattern,
   registerWorkspace,
 } from './global-index';
 import { loadCheckpointStorage, saveCheckpointStorage } from './persistence';
@@ -448,5 +454,204 @@ export class CheckpointManager {
     if (stats.checkpointsRemoved > 0) {
       this.persist();
     }
+  }
+
+  recordManualPreference(
+    sessionID: string,
+    input: {
+      kind: 'workflow' | 'preference' | 'tooling';
+      content: string;
+      scope: 'workspace' | 'repository';
+    },
+  ): string | null {
+    const session = this.sessionMemory.get(sessionID);
+    if (!session) {
+      return null;
+    }
+
+    const normalizedContent = input.content.trim();
+    if (!normalizedContent) {
+      return null;
+    }
+
+    const id = `pref_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const entry = {
+      id,
+      kind: input.kind,
+      content: normalizedContent,
+      source: 'manual' as const,
+      scope: input.scope,
+      createdAt: Date.now(),
+    };
+
+    if (input.scope === 'repository' && session.repositoryId) {
+      this.repositoryMemory.addPreference(session.repositoryId, entry);
+      this.repositoryMemory.addKnowledge(
+        session.repositoryId,
+        `Preference (${input.kind}): ${normalizedContent}`,
+      );
+      this.repositoryMemory.addPattern(
+        session.repositoryId,
+        `preference:${input.kind}`,
+      );
+      addGlobalKnowledge(
+        session.repositoryId,
+        `Preference (${input.kind}): ${normalizedContent}`,
+      );
+      addGlobalPattern(session.repositoryId, `preference:${input.kind}`);
+    } else {
+      this.workspaceMemory.addPreference(session.workspaceRoot, entry);
+      this.workspaceMemory.setGlobalContext(
+        session.workspaceRoot,
+        `preference:${id}`,
+        entry,
+      );
+    }
+
+    this.sessionMemory.setMetadata(sessionID, 'lastManualPreference', entry);
+    this.workingMemory.addDecision(
+      sessionID,
+      `Recorded manual ${input.kind} preference (${input.scope}): ${normalizedContent}`,
+    );
+    this.persist();
+    return id;
+  }
+
+  listManualPreferences(
+    sessionID: string,
+    scope: 'workspace' | 'repository' | 'all' = 'all',
+  ): PreferenceMemoryEntry[] {
+    const session = this.sessionMemory.get(sessionID);
+    if (!session) {
+      return [];
+    }
+
+    const entries: PreferenceMemoryEntry[] = [];
+    if (scope === 'all' || scope === 'workspace') {
+      entries.push(
+        ...(this.workspaceMemory.get(session.workspaceRoot)?.preferences ?? []),
+      );
+    }
+
+    if ((scope === 'all' || scope === 'repository') && session.repositoryId) {
+      entries.push(
+        ...(this.repositoryMemory.get(session.repositoryId)?.preferences ?? []),
+      );
+    }
+
+    return [...entries].sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  private hasRepositoryPreferenceFingerprint(
+    repositoryId: string,
+    kind: 'workflow' | 'preference' | 'tooling',
+    content: string,
+    excludeId: string,
+  ): boolean {
+    const repository = this.repositoryMemory.get(repositoryId);
+    if (!repository) {
+      return false;
+    }
+    return repository.preferences.some(
+      (entry) =>
+        entry.id !== excludeId &&
+        entry.kind === kind &&
+        entry.content === content,
+    );
+  }
+
+  removeManualPreference(
+    sessionID: string,
+    input: {
+      id: string;
+      scope: 'workspace' | 'repository';
+      kind?: 'workflow' | 'preference' | 'tooling';
+      content?: string;
+    },
+  ): boolean {
+    const session = this.sessionMemory.get(sessionID);
+    if (!session) {
+      return false;
+    }
+
+    let removed = false;
+    if (input.scope === 'repository' && session.repositoryId) {
+      removed = this.repositoryMemory.removePreference(session.repositoryId, input.id);
+      const shouldKeepSharedRepositoryMemory =
+        removed &&
+        input.kind &&
+        input.content &&
+        this.hasRepositoryPreferenceFingerprint(
+          session.repositoryId,
+          input.kind,
+          input.content,
+          input.id,
+        );
+
+      if (removed && input.content && !shouldKeepSharedRepositoryMemory) {
+        this.repositoryMemory.removeKnowledge(
+          session.repositoryId,
+          `Preference (${input.kind ?? 'preference'}): ${input.content}`,
+        );
+        removeGlobalKnowledge(
+          session.repositoryId,
+          `Preference (${input.kind ?? 'preference'}): ${input.content}`,
+        );
+      }
+      if (removed && input.kind && !shouldKeepSharedRepositoryMemory) {
+        this.repositoryMemory.removePattern(
+          session.repositoryId,
+          `preference:${input.kind}`,
+        );
+        removeGlobalPattern(session.repositoryId, `preference:${input.kind}`);
+      }
+    } else {
+      removed = this.workspaceMemory.removePreference(session.workspaceRoot, input.id);
+      if (removed) {
+        const workspace = this.workspaceMemory.get(session.workspaceRoot);
+        if (workspace) {
+          delete workspace.globalContext[`preference:${input.id}`];
+        }
+      }
+    }
+
+    if (removed) {
+      this.sessionMemory.setMetadata(sessionID, 'lastRemovedPreference', {
+        id: input.id,
+        scope: input.scope,
+        removedAt: Date.now(),
+      });
+      this.workingMemory.addDecision(
+        sessionID,
+        `Removed manual preference ${input.id} (${input.scope}).`,
+      );
+      this.persist();
+    }
+
+    return removed;
+  }
+
+  removeManualPreferenceById(
+    sessionID: string,
+    entryId: string,
+    scope: 'workspace' | 'repository' | 'all' = 'all',
+  ): boolean {
+    const session = this.sessionMemory.get(sessionID);
+    if (!session) {
+      return false;
+    }
+
+    const candidates = this.listManualPreferences(sessionID, scope);
+    const entry = candidates.find((item) => item.id === entryId);
+    if (!entry) {
+      return false;
+    }
+
+    return this.removeManualPreference(sessionID, {
+      id: entry.id,
+      scope: entry.scope,
+      kind: entry.kind,
+      content: entry.content,
+    });
   }
 }

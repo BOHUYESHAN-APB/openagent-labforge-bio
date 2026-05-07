@@ -80,36 +80,11 @@ describe('dashboard server', () => {
           path.join(
             dataHome,
             'opencode',
-            'openagent-labforge',
+            'extendai-lab',
             'dashboard',
             '.dashboard-12345.json',
           ),
         );
-      } finally {
-        fsSync.rmSync(dataHome, { recursive: true, force: true });
-      }
-    });
-
-    test('can read legacy root auth files during migration', async () => {
-      const dataHome = fsSync.mkdtempSync(
-        path.join(os.tmpdir(), 'dashboard-data-'),
-      );
-      try {
-        process.env.XDG_DATA_HOME = dataHome;
-        const legacyDir = dashboardAuthPathsForTesting.getLegacyAuthDir();
-        fsSync.mkdirSync(legacyDir, { recursive: true });
-        fsSync.writeFileSync(
-          path.join(legacyDir, '.dashboard-12346.json'),
-          JSON.stringify({
-            token: 'legacy-token',
-            pid: process.pid,
-            startedAt: 123,
-          }),
-        );
-
-        const auth = await readDashboardAuthFile(12346);
-
-        expect(auth?.token).toBe('legacy-token');
       } finally {
         fsSync.rmSync(dataHome, { recursive: true, force: true });
       }

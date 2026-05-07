@@ -2,10 +2,10 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { stripJsonComments } from '../cli/config-io';
 import { getConfigSearchDirs } from '../cli/paths';
-import { CONFIG_BASENAME, LEGACY_CONFIG_BASENAMES } from './product';
+import { CONFIG_BASENAME } from './product';
 import { type PluginConfig, PluginConfigSchema } from './schema';
 
-const PROMPTS_DIR_NAMES = [CONFIG_BASENAME, ...LEGACY_CONFIG_BASENAMES];
+const PROMPTS_DIR_NAMES = [CONFIG_BASENAME];
 const PRESETS_DIR_NAME = 'presets';
 
 /**
@@ -174,17 +174,8 @@ export function loadPluginConfig(directory: string): PluginConfig {
     CONFIG_BASENAME,
   );
 
-  const legacyUserConfigPath = userConfigPath
-    ? null
-    : (LEGACY_CONFIG_BASENAMES.map((baseName) =>
-        findConfigPathInDirs(getConfigSearchDirs(), baseName),
-      ).find(Boolean) ?? null);
-
   const projectConfigBasePaths = [
     path.join(directory, '.opencode', CONFIG_BASENAME),
-    ...LEGACY_CONFIG_BASENAMES.map((baseName) =>
-      path.join(directory, '.opencode', baseName),
-    ),
   ];
 
   // Find existing config files (preferring .jsonc over .json)
@@ -193,7 +184,7 @@ export function loadPluginConfig(directory: string): PluginConfig {
       .map((basePath) => findConfigPath(basePath))
       .find(Boolean) ?? null;
 
-  const resolvedUserConfigPath = userConfigPath ?? legacyUserConfigPath;
+  const resolvedUserConfigPath = userConfigPath;
 
   let config: PluginConfig = resolvedUserConfigPath
     ? (loadConfigFromPath(resolvedUserConfigPath) ?? {})

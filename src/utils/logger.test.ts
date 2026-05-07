@@ -232,38 +232,6 @@ describe('logger', () => {
     }
   });
 
-  test('getLogDir prefers legacy existing directory during migration window', () => {
-    delete process.env.OPENCODE_LOG_DIR;
-    const dataHome = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'logger-data-home-'),
-    );
-    process.env.XDG_DATA_HOME = dataHome;
-
-    try {
-      const legacyDir = path.join(
-        dataHome,
-        'opencode',
-        'openagent-labforge',
-        'logs',
-      );
-      fs.mkdirSync(legacyDir, { recursive: true });
-
-      expect(getLogDir()).toBe(legacyDir);
-    } finally {
-      fs.rmSync(dataHome, { recursive: true, force: true });
-      if (origLogDir === undefined) {
-        delete process.env.OPENCODE_LOG_DIR;
-      } else {
-        process.env.OPENCODE_LOG_DIR = origLogDir;
-      }
-      if (origDataHome === undefined) {
-        delete process.env.XDG_DATA_HOME;
-      } else {
-        process.env.XDG_DATA_HOME = origDataHome;
-      }
-    }
-  });
-
   test('handles complex data structures', async () => {
     initLogger('session1');
     log('complex data', {

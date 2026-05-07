@@ -391,6 +391,18 @@ Checkpoint kind arguments accept both full words and one-letter shorthands:
 Use the same shorthand style for future parameterized commands when the meaning
 is unambiguous, while keeping full words available for readability.
 
+### Manual memory commands
+
+Use these commands to store or remove explicit development preferences and workflow habits.
+Only record concrete engineering preferences such as test/build/deploy order, tool choices,
+review expectations, or preferred operating flow. Do not store emotional or personality judgments.
+
+```bash
+/ol-memory-write kind=workflow scope=repository content="Prefer test -> build -> deploy order for release work"
+/ol-memory-list repository
+/ol-memory-delete id=pref_abc123 scope=repository
+```
+
 ---
 
 ## Roadmap

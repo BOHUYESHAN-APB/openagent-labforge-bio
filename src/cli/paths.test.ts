@@ -11,7 +11,6 @@ import {
   getConfigJsonc,
   getConfigSearchDirs,
   getExistingConfigPath,
-  getExistingLiteConfigPath,
   getLiteConfig,
   getOpenCodeConfigPaths,
 } from './paths';
@@ -110,20 +109,6 @@ describe('paths', () => {
     expect(getLiteConfig()).toBe(
       join('/custom/directory', 'extendai-lab.json'),
     );
-  });
-
-  test('getExistingLiteConfigPath() falls back to legacy config name', () => {
-    const tmpDir = mkdtempSync(join(tmpdir(), 'opencode-test-'));
-    process.env.XDG_CONFIG_HOME = tmpDir;
-    const configDir = join(tmpDir, 'opencode');
-    const legacyPath = join(configDir, 'openagent-labforge.json');
-
-    ensureConfigDir();
-    writeFileSync(legacyPath, '{}');
-
-    expect(getExistingLiteConfigPath()).toBe(legacyPath);
-
-    rmSync(tmpDir, { recursive: true, force: true });
   });
 
   describe('getExistingConfigPath()', () => {

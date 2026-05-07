@@ -110,7 +110,7 @@ describe('boulder state', () => {
     expect(readBoulderState(workspaceRoot)).toEqual(state);
     expect(
       readFileSync(
-        join(workspaceRoot, '.opencode', 'openagent-labforge', 'boulder.json'),
+        join(workspaceRoot, '.opencode', 'extendai-lab', 'boulder.json'),
         'utf8',
       ),
     ).toContain('session-1');

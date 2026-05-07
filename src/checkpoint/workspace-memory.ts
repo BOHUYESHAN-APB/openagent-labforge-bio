@@ -17,6 +17,7 @@ export class WorkspaceMemoryStore {
       repositoryId,
       sessions: new Map(),
       globalContext: {},
+      preferences: [],
       lastActivity: Date.now(),
     };
     this.storage.set(workspaceRoot, memory);
@@ -49,6 +50,30 @@ export class WorkspaceMemoryStore {
       memory.globalContext[key] = value;
       memory.lastActivity = Date.now();
     }
+  }
+
+  addPreference(
+    workspaceRoot: string,
+    entry: WorkspaceMemory['preferences'][number],
+  ): void {
+    const memory = this.get(workspaceRoot);
+    if (!memory) return;
+    if (!memory.preferences.some((item) => item.id === entry.id)) {
+      memory.preferences.push(entry);
+      memory.lastActivity = Date.now();
+    }
+  }
+
+  removePreference(workspaceRoot: string, entryId: string): boolean {
+    const memory = this.get(workspaceRoot);
+    if (!memory) return false;
+    const before = memory.preferences.length;
+    memory.preferences = memory.preferences.filter((item) => item.id !== entryId);
+    const removed = memory.preferences.length !== before;
+    if (removed) {
+      memory.lastActivity = Date.now();
+    }
+    return removed;
   }
 
   getSessions(workspaceRoot: string): SessionMemory[] {

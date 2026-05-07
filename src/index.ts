@@ -58,6 +58,7 @@ import {
   createDelegateTaskRetryHook,
   createFilterAvailableSkillsHook,
   createJsonErrorRecoveryHook,
+  createMemoryCommandsHook,
   createModeDetectorHook,
   createPhaseReminderHook,
   createPostFileToolNudgeHook,
@@ -199,6 +200,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   let interviewManager: ReturnType<typeof createInterviewManager>;
   let presetManager: ReturnType<typeof createPresetManager>;
   let startWorkHook: ReturnType<typeof createStartWorkHook>;
+  let memoryCommandsHook: ReturnType<typeof createMemoryCommandsHook>;
   let councilTools: Record<string, unknown>;
   let webfetch: ReturnType<typeof createWebfetchTool>;
   let rewriteDisplayNameMentions: ReturnType<
@@ -493,6 +495,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     interviewManager = createInterviewManager(ctx, config);
     presetManager = createPresetManager(ctx, config);
     startWorkHook = createStartWorkHook(ctx);
+    memoryCommandsHook = createMemoryCommandsHook(ctx, checkpointManager);
 
     toolCount =
       Object.keys(councilTools).length +
@@ -904,6 +907,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
       interviewManager.registerCommand(opencodeConfig);
       presetManager.registerCommand(opencodeConfig);
+      memoryCommandsHook.registerCommands(opencodeConfig);
 
       // Register prompt mode commands (/ol-light, /ol-heavy, /ol-turbo)
       modeCommandHandler.registerCommand(opencodeConfig);
@@ -1130,6 +1134,15 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       );
 
       await presetManager.handleCommandExecuteBefore(
+        input as {
+          command: string;
+          sessionID: string;
+          arguments: string;
+        },
+        output as { parts: Array<{ type: string; text?: string }> },
+      );
+
+      await memoryCommandsHook.handleCommandExecuteBefore(
         input as {
           command: string;
           sessionID: string;

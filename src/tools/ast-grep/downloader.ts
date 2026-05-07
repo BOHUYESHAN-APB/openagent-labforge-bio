@@ -2,7 +2,7 @@ import { chmodSync, existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { LEGACY_PACKAGE_NAMES, PACKAGE_NAME } from '../../config/product';
+import { PACKAGE_NAME } from '../../config/product';
 import { extractZip } from '../../utils';
 import { crossWrite } from '../../utils/compat';
 
@@ -41,16 +41,12 @@ export function getCacheDir(): string {
   if (process.platform === 'win32') {
     const localAppData = process.env.LOCALAPPDATA || process.env.APPDATA;
     const base = localAppData || join(homedir(), 'AppData', 'Local');
-    const preferred = join(base, PACKAGE_NAME, 'bin');
-    const legacy = LEGACY_PACKAGE_NAMES.map((name) => join(base, name, 'bin'));
-    return [preferred, ...legacy].find((dir) => existsSync(dir)) ?? preferred;
+    return join(base, PACKAGE_NAME, 'bin');
   }
 
   const xdgCache = process.env.XDG_CACHE_HOME;
   const base = xdgCache || join(homedir(), '.cache');
-  const preferred = join(base, PACKAGE_NAME, 'bin');
-  const legacy = LEGACY_PACKAGE_NAMES.map((name) => join(base, name, 'bin'));
-  return [preferred, ...legacy].find((dir) => existsSync(dir)) ?? preferred;
+  return join(base, PACKAGE_NAME, 'bin');
 }
 
 export function getBinaryName(): string {

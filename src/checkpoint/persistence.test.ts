@@ -269,4 +269,152 @@ describe('checkpoint persistence', () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+
+  test('records and removes manual preferences across workspace and repository scopes', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ol-manual-pref-'));
+    try {
+      const manager = new CheckpointManager(root);
+      manager.initializeSession(
+        'session-pref',
+        root,
+        'repo-pref',
+        'conversation-pref',
+      );
+
+      const workspacePrefId = manager.recordManualPreference('session-pref', {
+        kind: 'workflow',
+        scope: 'workspace',
+        content: 'Prefer test -> build -> deploy order.',
+      });
+      const repositoryPrefId = manager.recordManualPreference('session-pref', {
+        kind: 'tooling',
+        scope: 'repository',
+        content: 'Prefer uv for Python tooling setup.',
+      });
+
+      expect(workspacePrefId).toBeTruthy();
+      expect(repositoryPrefId).toBeTruthy();
+
+      const allEntries = manager.listManualPreferences('session-pref');
+      expect(allEntries).toHaveLength(2);
+      expect(allEntries.map((entry) => entry.id)).toEqual(
+        expect.arrayContaining([workspacePrefId!, repositoryPrefId!]),
+      );
+
+      expect(manager.workspaceMemory.get(root)?.preferences).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: workspacePrefId,
+            scope: 'workspace',
+            kind: 'workflow',
+          }),
+        ]),
+      );
+      expect(manager.repositoryMemory.get('repo-pref')?.preferences).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: repositoryPrefId,
+            scope: 'repository',
+            kind: 'tooling',
+          }),
+        ]),
+      );
+      expect(manager.repositoryMemory.get('repo-pref')?.globalKnowledge).toContain(
+        'Preference (tooling): Prefer uv for Python tooling setup.',
+      );
+      expect(manager.repositoryMemory.get('repo-pref')?.patterns).toContain(
+        'preference:tooling',
+      );
+
+      expect(
+        manager.removeManualPreferenceById('session-pref', repositoryPrefId!, 'repository'),
+      ).toBe(true);
+      expect(
+        manager.repositoryMemory.get('repo-pref')?.preferences.some((entry) => entry.id === repositoryPrefId),
+      ).toBe(false);
+      expect(manager.repositoryMemory.get('repo-pref')?.globalKnowledge).not.toContain(
+        'Preference (tooling): Prefer uv for Python tooling setup.',
+      );
+
+      expect(
+        manager.removeManualPreferenceById('session-pref', workspacePrefId!, 'workspace'),
+      ).toBe(true);
+      expect(
+        manager.workspaceMemory.get(root)?.preferences.some((entry) => entry.id === workspacePrefId),
+      ).toBe(false);
+      expect(manager.workspaceMemory.get(root)?.globalContext).not.toHaveProperty(
+        `preference:${workspacePrefId}`,
+      );
+
+      const reloaded = new CheckpointManager(root);
+      expect(reloaded.listManualPreferences('session-pref')).toHaveLength(0);
+      expect(
+        reloaded.sessionMemory.get('session-pref')?.metadata.lastRemovedPreference,
+      ).toMatchObject({
+        id: workspacePrefId,
+        scope: 'workspace',
+      });
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test('removing one duplicate repository preference preserves shared knowledge and pattern until last entry is removed', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ol-manual-pref-dup-'));
+    try {
+      const manager = new CheckpointManager(root);
+      manager.initializeSession(
+        'session-pref-dup',
+        root,
+        'repo-pref-dup',
+        'conversation-pref-dup',
+      );
+
+      const firstId = manager.recordManualPreference('session-pref-dup', {
+        kind: 'tooling',
+        scope: 'repository',
+        content: 'Prefer uv for Python tooling setup.',
+      });
+      const secondId = manager.recordManualPreference('session-pref-dup', {
+        kind: 'tooling',
+        scope: 'repository',
+        content: 'Prefer uv for Python tooling setup.',
+      });
+
+      expect(firstId).toBeTruthy();
+      expect(secondId).toBeTruthy();
+      expect(firstId).not.toBe(secondId);
+      expect(manager.repositoryMemory.get('repo-pref-dup')?.globalKnowledge).toContain(
+        'Preference (tooling): Prefer uv for Python tooling setup.',
+      );
+      expect(manager.repositoryMemory.get('repo-pref-dup')?.patterns).toContain(
+        'preference:tooling',
+      );
+
+      expect(
+        manager.removeManualPreferenceById('session-pref-dup', firstId!, 'repository'),
+      ).toBe(true);
+
+      expect(manager.listManualPreferences('session-pref-dup', 'repository')).toHaveLength(1);
+      expect(manager.repositoryMemory.get('repo-pref-dup')?.globalKnowledge).toContain(
+        'Preference (tooling): Prefer uv for Python tooling setup.',
+      );
+      expect(manager.repositoryMemory.get('repo-pref-dup')?.patterns).toContain(
+        'preference:tooling',
+      );
+
+      expect(
+        manager.removeManualPreferenceById('session-pref-dup', secondId!, 'repository'),
+      ).toBe(true);
+      expect(manager.listManualPreferences('session-pref-dup', 'repository')).toHaveLength(0);
+      expect(
+        manager.repositoryMemory.get('repo-pref-dup')?.globalKnowledge,
+      ).not.toContain('Preference (tooling): Prefer uv for Python tooling setup.');
+      expect(manager.repositoryMemory.get('repo-pref-dup')?.patterns).not.toContain(
+        'preference:tooling',
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

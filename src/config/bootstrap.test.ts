@@ -72,7 +72,7 @@ describe('config bootstrap', () => {
     process.env.XDG_CONFIG_HOME = tmpDir;
     delete process.env.OPENCODE_CONFIG_DIR;
     const configDir = join(tmpDir, 'opencode');
-    const legacyPath = join(configDir, 'openagent-labforge.json');
+    const legacyPath = join(configDir, 'extendai-lab.json');
     mkdirSync(configDir, { recursive: true });
     writeFileSync(legacyPath, '{"preset":"legacy"}\n', { flush: true });
 

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { CONFIG_BASENAME, LEGACY_CONFIG_BASENAMES } from '../config/product';
+import { CONFIG_BASENAME } from '../config/product';
 
 function getDefaultOpenCodeConfigDir(): string {
   const userConfigDir = process.env.XDG_CONFIG_HOME
@@ -76,18 +76,6 @@ export function getLiteConfigJsonc(): string {
   return join(getConfigDir(), `${CONFIG_BASENAME}.jsonc`);
 }
 
-export function getLegacyLiteConfigs(): string[] {
-  return LEGACY_CONFIG_BASENAMES.map((baseName) =>
-    join(getConfigDir(), `${baseName}.json`),
-  );
-}
-
-export function getLegacyLiteConfigJsoncs(): string[] {
-  return LEGACY_CONFIG_BASENAMES.map((baseName) =>
-    join(getConfigDir(), `${baseName}.jsonc`),
-  );
-}
-
 export function getTuiConfig(): string {
   const customConfigPath = getCustomTuiConfigPath();
   if (customConfigPath) return customConfigPath;
@@ -105,14 +93,6 @@ export function getExistingLiteConfigPath(): string {
 
   const jsoncPath = getLiteConfigJsonc();
   if (existsSync(jsoncPath)) return jsoncPath;
-
-  for (const legacyPath of getLegacyLiteConfigs()) {
-    if (existsSync(legacyPath)) return legacyPath;
-  }
-
-  for (const legacyPath of getLegacyLiteConfigJsoncs()) {
-    if (existsSync(legacyPath)) return legacyPath;
-  }
 
   return jsonPath;
 }

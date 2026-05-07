@@ -5,8 +5,6 @@ import { PACKAGE_NAME } from '../config/product';
 import {
   getGlobalBgTasksDir,
   getGlobalLogDir,
-  getLegacyGlobalBgTasksDirs,
-  getLegacyGlobalLogDirs,
 } from '../paths/plugin-paths';
 
 const LOG_PREFIX = `${PACKAGE_NAME}.`;
@@ -36,19 +34,13 @@ function getLogDir(): string {
     return process.env.OPENCODE_LOG_DIR;
   }
 
-  return (
-    firstExistingDir([getGlobalLogDir(), ...getLegacyGlobalLogDirs()]) ??
-    getGlobalLogDir()
-  );
+  return getGlobalLogDir();
 }
 
 function getBgTaskDir(): string {
   return process.env.OPENCODE_LOG_DIR
     ? path.join(process.env.OPENCODE_LOG_DIR, 'bg-tasks')
-    : (firstExistingDir([
-        getGlobalBgTasksDir(),
-        ...getLegacyGlobalBgTasksDirs(),
-      ]) ?? getGlobalBgTasksDir());
+    : getGlobalBgTasksDir();
 }
 
 function cleanupOldLogs(logDir: string): void {

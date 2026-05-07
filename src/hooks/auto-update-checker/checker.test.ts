@@ -84,7 +84,7 @@ describe('auto-update-checker/checker', () => {
         (p: string) => {
           if (p.includes('opencode.json')) {
             return JSON.stringify({
-              plugin: ['file:///dev/openagent-labforge'],
+              plugin: ['file:///dev/extendai-lab'],
             });
           }
           if (p.includes('package.json')) {
