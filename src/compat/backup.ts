@@ -8,8 +8,8 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
-import { getProjectStateDir } from '../paths/plugin-paths';
 import type { BackupEntry, InstallPlan, RenderedFile } from './install-plan';
+import { getCompatStoragePaths } from './storage-paths';
 
 export interface BackupManifest {
   createdAt: string;
@@ -27,10 +27,15 @@ export interface ApplyInstallPlanResult {
 
 export function getBackupRoot(
   workspaceRoot: string,
+  runtimeId: string,
   timestamp: string,
 ): string {
   const safeTimestamp = timestamp.replaceAll(':', '-');
-  return join(getProjectStateDir(workspaceRoot), 'backups', safeTimestamp);
+  return join(
+    getCompatStoragePaths(workspaceRoot, runtimeId).runtimeInstallDir,
+    'backups',
+    safeTimestamp,
+  );
 }
 
 export function createBackupManifest(plan: InstallPlan): BackupManifest {
@@ -106,7 +111,11 @@ export function applyInstallPlan(
   },
 ): ApplyInstallPlanResult {
   const timestamp = options.timestamp ?? new Date().toISOString();
-  const backupRoot = getBackupRoot(options.workspaceRoot, timestamp);
+  const backupRoot = getBackupRoot(
+    options.workspaceRoot,
+    plan.runtimeId,
+    timestamp,
+  );
   attachBackupEntries(plan, backupRoot);
 
   for (const entry of plan.backups) {

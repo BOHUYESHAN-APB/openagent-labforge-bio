@@ -169,6 +169,28 @@ describe('compat CLI reports', () => {
         existsSync(join(runtimeRoot, '.claude-plugin', 'plugin.json')),
       ).toBe(true);
       expect(existsSync(join(runtimeRoot, '.claude.json'))).toBe(true);
+      expect(existsSync(join(runtimeRoot, 'settings.json'))).toBe(true);
+      expect(
+        existsSync(join(runtimeRoot, 'plugins', 'known_marketplaces.json')),
+      ).toBe(true);
+      expect(
+        existsSync(join(runtimeRoot, 'plugins', 'installed_plugins.json')),
+      ).toBe(true);
+      expect(
+        readFileSync(join(runtimeRoot, 'settings.json'), 'utf8'),
+      ).toContain('enabledPlugins');
+      expect(
+        readFileSync(
+          join(runtimeRoot, 'plugins', 'installed_plugins.json'),
+          'utf8',
+        ),
+      ).toContain('extendai-lab@extendai-lab-local');
+      expect(
+        readFileSync(
+          join(runtimeRoot, 'plugins', 'known_marketplaces.json'),
+          'utf8',
+        ),
+      ).toContain('extendai-lab-local');
       expect(existsSync(join(workspaceRoot, '.opencode', 'extendai-lab'))).toBe(
         true,
       );
@@ -199,6 +221,12 @@ describe('compat CLI reports', () => {
       expect(report).toContain('ExtendAI Lab Install Apply: OpenClaude');
       expect(report).toContain('ExtendAI Lab Install Apply: Codex');
       expect(report).toContain('Install state:');
+      expect(
+        readFileSync(join(runtimeRoot, 'openclaude', 'settings.json'), 'utf8'),
+      ).toContain('enabledPlugins');
+      expect(
+        readFileSync(join(runtimeRoot, 'codex', 'config.toml'), 'utf8'),
+      ).toContain('# BEGIN EXTENDAI LAB MANAGED MARKETPLACE REGISTRATION');
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
@@ -234,12 +262,29 @@ describe('compat CLI reports', () => {
         'utf8',
       );
 
-      const report = applyCompatRuntimeRollback('codex', manifestPath);
+      const report = applyCompatRuntimeRollback(
+        'codex',
+        manifestPath,
+        workspaceRoot,
+      );
 
       expect(report).toContain('ExtendAI Lab Rollback Apply: Codex');
       expect(report).toContain('Restored files: 1');
       expect(report).toContain('Install state:');
       expect(readFileSync(targetPath, 'utf8')).toContain('before = true');
+      expect(
+        existsSync(
+          join(
+            workspaceRoot,
+            '.opencode',
+            'extendai-lab',
+            'compat',
+            'codex',
+            'install',
+            'latest.json',
+          ),
+        ),
+      ).toBe(true);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
@@ -261,7 +306,11 @@ describe('compat CLI reports', () => {
         'utf8',
       );
 
-      const report = applyCompatRuntimeRollback('openclaude', manifestPath);
+      const report = applyCompatRuntimeRollback(
+        'openclaude',
+        manifestPath,
+        workspaceRoot,
+      );
 
       expect(report).toContain(
         'Runtime mismatch: manifest was created for codex',

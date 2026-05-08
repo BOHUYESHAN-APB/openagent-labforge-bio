@@ -1,4 +1,22 @@
-export type { ClaudeMcpMergeResult, ClaudeMcpServerEntry } from './claude';
-export { mergeClaudeMcpServers } from './claude';
-export type { CodexTomlMergeResult, UnifiedMcpRegistryEntry } from './codex';
-export { mergeCodexMcpServers } from './codex';
+export type {
+  ClaudeEnabledPluginsMergeResult,
+  ClaudeInstalledPluginsMergeResult,
+  ClaudeKnownMarketplaceMergeResult,
+  ClaudeMcpMergeResult,
+  ClaudeMcpServerEntry,
+} from './claude';
+export {
+  mergeClaudeEnabledPlugins,
+  mergeClaudeInstalledPlugins,
+  mergeClaudeKnownMarketplaces,
+  mergeClaudeMcpServers,
+} from './claude';
+export type {
+  CodexMarketplaceMergeResult,
+  CodexTomlMergeResult,
+  UnifiedMcpRegistryEntry,
+} from './codex';
+export {
+  mergeCodexMarketplaceRegistration,
+  mergeCodexMcpServers,
+} from './codex';

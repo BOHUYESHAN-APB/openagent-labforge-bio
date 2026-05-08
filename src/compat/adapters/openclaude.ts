@@ -8,7 +8,12 @@ import type {
   RuntimeValidationResult,
 } from '../adapter';
 import { assessRuntimeCapabilities } from '../capabilities';
-import { mergeClaudeMcpServers } from '../config-writers';
+import {
+  mergeClaudeEnabledPlugins,
+  mergeClaudeInstalledPlugins,
+  mergeClaudeKnownMarketplaces,
+  mergeClaudeMcpServers,
+} from '../config-writers';
 import {
   addPlanFile,
   addPlanMessage,
@@ -38,10 +43,29 @@ function getClaudeMcpConfigPath(configRoot: string): string {
   return join(configRoot, '.claude.json');
 }
 
+function getOpenClaudeSettingsPath(configRoot: string): string {
+  return join(configRoot, 'settings.json');
+}
+
+function getOpenClaudeKnownMarketplacesPath(configRoot: string): string {
+  return join(configRoot, 'plugins', 'known_marketplaces.json');
+}
+
+function getOpenClaudeInstalledPluginsPath(configRoot: string): string {
+  return join(configRoot, 'plugins', 'installed_plugins.json');
+}
+
+function getOpenClaudePluginKey(): string {
+  return 'extendai-lab@extendai-lab-local';
+}
+
 function getOpenClaudeRequiredPaths(configRoot: string): string[] {
   return [
     join(configRoot, '.claude-plugin', 'plugin.json'),
     join(configRoot, '.mcp.json'),
+    getOpenClaudeSettingsPath(configRoot),
+    getOpenClaudeKnownMarketplacesPath(configRoot),
+    getOpenClaudeInstalledPluginsPath(configRoot),
     join(configRoot, 'skills', 'extendai-lab-foundation', 'SKILL.md'),
     join(configRoot, 'agents', 'extendai-lab-orchestrator.md'),
     join(configRoot, 'commands', 'extendai-lab-baseline.md'),
@@ -70,6 +94,64 @@ function renderOpenClaudeManagedConfig(configRoot: string): RenderedFile {
   return {
     path: configPath,
     relativePath: '.claude.json',
+    content: merged.content,
+    action: merged.changed ? (existingContent ? 'update' : 'create') : 'skip',
+    managed: true,
+  };
+}
+
+function renderOpenClaudeSettings(configRoot: string): RenderedFile {
+  const settingsPath = getOpenClaudeSettingsPath(configRoot);
+  const existingContent = existsSync(settingsPath)
+    ? readFileSync(settingsPath, 'utf8')
+    : undefined;
+  const merged = mergeClaudeEnabledPlugins(existingContent, [
+    getOpenClaudePluginKey(),
+  ]);
+
+  return {
+    path: settingsPath,
+    relativePath: 'settings.json',
+    content: merged.content,
+    action: merged.changed ? (existingContent ? 'update' : 'create') : 'skip',
+    managed: true,
+  };
+}
+
+function renderOpenClaudeKnownMarketplaces(configRoot: string): RenderedFile {
+  const path = getOpenClaudeKnownMarketplacesPath(configRoot);
+  const existingContent = existsSync(path)
+    ? readFileSync(path, 'utf8')
+    : undefined;
+  const merged = mergeClaudeKnownMarketplaces(
+    existingContent,
+    'extendai-lab-local',
+    configRoot,
+  );
+
+  return {
+    path,
+    relativePath: 'plugins/known_marketplaces.json',
+    content: merged.content,
+    action: merged.changed ? (existingContent ? 'update' : 'create') : 'skip',
+    managed: true,
+  };
+}
+
+function renderOpenClaudeInstalledPlugins(configRoot: string): RenderedFile {
+  const path = getOpenClaudeInstalledPluginsPath(configRoot);
+  const existingContent = existsSync(path)
+    ? readFileSync(path, 'utf8')
+    : undefined;
+  const merged = mergeClaudeInstalledPlugins(
+    existingContent,
+    getOpenClaudePluginKey(),
+    configRoot,
+  );
+
+  return {
+    path,
+    relativePath: 'plugins/installed_plugins.json',
     content: merged.content,
     action: merged.changed ? (existingContent ? 'update' : 'create') : 'skip',
     managed: true,
@@ -110,7 +192,13 @@ export const openclaudeAdapter: RuntimeAdapter = {
       path: join(configRoot, file.relativePath),
     }));
 
-    return [...files, renderOpenClaudeManagedConfig(configRoot)];
+    return [
+      ...files,
+      renderOpenClaudeManagedConfig(configRoot),
+      renderOpenClaudeSettings(configRoot),
+      renderOpenClaudeKnownMarketplaces(configRoot),
+      renderOpenClaudeInstalledPlugins(configRoot),
+    ];
   },
   planInstall(context: RuntimeAdapterContext) {
     const plan = createInstallPlan({
@@ -148,12 +236,47 @@ export const openclaudeAdapter: RuntimeAdapter = {
     const missingPaths = getOpenClaudeRequiredPaths(configRoot).filter(
       (path) => !existsSync(path),
     );
+    const settingsPath = getOpenClaudeSettingsPath(configRoot);
+    const settingsContent = existsSync(settingsPath)
+      ? readFileSync(settingsPath, 'utf8')
+      : '';
+    const installedPluginsPath = getOpenClaudeInstalledPluginsPath(configRoot);
+    const installedPluginsContent = existsSync(installedPluginsPath)
+      ? readFileSync(installedPluginsPath, 'utf8')
+      : '';
+    const knownMarketplacesPath =
+      getOpenClaudeKnownMarketplacesPath(configRoot);
+    const knownMarketplacesContent = existsSync(knownMarketplacesPath)
+      ? readFileSync(knownMarketplacesPath, 'utf8')
+      : '';
+    const activationFindings: string[] = [];
+    if (settingsContent && !settingsContent.includes('enabledPlugins')) {
+      activationFindings.push(
+        'settings.json is missing enabledPlugins activation data.',
+      );
+    }
+    if (
+      installedPluginsContent &&
+      !installedPluginsContent.includes(getOpenClaudePluginKey())
+    ) {
+      activationFindings.push(
+        'installed_plugins.json is missing the ExtendAI Lab plugin entry.',
+      );
+    }
+    if (
+      knownMarketplacesContent &&
+      !knownMarketplacesContent.includes('extendai-lab-local')
+    ) {
+      activationFindings.push(
+        'known_marketplaces.json is missing the ExtendAI Lab marketplace entry.',
+      );
+    }
 
     return {
       runtimeId: profile.id,
-      ok: missingPaths.length === 0,
+      ok: missingPaths.length === 0 && activationFindings.length === 0,
       findings:
-        missingPaths.length === 0
+        missingPaths.length === 0 && activationFindings.length === 0
           ? [
               'OpenClaude required assets are present.',
               'Reload/restart the Claude-family runtime to activate new plugin assets and MCP config.',
@@ -161,6 +284,7 @@ export const openclaudeAdapter: RuntimeAdapter = {
           : [
               'OpenClaude install is incomplete. Missing required assets:',
               ...missingPaths.map((path) => `- ${path}`),
+              ...activationFindings.map((line) => `- ${line}`),
             ],
     };
   },

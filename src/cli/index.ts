@@ -392,7 +392,11 @@ async function runCli(args: string[]): Promise<number> {
 
     if (rollbackArgs.manifestPath && !rollbackArgs.dryRun) {
       console.log(
-        applyCompatRuntimeRollback(selectedRuntime, rollbackArgs.manifestPath),
+        applyCompatRuntimeRollback(
+          selectedRuntime,
+          rollbackArgs.manifestPath,
+          process.cwd(),
+        ),
       );
       return 0;
     }

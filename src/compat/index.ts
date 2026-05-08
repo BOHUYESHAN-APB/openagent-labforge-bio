@@ -34,13 +34,21 @@ export {
   getRuntimeCapabilityMatrix,
 } from './capabilities';
 export type {
+  ClaudeEnabledPluginsMergeResult,
+  ClaudeInstalledPluginsMergeResult,
+  ClaudeKnownMarketplaceMergeResult,
   ClaudeMcpMergeResult,
   ClaudeMcpServerEntry,
+  CodexMarketplaceMergeResult,
   CodexTomlMergeResult,
   UnifiedMcpRegistryEntry,
 } from './config-writers';
 export {
+  mergeClaudeEnabledPlugins,
+  mergeClaudeInstalledPlugins,
+  mergeClaudeKnownMarketplaces,
   mergeClaudeMcpServers,
+  mergeCodexMarketplaceRegistration,
   mergeCodexMcpServers,
 } from './config-writers';
 export type { CapabilityDegradation, DegradationRule } from './degradation';

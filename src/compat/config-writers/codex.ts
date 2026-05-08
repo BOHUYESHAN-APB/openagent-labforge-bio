@@ -9,7 +9,12 @@ export interface UnifiedMcpRegistryEntry {
 
 const MANAGED_START = '# BEGIN EXTENDAI LAB MANAGED MCP REGISTRY';
 const MANAGED_END = '# END EXTENDAI LAB MANAGED MCP REGISTRY';
+const MARKETPLACE_MANAGED_START =
+  '# BEGIN EXTENDAI LAB MANAGED MARKETPLACE REGISTRATION';
+const MARKETPLACE_MANAGED_END =
+  '# END EXTENDAI LAB MANAGED MARKETPLACE REGISTRATION';
 const CODEX_MCP_SERVER_NAME_PATTERN = /^[A-Za-z0-9_-]+$/;
+const CODEX_MARKETPLACE_NAME_PATTERN = /^[A-Za-z0-9_-]+$/;
 
 function escapeTomlString(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -105,6 +110,13 @@ export interface CodexTomlMergeResult {
   skipped: string[];
 }
 
+export interface CodexMarketplaceMergeResult {
+  content: string;
+  changed: boolean;
+  registered: string[];
+  skipped: string[];
+}
+
 export function mergeCodexMcpServers(
   existingContent: string,
   registry: Record<string, UnifiedMcpRegistryEntry>,
@@ -138,5 +150,81 @@ export function mergeCodexMcpServers(
     changed: nextContent !== existingContent,
     added,
     skipped,
+  };
+}
+
+function renderMarketplaceBlock(name: string, source: string): string {
+  return [
+    `[marketplaces.${name}]`,
+    'source_type = "local"',
+    `source = ${renderTomlString(source)}`,
+  ].join('\n');
+}
+
+function stripManagedMarketplaceBlock(content: string): string {
+  const pattern = new RegExp(
+    `${MARKETPLACE_MANAGED_START.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?${MARKETPLACE_MANAGED_END.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\n?`,
+    'g',
+  );
+  return content.replace(pattern, '').trimEnd();
+}
+
+function parseCodexMarketplaceNames(content: string): Set<string> {
+  const names = new Set<string>();
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const match = line.match(/^\[marketplaces\.([^\]]+)\]$/);
+    if (match) {
+      const name = match[1].trim();
+      if (name && CODEX_MARKETPLACE_NAME_PATTERN.test(name)) {
+        names.add(name);
+      }
+    }
+  }
+  return names;
+}
+
+export function mergeCodexMarketplaceRegistration(
+  existingContent: string,
+  marketplaceName: string,
+  sourcePath: string,
+): CodexMarketplaceMergeResult {
+  const base = stripManagedMarketplaceBlock(existingContent);
+  const existingNames = parseCodexMarketplaceNames(base);
+
+  if (!CODEX_MARKETPLACE_NAME_PATTERN.test(marketplaceName)) {
+    return {
+      content: existingContent,
+      changed: false,
+      registered: [],
+      skipped: [marketplaceName],
+    };
+  }
+
+  if (existingNames.has(marketplaceName)) {
+    const nextContent = base ? `${base}\n` : '';
+    return {
+      content: nextContent,
+      changed: nextContent !== existingContent,
+      registered: [],
+      skipped: [marketplaceName],
+    };
+  }
+
+  const block = [
+    MARKETPLACE_MANAGED_START,
+    '',
+    renderMarketplaceBlock(marketplaceName, sourcePath),
+    '',
+    MARKETPLACE_MANAGED_END,
+  ].join('\n');
+
+  const nextContent = `${base ? `${base}\n\n` : ''}${block}\n`;
+  return {
+    content: nextContent,
+    changed: nextContent !== existingContent,
+    registered: [marketplaceName],
+    skipped: [],
   };
 }

@@ -31,7 +31,8 @@ OpenCode is the native runtime, so ExtendAI Lab already owns a larger surface.
 | `~/.config/opencode/extendai-lab.json` / lite config | JSON | ExtendAI Lab-owned config | overwrite from generated config |
 | `~/.config/opencode/extendai-lab.schema.json` | JSON schema | ExtendAI Lab-owned artifact | overwrite from generated schema |
 | `.opencode/extendai-lab/plans/*.md` | Markdown | ExtendAI Lab-owned state | host-owned save service |
-| `.opencode/extendai-lab/backups/**` | JSON + files | ExtendAI Lab-owned state | manifest + managed backup copies |
+| `.opencode/extendai-lab/compat/<runtime>/install/backups/**` | JSON + files | ExtendAI Lab-owned compat state | manifest + managed backup copies |
+| `.opencode/extendai-lab/compat/<runtime>/install/latest.json` | JSON | ExtendAI Lab-owned compat state | overwrite latest install/apply/rollback status |
 
 ## OpenClaude / Claude-family
 
@@ -121,6 +122,8 @@ Project-owned baseline:
 - `.opencode/extendai-lab/compat/<runtime>/cache`
 - `.opencode/extendai-lab/compat/<runtime>/memory`
 - `.opencode/extendai-lab/compat/<runtime>/install`
+- `.opencode/extendai-lab/compat/<runtime>/install/backups/<timestamp>/manifest.json`
+- `.opencode/extendai-lab/compat/<runtime>/install/latest.json`
 
 Global baseline:
 
@@ -149,14 +152,16 @@ Implemented foundation:
 - adapter/renderers for OpenCode, OpenClaude, Codex, Claude-family later target
 - Claude-family JSON MCP merge writer
 - Codex TOML managed MCP registry writer
+- OpenClaude activation bridge via `settings.json.enabledPlugins`, `plugins/installed_plugins.json`, and `plugins/known_marketplaces.json`
+- Codex activation bridge via managed marketplace registration block in `config.toml`
 - real apply path for `install --runtime=openclaude|codex`
 - manifest-backed real restore path for `rollback --runtime=<id> --manifest=...`
 - isolated runtime-root testing via `--runtime-root=<path>`
 - post-apply validation now checks required plugin/config assets and emits reload/restart guidance for OpenClaude/Codex
+- runtime-specific backup roots and `latest.json` install-state records under `.opencode/extendai-lab/compat/<runtime>/install/`
 
 Still pending for full install/apply closure:
 
-- backup manifest linkage at per-file writer level
 - validation that the written config is accepted by each host runtime
-- broader host-specific validation beyond file-write success
+- broader host-specific validation beyond file-write success (current checks now cover presence of activation bridge files/blocks, but not host process acceptance yet)
 - closed-source Claude real apply path (still preview-only by design)

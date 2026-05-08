@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'bun:test';
-import { mergeCodexMcpServers } from './codex';
+import {
+  mergeCodexMarketplaceRegistration,
+  mergeCodexMcpServers,
+} from './codex';
 
 describe('mergeCodexMcpServers', () => {
   test('appends a managed block for new registry entries', () => {
@@ -77,5 +80,56 @@ describe('mergeCodexMcpServers', () => {
     expect(removed.added).toEqual([]);
     expect(removed.skipped).toEqual([]);
     expect(removed.content).toBe('model = "gpt-5"\n');
+  });
+});
+
+describe('mergeCodexMarketplaceRegistration', () => {
+  test('appends a managed marketplace block for a local plugin source', () => {
+    const existing = 'model = "gpt-5"\n';
+    const result = mergeCodexMarketplaceRegistration(
+      existing,
+      'extendai-lab-local',
+      'C:/plugins/extendai-lab',
+    );
+
+    expect(result.changed).toBe(true);
+    expect(result.registered).toEqual(['extendai-lab-local']);
+    expect(result.skipped).toEqual([]);
+    expect(result.content).toContain(
+      '# BEGIN EXTENDAI LAB MANAGED MARKETPLACE REGISTRATION',
+    );
+    expect(result.content).toContain('[marketplaces.extendai-lab-local]');
+    expect(result.content).toContain('source_type = "local"');
+    expect(result.content).toContain('source = "C:/plugins/extendai-lab"');
+  });
+
+  test('skips unmanaged marketplace collisions and strips old managed block', () => {
+    const existing = [
+      'model = "gpt-5"',
+      '',
+      '[marketplaces.extendai-lab-local]',
+      'source_type = "local"',
+      'source = "C:/existing/plugin"',
+      '',
+      '# BEGIN EXTENDAI LAB MANAGED MARKETPLACE REGISTRATION',
+      '',
+      '[marketplaces.old-managed]',
+      'source_type = "local"',
+      'source = "C:/old/plugin"',
+      '',
+      '# END EXTENDAI LAB MANAGED MARKETPLACE REGISTRATION',
+      '',
+    ].join('\n');
+
+    const result = mergeCodexMarketplaceRegistration(
+      existing,
+      'extendai-lab-local',
+      'C:/plugins/extendai-lab',
+    );
+
+    expect(result.registered).toEqual([]);
+    expect(result.skipped).toEqual(['extendai-lab-local']);
+    expect(result.content).toContain('source = "C:/existing/plugin"');
+    expect(result.content).not.toContain('[marketplaces.old-managed]');
   });
 });

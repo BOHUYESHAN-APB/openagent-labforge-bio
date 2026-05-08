@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import {
   applyInstallPlan,
   applyRollbackManifest,
@@ -435,7 +436,14 @@ export function applyCompatRuntimeInstalls(
       ].join('\n');
     }
 
-    return applyCompatRuntimeInstall(workspaceRoot, runtimeId, options);
+    const runtimeRoot = options?.runtimeRoot
+      ? join(options.runtimeRoot, runtimeId)
+      : undefined;
+
+    return applyCompatRuntimeInstall(workspaceRoot, runtimeId, {
+      ...options,
+      runtimeRoot,
+    });
   });
 
   return [
@@ -486,6 +494,7 @@ export function buildCompatRollbackPreview(
 export function applyCompatRuntimeRollback(
   runtimeId: CompatRuntimeId,
   manifestPath: string,
+  workspaceRoot: string = process.cwd(),
 ): string {
   const adapter = getCompatRuntimeAdapter(runtimeId);
   if (!adapter) {
@@ -510,7 +519,7 @@ export function applyCompatRuntimeRollback(
   const statePath = writeCompatInstallState({
     runtimeId,
     updatedAt: new Date().toISOString(),
-    workspaceRoot: process.cwd(),
+    workspaceRoot,
     installState:
       runtimeId === 'opencode' ? 'native-primary' : 'partial-baseline',
     rollbackManifestPath: manifestPath,

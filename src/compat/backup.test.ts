@@ -37,7 +37,11 @@ describe('compat backup helpers', () => {
         managed: true,
       });
 
-      const backupRoot = getBackupRoot(workspaceRoot, '2026-05-08T00-00-00Z');
+      const backupRoot = getBackupRoot(
+        workspaceRoot,
+        'opencode',
+        '2026-05-08T00-00-00Z',
+      );
       attachBackupEntries(plan, backupRoot);
 
       expect(plan.backups).toHaveLength(1);
@@ -127,11 +131,15 @@ describe('compat backup helpers', () => {
   test('getBackupRoot makes ISO timestamps Windows-safe', () => {
     const backupRoot = getBackupRoot(
       'D:/workspace/example',
+      'codex',
       '2026-05-08T15:42:21.724Z',
     );
 
     expect(backupRoot).toContain('2026-05-08T15-42-21.724Z');
     expect(backupRoot).not.toContain('2026-05-08T15:42:21.724Z');
+    expect(backupRoot).toContain('compat');
+    expect(backupRoot).toContain('codex');
+    expect(backupRoot).toContain('install');
   });
 
   test('applyInstallPlan creates backup root with default timestamp on Windows-safe path', () => {
@@ -163,6 +171,9 @@ describe('compat backup helpers', () => {
         /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z$/,
       );
       expect(basename(result.backupRoot)).not.toContain(':');
+      expect(result.backupRoot).toContain('compat');
+      expect(result.backupRoot).toContain('openclaude');
+      expect(result.backupRoot).toContain('install');
       expect(existsSync(result.manifestPath)).toBe(true);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });

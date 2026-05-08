@@ -49,6 +49,9 @@ describe('runtime adapter skeletons', () => {
       expect.arrayContaining([
         '.claude-plugin/plugin.json',
         '.claude.json',
+        'settings.json',
+        'plugins/known_marketplaces.json',
+        'plugins/installed_plugins.json',
         'skills/extendai-lab-foundation/SKILL.md',
         'agents/extendai-lab-orchestrator.md',
         'commands/extendai-lab-baseline.md',
@@ -94,5 +97,18 @@ describe('runtime adapter skeletons', () => {
       codexPlan.files.find((file) => file.relativePath === 'config.toml')
         ?.content,
     ).toContain('# BEGIN EXTENDAI LAB MANAGED MCP REGISTRY');
+    expect(
+      codexPlan.files.find((file) => file.relativePath === 'config.toml')
+        ?.content,
+    ).toContain('# BEGIN EXTENDAI LAB MANAGED MARKETPLACE REGISTRATION');
+    expect(
+      openclaudePlan.files.find((file) => file.relativePath === 'settings.json')
+        ?.content,
+    ).toContain('enabledPlugins');
+    expect(
+      openclaudePlan.files.find(
+        (file) => file.relativePath === 'plugins/installed_plugins.json',
+      )?.content,
+    ).toContain('extendai-lab@extendai-lab-local');
   });
 });

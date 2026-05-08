@@ -8,7 +8,10 @@ import type {
   RuntimeValidationResult,
 } from '../adapter';
 import { assessRuntimeCapabilities } from '../capabilities';
-import { mergeCodexMcpServers } from '../config-writers';
+import {
+  mergeCodexMarketplaceRegistration,
+  mergeCodexMcpServers,
+} from '../config-writers';
 import {
   addPlanFile,
   addPlanMessage,
@@ -44,7 +47,7 @@ function renderCodexManagedConfig(configRoot: string): RenderedFile {
   const existingContent = existsSync(configPath)
     ? readFileSync(configPath, 'utf8')
     : '';
-  const merged = mergeCodexMcpServers(existingContent, {
+  const mergedMcp = mergeCodexMcpServers(existingContent, {
     'shared-context-server': {
       command: 'npx',
       args: ['shared-context-server'],
@@ -52,12 +55,22 @@ function renderCodexManagedConfig(configRoot: string): RenderedFile {
       timeout: 15,
     },
   });
+  const mergedMarketplace = mergeCodexMarketplaceRegistration(
+    mergedMcp.content,
+    'extendai-lab-local',
+    configRoot,
+  );
 
   return {
     path: configPath,
     relativePath: 'config.toml',
-    content: merged.content,
-    action: merged.changed ? (existingContent ? 'update' : 'create') : 'skip',
+    content: mergedMarketplace.content,
+    action:
+      mergedMcp.changed || mergedMarketplace.changed
+        ? existingContent
+          ? 'update'
+          : 'create'
+        : 'skip',
     managed: true,
   };
 }
@@ -122,12 +135,35 @@ export const codexAdapter: RuntimeAdapter = {
     const missingPaths = getCodexRequiredPaths(configRoot).filter(
       (path) => !existsSync(path),
     );
+    const configPath = join(configRoot, 'config.toml');
+    const configContent = existsSync(configPath)
+      ? readFileSync(configPath, 'utf8')
+      : '';
+    const missingManagedBlocks: string[] = [];
+    if (
+      configContent &&
+      !configContent.includes('# BEGIN EXTENDAI LAB MANAGED MCP REGISTRY')
+    ) {
+      missingManagedBlocks.push(
+        'config.toml is missing the managed MCP registry block.',
+      );
+    }
+    if (
+      configContent &&
+      !configContent.includes(
+        '# BEGIN EXTENDAI LAB MANAGED MARKETPLACE REGISTRATION',
+      )
+    ) {
+      missingManagedBlocks.push(
+        'config.toml is missing the managed marketplace registration block.',
+      );
+    }
 
     return {
       runtimeId: profile.id,
-      ok: missingPaths.length === 0,
+      ok: missingPaths.length === 0 && missingManagedBlocks.length === 0,
       findings:
-        missingPaths.length === 0
+        missingPaths.length === 0 && missingManagedBlocks.length === 0
           ? [
               'Codex required assets are present.',
               'Reload/restart Codex so new plugin assets, marketplace metadata, and managed config are re-read.',
@@ -135,6 +171,7 @@ export const codexAdapter: RuntimeAdapter = {
           : [
               'Codex install is incomplete. Missing required assets:',
               ...missingPaths.map((path) => `- ${path}`),
+              ...missingManagedBlocks.map((line) => `- ${line}`),
             ],
     };
   },

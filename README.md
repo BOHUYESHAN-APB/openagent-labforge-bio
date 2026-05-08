@@ -377,7 +377,7 @@ bunx extendai-lab status
 bunx extendai-lab status --runtime=codex
 bunx extendai-lab install --runtime=openclaude --dry-run
 bunx extendai-lab install --runtime=openclaude --runtime-root=/tmp/openclaude-home
-bunx extendai-lab rollback --runtime=codex --manifest=.opencode/extendai-lab/backups/latest/manifest.json
+bunx extendai-lab rollback --runtime=codex --manifest=.opencode/extendai-lab/compat/codex/install/backups/<timestamp>/manifest.json
 ```
 
 These commands currently report:
@@ -391,6 +391,7 @@ These commands currently report:
 - real apply for `install --runtime=openclaude|codex` when `--dry-run` is omitted
 - real manifest-backed restore for `rollback --runtime=<id> --manifest=...` when `--dry-run` is omitted
 - optional `--runtime-root=<path>` override so compat doctor/status/install/apply can target an isolated runtime root for testing
+- runtime-specific backup/manifests and install-state records under `.opencode/extendai-lab/compat/<runtime>/install/**`
 
 `install openclaude` and `install codex` now support real apply when you omit
 `--dry-run`. Use `--runtime-root=<path>` for isolated testing so writes do not
@@ -398,7 +399,9 @@ touch your real runtime home. `rollback --runtime=<id> --manifest=<path>` also
 supports real manifest-backed restore when `--dry-run` is omitted. Closed-source
 Claude remains preview-only for now. After a real apply, reload/restart the
 target runtime so plugin assets, managed MCP config, and marketplace metadata
-are re-read.
+are re-read. ExtendAI Lab-owned compat backups and `latest.json` install-state
+records now converge under `.opencode/extendai-lab/compat/<runtime>/install/`
+instead of the older shared backup root.
 
 ### Command Execution Modes
 
