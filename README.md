@@ -455,6 +455,27 @@ See also:
 - [`docs/plan-workflow.md`](docs/plan-workflow.md) for planner plan files,
   `/ol-start-work`, executor behavior, boulder state, and the role of `council`.
 
+### Agent Instructions Tool
+
+| Tool | Description |
+|------|-------------|
+| `load_agent_instructions` | Load subagent system prompts and instructions for the main agent to read |
+
+Use `load_agent_instructions` when you want to understand what a subagent does, its capabilities, workflow, and constraints **without spawning a child session**. This tool returns the full system prompt that defines how a subagent operates.
+
+**Available agents**: `explorer`, `librarian`, `oracle`, `designer`, `fixer`, `observer`, `council`, `councillor`, `metis`, `momus`, `multimodal-looker`, `reviewer`, `deep-worker`, `prometheus`, `atlas`
+
+**Example usage**:
+```typescript
+// Load explorer's instructions to understand its search capabilities
+load_agent_instructions({ agent: 'explorer' })
+
+// Load oracle's instructions to understand its review methodology
+load_agent_instructions({ agent: 'oracle' })
+```
+
+This supports the **main-agent-first** philosophy: instead of automatically spawning child sessions, the main agent can read specialist instructions and optionally execute similar logic itself, improving cache hit rates and reducing costs.
+
 ### Media / Visual QA Tools
 
 | Tool | Description |
