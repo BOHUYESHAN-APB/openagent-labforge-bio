@@ -5,6 +5,26 @@ All notable changes to this project are documented here.
 本文件记录项目的重要变更。由于 `v1.0.5` 之前主要是内部开发、迁移和
 checkpoint 式迭代，早期版本条目为基于现有提交历史和功能阶段整理的补记。
 
+## v1.0.22 - 2026-05-11
+
+### Fixed / 修复
+
+- Fixed thinking-language hook: previously only matched exact `deepseek-chat`/
+  `deepseek-reasoner` names, missing newer models like `deepseek-v4-pro`.
+  Rewritten to use provider-aware pattern matching covering all major Chinese
+  models (deepseek, glm, kimi, mimo, qwen, doubao, minimax) and foreign models
+  (claude, gpt, gemini, grok, mistral).
+- 修复思考语言 hook：之前只匹配精确的 `deepseek-chat`/`deepseek-reasoner` 名称，
+  遗漏了新模型 `deepseek-v4-pro`。重写为 provider 感知模式匹配，覆盖所有主流国模
+  （deepseek/glm/kimi/mimo/qwen/doubao/minimax）和海外模型。
+
+- Token economics optimization: Chinese models → Chinese thinking (cheaper tokens),
+  foreign models → English thinking (cheaper tokens). Uses three-hook coordination
+  (messages.transform → language detection, chat.params → model capture,
+  system.transform → injection).
+- Token 经济学优化：国模 → 中文思考（token 更廉），海外模型 → 英文思考
+  （token 更廉）。三 hook 协作。
+
 ## v1.0.21 - 2026-05-11
 
 ### Added / 新增
