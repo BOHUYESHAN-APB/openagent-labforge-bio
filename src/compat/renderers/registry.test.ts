@@ -6,7 +6,8 @@ import {
   SHARED_PREFIX_SNAPSHOT_MARKDOWN,
 } from './registry';
 
-describe('capability renderer registry', () => {
+// OpenClaude/Codex compatibility features are on hold indefinitely
+describe.skip('capability renderer registry', () => {
   test('renders shared-prefix snapshot from stable template', () => {
     const runtime = getRuntimeCompatibilityProfile('codex');
     if (!runtime) throw new Error('Expected codex runtime profile');

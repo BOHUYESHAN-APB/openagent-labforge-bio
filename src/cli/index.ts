@@ -99,16 +99,12 @@ ${PRODUCT_DISPLAY_NAME} installer
 Usage: bunx ${PACKAGE_NAME} install [OPTIONS]
        bunx ${PACKAGE_NAME} doctor
        bunx ${PACKAGE_NAME} status
-       bunx ${PACKAGE_NAME} rollback --runtime=<id> [--manifest=<path>]
        bunx ${PACKAGE_NAME} install dstui [OPTIONS]
        bunx ${PACKAGE_NAME} uninstall dstui [OPTIONS]
 
 Options:
   --skills=yes|no        Install recommended and bundled skills (default: yes)
   --preset=<name>        Active generated config preset (default: openai)
-  --runtime=<id[,id...]> Scope compat doctor/status/install to opencode|openclaude|codex|claude-code; repeat or comma-separate for multi-runtime compat flows
-  --runtime-root=<path>  Override compat runtime root for install/apply/doctor
-  --manifest=<path>      Backup manifest path for compat rollback preview
   --no-tui               Non-interactive mode
   --dry-run              Simulate install without writing files
   --reset                Force overwrite of existing configuration
@@ -118,26 +114,17 @@ Options:
 
 Available presets: ${getGeneratedPresetNames().join(', ')}
 
-Compatibility roadmap: phase 1 focuses on ${PHASE_ONE_RUNTIME_IDS.join(', ')}.
-Other runtimes are planned as limited agent/skill/MCP/rules adapters.
-
 The installer generates OpenAI and OpenCode Go presets by default.
 OpenAI is active unless --preset selects another generated preset.
 For the full config reference, see docs/configuration.md.
 
+Note: OpenClaude/Codex compatibility features are on hold indefinitely.
+      Focus is on OpenCode core functionality (todo-continuation, auto-review, etc.)
+
 Examples:
   bunx ${PACKAGE_NAME} install
   bunx ${PACKAGE_NAME} doctor
-  bunx ${PACKAGE_NAME} doctor --runtime=openclaude
   bunx ${PACKAGE_NAME} status
-  bunx ${PACKAGE_NAME} status --runtime=codex
-  bunx ${PACKAGE_NAME} install openclaude --dry-run
-  bunx ${PACKAGE_NAME} install --runtime=openclaude
-  bunx ${PACKAGE_NAME} install --runtime=openclaude,codex --runtime-root=C:\\temp\\lab-runtimes
-  bunx ${PACKAGE_NAME} install --runtime=codex --dry-run
-  bunx ${PACKAGE_NAME} install --runtime=claude-code --dry-run
-  bunx ${PACKAGE_NAME} rollback --runtime=openclaude --manifest=.opencode/extendai-lab/backups/latest/manifest.json
-  bunx ${PACKAGE_NAME} install codex --dry-run
   bunx ${PACKAGE_NAME} install --no-tui --skills=yes
   bunx ${PACKAGE_NAME} install --preset=opencode-go
   bunx ${PACKAGE_NAME} install dstui --dry-run

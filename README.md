@@ -9,6 +9,14 @@ English | [中文](#中文)
 
 ---
 
+## ⚠️ Development Status
+
+**Current Focus**: OpenCode core functionality (todo-continuation, auto-review, agent orchestration)
+
+**On Hold**: OpenClaude/Codex compatibility features are indefinitely postponed. The codebase contains adapter code for these runtimes, but they are not actively maintained or tested. Development efforts are concentrated on delivering a complete OpenCode plugin experience.
+
+---
+
 ## Overview
 
 ExtendAI Lab is a lightweight agent orchestration system that currently

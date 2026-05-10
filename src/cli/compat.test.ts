@@ -20,7 +20,9 @@ import {
   getCompatRuntimeIds,
 } from './compat';
 
-describe('compat CLI reports', () => {
+// OpenClaude/Codex compatibility features are on hold indefinitely
+// These tests are skipped until development resumes
+describe.skip('compat CLI reports', () => {
   test('doctor report includes phase-one runtime detection and capability matrix', () => {
     const report = buildCompatDoctorReport(process.cwd());
 
