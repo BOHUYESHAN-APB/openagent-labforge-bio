@@ -87,6 +87,7 @@ import {
   createPresetManager,
   createSavePlanTool,
   createWebfetchTool,
+  loadAgentInstructionsTool,
 } from './tools';
 import { detectBioTaskTool } from './tools/detect-bio-task.js';
 import {
@@ -740,6 +741,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       ast_grep_search,
       ast_grep_replace,
       detect_bio_task: detectBioTaskTool,
+      load_agent_instructions: loadAgentInstructionsTool,
       ...(bioSkillsManager
         ? { load_bio_skills: createLoadBioSkillsTool(bioSkillsManager) }
         : {}),
