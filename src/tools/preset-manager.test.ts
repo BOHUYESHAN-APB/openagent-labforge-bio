@@ -561,8 +561,24 @@ describe('createPresetManager', () => {
         'ol-preset'
       ] as { template: string; description: string };
       expect(command).toBeDefined();
-      expect(command.template).toContain('presets');
-      expect(command.description).toContain('/ol-preset');
+      expect(command.description).toContain('preset');
+
+      // Should also register subcommands
+      expect(
+        (opencodeConfig.command as Record<string, unknown>)['ol-preset-free'],
+      ).toBeDefined();
+      expect(
+        (opencodeConfig.command as Record<string, unknown>)['ol-preset-ds-first'],
+      ).toBeDefined();
+      expect(
+        (opencodeConfig.command as Record<string, unknown>)['ol-preset-openai'],
+      ).toBeDefined();
+      expect(
+        (opencodeConfig.command as Record<string, unknown>)['ol-preset-openai-go'],
+      ).toBeDefined();
+      expect(
+        (opencodeConfig.command as Record<string, unknown>)['ol-preset-custom'],
+      ).toBeDefined();
     });
 
     test('does not overwrite existing preset command', () => {

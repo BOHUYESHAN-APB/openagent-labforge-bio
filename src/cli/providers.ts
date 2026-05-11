@@ -6,65 +6,118 @@ import type { InstallConfig } from './types';
 
 const SCHEMA_URL = `https://unpkg.com/${PACKAGE_NAME}@latest/${SCHEMA_FILE_NAME}`;
 
-export const GENERATED_PRESETS = ['openai', 'opencode-go'] as const;
+// ── Five presets ──────────────────────────────────────────────────
+//   free       — 默认，不绑定模型，无侵入（DEFAULT）
+//   ds-first   — DS 优先，适配 OpenCode Go 订阅
+//   openai     — OpenAI 订阅优化
+//   openai-go  — 双订阅最优组合
+//   custom     — 用户自配每个 agent
+export const GENERATED_PRESETS = [
+  'free',
+  'ds-first',
+  'openai',
+  'openai-go',
+  'custom',
+] as const;
 
-// Model mappings by provider/preset.
-export const MODEL_MAPPINGS = {
-  openai: {
-    orchestrator: { model: 'openai/gpt-5.5' },
-    oracle: { model: 'openai/gpt-5.5', variant: 'high' },
-    librarian: { model: 'openai/gpt-5.4-mini', variant: 'low' },
-    explorer: { model: 'openai/gpt-5.4-mini', variant: 'low' },
-    designer: { model: 'openai/gpt-5.4-mini', variant: 'medium' },
-    fixer: { model: 'openai/gpt-5.4-mini', variant: 'low' },
-  },
-  kimi: {
-    orchestrator: { model: 'kimi-for-coding/k2p5' },
-    oracle: { model: 'kimi-for-coding/k2p5', variant: 'high' },
-    librarian: { model: 'kimi-for-coding/k2p5', variant: 'low' },
-    explorer: { model: 'kimi-for-coding/k2p5', variant: 'low' },
-    designer: { model: 'kimi-for-coding/k2p5', variant: 'medium' },
-    fixer: { model: 'kimi-for-coding/k2p5', variant: 'low' },
-  },
-  copilot: {
-    orchestrator: { model: 'github-copilot/claude-opus-4.6' },
-    oracle: { model: 'github-copilot/claude-opus-4.6', variant: 'high' },
-    librarian: { model: 'github-copilot/grok-code-fast-1', variant: 'low' },
-    explorer: { model: 'github-copilot/grok-code-fast-1', variant: 'low' },
-    designer: {
-      model: 'github-copilot/gemini-3.1-pro-preview',
-      variant: 'medium',
-    },
-    fixer: { model: 'github-copilot/claude-sonnet-4.6', variant: 'low' },
-  },
-  'zai-plan': {
-    orchestrator: { model: 'zai-coding-plan/glm-5' },
-    oracle: { model: 'zai-coding-plan/glm-5', variant: 'high' },
-    librarian: { model: 'zai-coding-plan/glm-5', variant: 'low' },
-    explorer: { model: 'zai-coding-plan/glm-5', variant: 'low' },
-    designer: { model: 'zai-coding-plan/glm-5', variant: 'medium' },
-    fixer: { model: 'zai-coding-plan/glm-5', variant: 'low' },
-  },
-  'opencode-go': {
-    orchestrator: { model: 'opencode-go/glm-5.1' },
-    oracle: { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
+// ── Agent → (model, variant) per preset ───────────────────────────
+//
+// Variant = reasoning effort:
+//   max   — DeepSeek 最强推理（DS-Pro 主力）
+//   high  — 高推理（审查、规划位）
+//   medium— 中等（视觉分析、日常编码）
+//   low   — 快速便宜（搜索、批量实现）
+
+interface AgentModelEntry {
+  model: string;
+  variant?: string;
+}
+
+export const MODEL_MAPPINGS: Record<string, Record<string, AgentModelEntry>> = {
+  'ds-first': {
+    // 强推理主力
+    orchestrator: { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
+    'deep-worker': { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
+    'bio-orchestrator': { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
+    // 审查位 — 花钱在刀刃上
+    oracle: { model: 'opencode-go/deepseek-v4-pro', variant: 'high' },
+    reviewer: { model: 'opencode-go/deepseek-v4-pro', variant: 'high' },
     council: { model: 'opencode-go/deepseek-v4-pro', variant: 'high' },
-    librarian: { model: 'opencode-go/minimax-m2.7' },
-    explorer: { model: 'opencode-go/minimax-m2.7' },
-    designer: { model: 'opencode-go/kimi-k2.6', variant: 'medium' },
+    momus: { model: 'opencode-go/deepseek-v4-pro', variant: 'high' },
+    // 规划 — 需大上下文
+    prometheus: { model: 'opencode-go/glm-5.1', variant: 'high' },
+    // 轻量快速
+    explorer: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    librarian: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
     fixer: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    atlas: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    metis: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    councillor: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    // 视觉 — MiMo 1M上下文 + 视觉
+    designer: { model: 'opencode-go/mimo-v2.5', variant: 'medium' },
+    observer: { model: 'opencode-go/mimo-v2.5', variant: 'medium' },
+    'multimodal-looker': { model: 'opencode-go/mimo-v2.5', variant: 'medium' },
+  },
+
+  openai: {
+    // 日常主力 — 5.4 够了
+    orchestrator: { model: 'openai/gpt-5.4', variant: 'high' },
+    'deep-worker': { model: 'openai/gpt-5.4', variant: 'high' },
+    'bio-orchestrator': { model: 'openai/gpt-5.4', variant: 'high' },
+    // 审查位 — 5.5（token 消耗少但质量关键）
+    oracle: { model: 'openai/gpt-5.5', variant: 'xhigh' },
+    reviewer: { model: 'openai/gpt-5.5', variant: 'xhigh' },
+    council: { model: 'openai/gpt-5.5', variant: 'high' },
+    momus: { model: 'openai/gpt-5.5', variant: 'high' },
+    prometheus: { model: 'openai/gpt-5.5', variant: 'high' },
+    // 轻量快速 — mini 有视觉
+    explorer: { model: 'openai/gpt-5.4-mini', variant: 'low' },
+    librarian: { model: 'openai/gpt-5.4-mini', variant: 'low' },
+    fixer: { model: 'openai/gpt-5.4-mini', variant: 'low' },
+    atlas: { model: 'openai/gpt-5.4-mini', variant: 'low' },
+    metis: { model: 'openai/gpt-5.4-mini', variant: 'low' },
+    councillor: { model: 'openai/gpt-5.4-mini', variant: 'low' },
+    // 视觉 — mini 有视觉
+    designer: { model: 'openai/gpt-5.4-mini', variant: 'medium' },
+    observer: { model: 'openai/gpt-5.4-mini', variant: 'medium' },
+    'multimodal-looker': { model: 'openai/gpt-5.4-mini', variant: 'medium' },
+  },
+
+  'openai-go': {
+    // 强推理主力 — GPT-5.4
+    orchestrator: { model: 'openai/gpt-5.4', variant: 'high' },
+    'deep-worker': { model: 'openai/gpt-5.4', variant: 'high' },
+    'bio-orchestrator': { model: 'openai/gpt-5.4', variant: 'high' },
+    // 审查位 — GPT-5.5（token 少但关键）
+    oracle: { model: 'openai/gpt-5.5', variant: 'xhigh' },
+    reviewer: { model: 'openai/gpt-5.5', variant: 'xhigh' },
+    council: { model: 'openai/gpt-5.5', variant: 'high' },
+    momus: { model: 'openai/gpt-5.5', variant: 'high' },
+    prometheus: { model: 'openai/gpt-5.5', variant: 'high' },
+    // 轻量快速 — DS-Flash 比 GPT-mini 更便宜
+    explorer: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    librarian: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    fixer: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    atlas: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    metis: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    councillor: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    // 视觉 — GPT-mini（有视觉）
+    designer: { model: 'openai/gpt-5.4-mini', variant: 'medium' },
+    observer: { model: 'openai/gpt-5.4-mini', variant: 'medium' },
+    'multimodal-looker': { model: 'openai/gpt-5.4-mini', variant: 'medium' },
   },
 } as const;
 
-export type PresetName = keyof typeof MODEL_MAPPINGS;
+export type PresetName = keyof typeof MODEL_MAPPINGS | 'free' | 'custom';
 export type GeneratedPresetName = (typeof GENERATED_PRESETS)[number];
 
 export function isPresetName(value: string): value is PresetName {
+  if (value === 'free' || value === 'custom') return true;
   return Object.hasOwn(MODEL_MAPPINGS, value);
 }
 
 export function getPresetNames(): PresetName[] {
-  return Object.keys(MODEL_MAPPINGS) as PresetName[];
+  return ['free', ...Object.keys(MODEL_MAPPINGS), 'custom'] as PresetName[];
 }
 
 export function isGeneratedPresetName(
@@ -80,10 +133,10 @@ export function getGeneratedPresetNames(): GeneratedPresetName[] {
 export function generateLiteConfig(
   installConfig: InstallConfig,
 ): Record<string, unknown> {
-  const preset = installConfig.preset ?? 'openai';
+  const preset = installConfig.preset ?? 'free';
   if (!isGeneratedPresetName(preset)) {
     throw new Error(
-      `Unsupported preset "${preset}". Available generated presets: ${getGeneratedPresetNames().join(', ')}`,
+      `Unsupported preset "${preset}". Available: ${getGeneratedPresetNames().join(', ')}`,
     );
   }
 
@@ -95,7 +148,7 @@ export function generateLiteConfig(
 
   const createAgentConfig = (
     agentName: string,
-    modelInfo: { model: string; variant?: string },
+    modelInfo: AgentModelEntry | undefined,
   ) => {
     const isOrchestrator = agentName === 'orchestrator';
 
@@ -118,29 +171,46 @@ export function generateLiteConfig(
       skills.push('agent-browser');
     }
 
+    // free/custom 预设不绑定模型
+    if (!modelInfo) {
+      return { skills, mcps: DEFAULT_AGENT_MCPS[agentName as keyof typeof DEFAULT_AGENT_MCPS] ?? [] };
+    }
+
     return {
       model: modelInfo.model,
       variant: modelInfo.variant,
       skills,
-      mcps:
-        DEFAULT_AGENT_MCPS[agentName as keyof typeof DEFAULT_AGENT_MCPS] ?? [],
+      mcps: DEFAULT_AGENT_MCPS[agentName as keyof typeof DEFAULT_AGENT_MCPS] ?? [],
     };
   };
 
-  const buildPreset = (mappingName: PresetName) => {
-    const mapping = MODEL_MAPPINGS[mappingName];
-    return Object.fromEntries(
+  const presets = config.presets as Record<string, unknown>;
+
+  // free — no model bindings
+  presets.free = Object.fromEntries(
+    Object.keys(DEFAULT_AGENT_MCPS).map((agentName) => [
+      agentName,
+      createAgentConfig(agentName, undefined),
+    ]),
+  );
+
+  // ds-first / openai / openai-go — from MODEL_MAPPINGS
+  for (const [mappingName, mapping] of Object.entries(MODEL_MAPPINGS)) {
+    presets[mappingName] = Object.fromEntries(
       Object.entries(mapping).map(([agentName, modelInfo]) => [
         agentName,
         createAgentConfig(agentName, modelInfo),
       ]),
     );
-  };
-
-  const presets = config.presets as Record<string, unknown>;
-  for (const presetName of GENERATED_PRESETS) {
-    presets[presetName] = buildPreset(presetName);
   }
+
+  // custom — placeholder (user fills in via customModels)
+  presets.custom = Object.fromEntries(
+    Object.keys(DEFAULT_AGENT_MCPS).map((agentName) => [
+      agentName,
+      createAgentConfig(agentName, undefined),
+    ]),
+  );
 
   if (installConfig.hasTmux) {
     config.tmux = {

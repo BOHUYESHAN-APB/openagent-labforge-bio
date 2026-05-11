@@ -395,7 +395,7 @@ describe('config-io', () => {
     expect(saved.plugin.length).toBe(3);
   });
 
-  test('writeLiteConfig writes lite config with OpenAI preset', () => {
+  test('writeLiteConfig writes lite config with free preset', () => {
     const litePath = join(tmpDir, 'opencode', `${PACKAGE_NAME}.json`);
     paths.ensureConfigDir();
 
@@ -411,9 +411,9 @@ describe('config-io', () => {
     expect(saved.$schema).toBe(
       `https://unpkg.com/${PACKAGE_NAME}@latest/${SCHEMA_FILE_NAME}`,
     );
-    expect(saved.preset).toBe('openai');
-    expect(saved.presets.openai).toBeDefined();
-    expect(saved.presets['opencode-go']).toBeDefined();
+    expect(saved.preset).toBe('free');
+    expect(saved.presets.free).toBeDefined();
+    expect(saved.presets['ds-first']).toBeDefined();
     expect(saved.tmux.enabled).toBe(true);
   });
 
@@ -439,16 +439,16 @@ describe('config-io', () => {
       hasTmux: false,
       installSkills: false,
       installCustomSkills: false,
-      preset: 'opencode-go',
+      preset: 'ds-first',
       reset: false,
     });
     expect(result.success).toBe(true);
 
     const saved = JSON.parse(readFileSync(litePath, 'utf-8'));
-    expect(saved.preset).toBe('opencode-go');
+    expect(saved.preset).toBe('ds-first');
     expect(saved.presets.openai).toBeDefined();
-    expect(saved.presets['opencode-go'].orchestrator.model).toBe(
-      'opencode-go/glm-5.1',
+    expect(saved.presets['ds-first'].orchestrator.model).toBe(
+      'opencode-go/deepseek-v4-pro',
     );
   });
 

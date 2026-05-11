@@ -868,18 +868,51 @@
       "type": "object",
       "properties": {
         "enabled": {
-          "default": false,
-          "description": "Enable custom model preferences. When false (default), subagents inherit main agent model.",
+          "default": true,
+          "description": "Enable model preferences. When false (default free mode), no model binding or recommendations.",
           "type": "boolean"
         },
         "profile": {
-          "description": "Model profile preset: openai (GPT only), deepseek (DS only), mixed (GPT plan + DS execute). Takes precedence over customModel/perAgent.",
+          "default": "free",
+          "description": "Model profile preset: free (no binding), ds-first (DS via Go), openai (GPT only), openai-go (dual), custom (user-defined)",
           "type": "string",
           "enum": [
+            "free",
+            "ds-first",
             "openai",
-            "deepseek",
-            "mixed"
+            "openai-go",
+            "custom"
           ]
+        },
+        "customModels": {
+          "description": "Per-agent custom model config (only active when profile=custom)",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "description": "provider/model-id format"
+              },
+              "variant": {
+                "description": "reasoning effort: low/medium/high/xhigh/max",
+                "type": "string"
+              },
+              "fallback": {
+                "description": "fallback model chain",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "model"
+            ]
+          }
         },
         "customModel": {
           "description": "Default model for all agents when enabled (provider/model format). Per-agent overrides take precedence.",

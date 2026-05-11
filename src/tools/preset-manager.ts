@@ -16,6 +16,16 @@ import { createInternalAgentTextPart } from '../utils';
 const COMMAND_NAME = 'ol-preset';
 const LEGACY_COMMAND_NAME = 'preset';
 
+// Explicit subcommands — OpenCode doesn't auto-complete params, so register
+// separate command for each preset name so users can discover via tab-completion.
+const PRESET_SUBCOMMANDS = {
+  'ol-preset-free': 'free',
+  'ol-preset-ds-first': 'ds-first',
+  'ol-preset-openai': 'openai',
+  'ol-preset-openai-go': 'openai-go',
+  'ol-preset-custom': 'custom',
+} as const;
+
 /**
  * Creates a preset manager for the /ol-preset slash command.
  *
@@ -47,6 +57,15 @@ export function createPresetManager(ctx: PluginInput, config: PluginConfig) {
     },
     output: { parts: Array<{ type: string; text?: string }> },
   ): Promise<void> {
+    // Handle explicit subcommands first
+    const subcommandPreset =
+      PRESET_SUBCOMMANDS[input.command as keyof typeof PRESET_SUBCOMMANDS];
+    if (subcommandPreset) {
+      output.parts.length = 0;
+      await switchPreset(subcommandPreset, config.presets ?? {}, output);
+      return;
+    }
+
     if (
       input.command !== COMMAND_NAME &&
       input.command !== LEGACY_COMMAND_NAME
@@ -88,16 +107,47 @@ export function createPresetManager(ctx: PluginInput, config: PluginConfig) {
     const configCommand = opencodeConfig.command as
       | Record<string, unknown>
       | undefined;
-    if (!configCommand?.[COMMAND_NAME]) {
+
+    const ensureCommand = (name: string, desc: string) => {
       if (!opencodeConfig.command) {
         opencodeConfig.command = {};
       }
-      (opencodeConfig.command as Record<string, unknown>)[COMMAND_NAME] = {
-        template: 'List available presets and switch between them',
-        description:
-          'Switch agent presets at runtime (e.g., /ol-preset cheap, /ol-preset powerful)',
-      };
-    }
+      const commands = opencodeConfig.command as Record<string, unknown>;
+      if (!commands[name]) {
+        commands[name] = {
+          template: '',
+          description: desc,
+        };
+      }
+    };
+
+    // Legacy parameter form
+    ensureCommand(
+      COMMAND_NAME,
+      'Switch agent preset (free/ds-first/openai/openai-go/custom)',
+    );
+
+    // Explicit subcommands for tab-completion discovery
+    ensureCommand(
+      'ol-preset-free',
+      'Switch preset: free — no model binding, use current OpenCode model (default)',
+    );
+    ensureCommand(
+      'ol-preset-ds-first',
+      'Switch preset: ds-first — DeepSeek V4 via OpenCode Go subscription',
+    );
+    ensureCommand(
+      'ol-preset-openai',
+      'Switch preset: openai — GPT-5.4 / 5.5 for ChatGPT Plus/Pro subscribers',
+    );
+    ensureCommand(
+      'ol-preset-openai-go',
+      'Switch preset: openai-go — dual OpenAI + Go subscription optimal mix',
+    );
+    ensureCommand(
+      'ol-preset-custom',
+      'Switch preset: custom — user-defined per-agent model config',
+    );
   }
 
   /**

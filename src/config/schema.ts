@@ -405,20 +405,40 @@ export const CompressionConfigSchema = z.object({
 
 export type CompressionConfig = z.infer<typeof CompressionConfigSchema>;
 
-// Model profile presets (3 built-in configurations)
-export const ModelProfileSchema = z.enum(['openai', 'deepseek', 'mixed']);
+// Model profile presets (5 options)
+export const ModelProfileSchema = z.enum([
+  'free',
+  'ds-first',
+  'openai',
+  'openai-go',
+  'custom',
+]);
 export type ModelProfile = z.infer<typeof ModelProfileSchema>;
+
+// Per-agent custom model config (only active when profile=custom)
+export const CustomAgentModelSchema = z.object({
+  model: z.string().describe('provider/model-id format'),
+  variant: z.string().optional().describe('reasoning effort: low/medium/high/xhigh/max'),
+  fallback: z.array(z.string()).optional().describe('fallback model chain'),
+});
+export type CustomAgentModel = z.infer<typeof CustomAgentModelSchema>;
+
+export const CustomModelsSchema = z.record(z.string(), CustomAgentModelSchema);
+export type CustomModels = z.infer<typeof CustomModelsSchema>;
 
 // Model preferences configuration (global model override)
 export const ModelPreferencesConfigSchema = z.object({
   enabled: z
     .boolean()
-    .default(false)
+    .default(true)
     .describe(
-      'Enable custom model preferences. When false (default), subagents inherit main agent model.',
+      'Enable model preferences. When false (default free mode), no model binding or recommendations.',
     ),
-  profile: ModelProfileSchema.optional().describe(
-    'Model profile preset: openai (GPT only), deepseek (DS only), mixed (GPT plan + DS execute). Takes precedence over customModel/perAgent.',
+  profile: ModelProfileSchema.optional().default('free').describe(
+    'Model profile preset: free (no binding), ds-first (DS via Go), openai (GPT only), openai-go (dual), custom (user-defined)',
+  ),
+  customModels: CustomModelsSchema.optional().describe(
+    'Per-agent custom model config (only active when profile=custom)',
   ),
   customModel: z
     .string()
