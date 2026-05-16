@@ -79,6 +79,7 @@ import {
 import { getPackageResourceDir, getPackageRoot } from './paths/plugin-paths';
 import { createModeCommandHandler } from './prompt-mode/commands.js';
 import { PromptModeManager } from './prompt-mode/manager.js';
+import { createDeleteGuardHook } from './safety/delete-guard.js';
 import {
   ast_grep_replace,
   ast_grep_search,
@@ -357,6 +358,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   let chatHeadersHook: ReturnType<typeof createChatHeadersHook>;
   let delegateTaskRetryHook: ReturnType<typeof createDelegateTaskRetryHook>;
   let applyPatchHook: ReturnType<typeof createApplyPatchHook>;
+  let deleteGuardHook: ReturnType<typeof createDeleteGuardHook>;
   let jsonErrorRecoveryHook: ReturnType<typeof createJsonErrorRecoveryHook>;
   let foregroundFallback: ForegroundFallbackManager;
   let todoContinuationHook: ReturnType<typeof createTodoContinuationHook>;
@@ -571,6 +573,8 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     delegateTaskRetryHook = createDelegateTaskRetryHook(ctx);
 
     applyPatchHook = createApplyPatchHook(ctx);
+    // Initialize delete command safety guard
+    deleteGuardHook = createDeleteGuardHook(ctx);
     // Initialize JSON parse error recovery hook
     jsonErrorRecoveryHook = createJsonErrorRecoveryHook(ctx);
 
@@ -1286,6 +1290,12 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           callID?: string;
         },
         output as { args?: unknown },
+      );
+
+      // Safety guard: intercept delete commands and script execution
+      await deleteGuardHook['tool.execute.before'](
+        input as { tool: string; callID?: string },
+        output as { args?: Record<string, unknown>; [key: string]: unknown },
       );
     },
 
