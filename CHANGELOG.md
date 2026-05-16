@@ -5,6 +5,63 @@ All notable changes to this project are documented here.
 本文件记录项目的重要变更。由于 `v1.0.5` 之前主要是内部开发、迁移和
 checkpoint 式迭代，早期版本条目为基于现有提交历史和功能阶段整理的补记。
 
+## v1.0.24 - 2026-05-11
+
+### Added / 新增
+
+- **Delete command safety guard**: intercepts `rm -rf`, `del`, `Remove-Item`,
+  script execution, and language-level delete operations (Python `os.remove`,
+  Node `fs.unlink`, etc.). Follows OpenCode's permission model — AI explains
+  why, user approves. (`src/safety/delete-guard.ts`)
+- 新增删除命令安全护栏，遵循 OpenCode 权限模型：AI 解释原因，用户批准执行。
+
+- **State persistence for auto-continuation**: continuation state is now persisted
+  to `.opencode/extendai-lab/continuation-state.json`, enabling crash recovery
+  across session restarts. Pattern from oh-my-openagent's ralph-loop.
+- 自动续跑状态持久化，重启后可恢复续跑状态。
+
+- **Crash recovery gate**: `session.deleted` events mark the session as recovering
+  for 5 seconds to prevent re-injection into crashed sessions.
+- 崩溃恢复栅极：session 崩溃后 5 秒内阻止重新注入。
+
+- **Completion promise detector**: `<promise>DONE</promise>` marker detection in
+  assistant messages, with incremental scanning via `sinceMessageIndex`.
+- 完成标记检测：扫描 `<promise>DONE</promise>` 标记，支持增量扫描。
+
+- **`autoReviewModel` config**: optional separate model for auto-review
+  (e.g., `opencode-go/deepseek-v4-flash`). Defaults to the orchestrator's model.
+- 可选独立审查模型配置。
+
+### Changed / 变更
+
+- **SDK upgraded** to `@opencode-ai/sdk@^1.4.0` / `@opencode-ai/plugin@^1.4.0`.
+- SDK 升级至 1.4.0。
+
+- **`maxContinuations` default raised** from 5 to 100 (configurable up to 500).
+- 自动续跑上限默认 5→100，可配置至 500。
+
+- **settle delay gate**: 150ms delay after `session.idle` before injecting
+  continuation, preventing double-fire in OpenCode v1.15.0+. Pattern from
+  oh-my-openagent's prompt-async-gate.
+- 闲置事件后 150ms 沉降延迟，防止 v1.15.0 事件系统重复触发。
+
+- **5-preset model system**: free / ds-first / openai / openai-go / custom.
+  `/ol-preset-free`, `/ol-preset-ds-first`, `/ol-preset-openai`,
+  `/ol-preset-openai-go`, `/ol-preset-custom` explicit subcommands.
+- 五套模型预设系统。
+
+- **`load_agent_instructions` tool**: main agent reads subagent prompts
+  without spawning child sessions.
+- 子代理提示词读取工具。
+
+### Docs / 文档
+
+- Complete bilingual README in English (`README.md`) and Chinese
+  (`README.zh-CN.md`).
+- AI-agent-friendly install command in README (`curl` + install guide).
+- Cleaned up 7 development-artifact markdown files.
+- 完整双语 README + AI 可读的 curl 安装命令。
+
 ## v1.0.22 - 2026-05-11
 
 ### Fixed / 修复

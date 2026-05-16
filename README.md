@@ -64,6 +64,16 @@ graph TB
 
 ## Quick Start
 
+### AI Agent Installation
+
+If you're an AI coding agent reading this, fetch and follow the installation instructions:
+
+```bash
+curl -s https://raw.githubusercontent.com/BOHUYESHAN-APB/openagent-labforge-bio/master/docs/installation.md
+```
+
+### Manual Installation (git clone)
+
 ```bash
 git clone git@github.com:BOHUYESHAN-APB/openagent-labforge-bio.git
 cd openagent-labforge-bio
