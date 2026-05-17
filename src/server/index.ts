@@ -1,22 +1,57 @@
 /**
  * extendai-lab Web Dashboard + MCP Server
  *
- * Single-process: Bun.serve (HTTP @ 25569) + MCP stdio protocol.
- * Started via `bun run extendai-server` (registered as local MCP in allBuiltinMcps).
+ * Single process serving both:
+ * - MCP stdio protocol (tools for AI agents)
+ * - HTTP @ 127.0.0.1:25569 (web dashboard for humans)
  */
 import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
+import { homedir } from 'node:os';
+import { appendFile } from 'node:fs/promises';
+import { Server as McpServer } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  type Tool,
+} from '@modelcontextprotocol/sdk/types.js';
 import { renderDashboard, renderDocs, renderSkills, renderPlans, renderConfigEditor, renderErrorPage } from './pages';
 
+// ── Constants ─────────────────────────────────────────
 const PORT = 25569;
 const HOST = '127.0.0.1';
-
-// ── State ────────────────────────────────────────────
 let workspaceRoot = process.cwd();
-const connectedSSE = new Set<ReadableStreamDefaultController<Uint8Array>>();
+
+// ── Logging ───────────────────────────────────────────
+const OPENCODE_LOG_DIR = resolve(homedir(), '.local', 'share', 'opencode');
+const PLUGIN_LOG_DIR = resolve(OPENCODE_LOG_DIR, 'extendai-lab');
+let logFilePath = '';
+let pluginLogPath = '';
+
+function initLogger() {
+  try { mkdir(OPENCODE_LOG_DIR, { recursive: true }); } catch { /* ignore */ }
+  try { mkdir(PLUGIN_LOG_DIR, { recursive: true }); } catch { /* ignore */ }
+  const now = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  logFilePath = join(OPENCODE_LOG_DIR, `extendai-server.${now}.log`);
+  pluginLogPath = join(PLUGIN_LOG_DIR, `server.${now}.log`);
+}
+
+async function serverLog(msg: string) {
+  const line = `[${new Date().toISOString()}] ${msg}\n`;
+  try { await appendFile(logFilePath, line); } catch { /* ignore */ }
+  console.error(msg);
+}
+
+async function pluginLog(msg: string, data?: unknown) {
+  const line = `[${new Date().toISOString()}] ${msg}${data ? ' ' + JSON.stringify(data) : ''}\n`;
+  try { await appendFile(pluginLogPath, line); } catch { /* ignore */ }
+}
 
 // ── SSE broadcast ────────────────────────────────────
+const connectedSSE = new Set<ReadableStreamDefaultController<Uint8Array>>();
+
 function broadcastSSE(event: string, data: unknown) {
   const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
   const encoded = new TextEncoder().encode(payload);
@@ -27,8 +62,7 @@ function broadcastSSE(event: string, data: unknown) {
 
 // ── Helpers ──────────────────────────────────────────
 function getDocDirs(root: string): string[] {
-  const candidates = ['doc', 'docs', 'document', 'documents'];
-  return candidates.filter((d) => existsSync(join(root, d)));
+  return ['doc', 'docs', 'document', 'documents'].filter((d) => existsSync(join(root, d)));
 }
 
 async function listDir(dir: string): Promise<{ name: string; type: 'file' | 'dir'; path: string }[]> {
@@ -36,20 +70,14 @@ async function listDir(dir: string): Promise<{ name: string; type: 'file' | 'dir
     const entries = await readdir(dir, { withFileTypes: true });
     return entries
       .filter((e) => !e.name.startsWith('.'))
-      .map((e) => ({
-        name: e.name,
-        type: e.isDirectory() ? 'dir' as const : 'file' as const,
-        path: relative(workspaceRoot, join(dir, e.name)),
-      }))
+      .map((e) => ({ name: e.name, type: e.isDirectory() ? 'dir' as const : 'file' as const, path: relative(workspaceRoot, join(dir, e.name)) }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 async function scanDocFolders(root: string) {
   const dirs = getDocDirs(root);
-  const result: { dirName: string; files: ReturnType<typeof listDir> extends Promise<infer T> ? T : never }[] = [];
+  const result: { dirName: string; files: Awaited<ReturnType<typeof listDir>> }[] = [];
   for (const d of dirs) {
     const files = await listDir(join(root, d));
     if (files.length > 0) result.push({ dirName: d, files });
@@ -57,50 +85,7 @@ async function scanDocFolders(root: string) {
   return result;
 }
 
-// ── MCP protocol handler ─────────────────────────────
-function handleMcpMessage(msg: unknown): unknown {
-  if (typeof msg !== 'object' || !msg) return { error: 'invalid message' };
-  const m = msg as Record<string, unknown>;
-
-  if (m.method === 'tools/list') {
-    return {
-      tools: [
-        { name: 'extendai_list_skills', description: 'List all available document/design skills', inputSchema: { type: 'object', properties: { category: { type: 'string', description: 'Filter by category: document, deck, social, proto, office' } } } },
-        { name: 'extendai_read_plan', description: 'Read a saved plan', inputSchema: { type: 'object', properties: { name: { type: 'string', description: 'Plan name or "latest"' } } } },
-        { name: 'extendai_list_checkpoints', description: 'List session checkpoints', inputSchema: { type: 'object', properties: {} } },
-        { name: 'extendai_dashboard_status', description: 'Get dashboard status (sessions, todos, agents)', inputSchema: { type: 'object', properties: {} } },
-      ],
-    };
-  }
-
-  if (m.method === 'tools/call') {
-    const params = m.params as Record<string, unknown> | undefined;
-    const name = params?.name as string;
-    const args = (params?.arguments ?? {}) as Record<string, unknown>;
-
-    switch (name) {
-      case 'extendai_list_skills': {
-        const skills = listSkills(args.category as string | undefined);
-        return { content: [{ type: 'text', text: JSON.stringify(skills, null, 2) }] };
-      }
-      case 'extendai_read_plan': {
-        return { content: [{ type: 'text', text: `Plan reading available at http://${HOST}:${PORT}/plans` }] };
-      }
-      case 'extendai_list_checkpoints': {
-        return { content: [{ type: 'text', text: `Checkpoints available at http://${HOST}:${PORT}/dashboard` }] };
-      }
-      case 'extendai_dashboard_status': {
-        return { content: [{ type: 'text', text: JSON.stringify({ sessions: connectedSSE.size, uptime: process.uptime() }) }] };
-      }
-      default:
-        return { error: `unknown tool: ${name}` };
-    }
-  }
-
-  return { error: 'unsupported method' };
-}
-
-// ── Skills listing ───────────────────────────────────
+// ── Skills ───────────────────────────────────────────
 function listSkills(category?: string) {
   const all = [
     { name: 'doc-kami-parchment', category: 'document', description: '暖羊皮纸文档系统' },
@@ -118,77 +103,71 @@ function listSkills(category?: string) {
     { name: 'card-twitter', category: 'social', description: 'Twitter/X 卡片' },
     { name: 'card-xiaohongshu', category: 'social', description: '小红书卡片' },
   ];
-  if (category) return all.filter((s) => s.category === category);
-  return all;
+  return category ? all.filter((s) => s.category === category) : all;
 }
 
-// ── HTTP Route handler ───────────────────────────────
+// ── MCP Tools definition ─────────────────────────────
+const mcpTools: Tool[] = [
+  {
+    name: 'extendai_list_skills',
+    description: 'List all available document/design skills',
+    inputSchema: { type: 'object', properties: { category: { type: 'string', description: 'Filter: document, deck, social, proto, office' } } },
+  },
+  {
+    name: 'extendai_read_plan',
+    description: 'Read a saved plan',
+    inputSchema: { type: 'object', properties: { name: { type: 'string', description: 'Plan name or "latest"' } } },
+  },
+  {
+    name: 'extendai_list_checkpoints',
+    description: 'List session checkpoints',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'extendai_dashboard_status',
+    description: 'Get dashboard status (sessions, todos, agents)',
+    inputSchema: { type: 'object', properties: {} },
+  },
+];
+
+// ── HTTP handler ─────────────────────────────────────
 async function handleRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const path = url.pathname;
 
-  // SSE endpoint
   if (path === '/api/sse') {
     return new Response(
       new ReadableStream({
-        start(ctrl) {
-          connectedSSE.add(ctrl);
-          ctrl.enqueue(new TextEncoder().encode(`event: connected\ndata: {}\n\n`));
-        },
+        start(ctrl) { connectedSSE.add(ctrl); ctrl.enqueue(new TextEncoder().encode('event: connected\ndata: {}\n\n')); },
         cancel(ctrl) { connectedSSE.delete(ctrl); },
       }),
       { headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' } },
     );
   }
 
-  // API: broadcast event from MCP tools
-  if (path === '/api/broadcast' && req.method === 'POST') {
-    try {
-      const body = await req.json() as { event: string; data: unknown };
-      broadcastSSE(body.event, body.data);
-      return Response.json({ ok: true });
-    } catch {
-      return Response.json({ ok: false }, { status: 400 });
-    }
-  }
-
-  // API: save config
   if (path === '/api/config/save' && req.method === 'POST') {
     try {
       const body = await req.json() as { scope: 'project' | 'global'; config: Record<string, unknown> };
       const configPath = body.scope === 'project'
         ? join(workspaceRoot, '.opencode', 'extendai-lab.json')
-        : resolve(process.env.APPDATA ?? process.env.HOME ?? '', '.config', 'opencode', 'extendai-lab.json');
-
-      // Backup
-      try {
-        const existing = await readFile(configPath, 'utf8');
-        await writeFile(configPath + '.bak', existing);
-      } catch { /* no existing file */ }
-
+        : resolve(process.env.APPDATA ?? homedir(), '.config', 'opencode', 'extendai-lab.json');
+      try { await writeFile(configPath + '.bak', await readFile(configPath, 'utf8')); } catch { /* no existing */ }
       await mkdir(join(configPath, '..'), { recursive: true });
       await writeFile(configPath, JSON.stringify(body.config, null, 2));
+      await serverLog(`Config saved: ${configPath}`);
       return Response.json({ ok: true, message: 'Saved. Restart OpenCode to apply.', path: configPath });
-    } catch (e) {
-      return Response.json({ ok: false, error: String(e) }, { status: 500 });
-    }
+    } catch (e) { return Response.json({ ok: false, error: String(e) }, { status: 500 }); }
   }
 
-  // API: read config
   if (path === '/api/config/read') {
     const scope = url.searchParams.get('scope') ?? 'project';
     const configPath = scope === 'project'
       ? join(workspaceRoot, '.opencode', 'extendai-lab.json')
-      : resolve(process.env.APPDATA ?? process.env.HOME ?? '', '.config', 'opencode', 'extendai-lab.json');
-    try {
-      const raw = await readFile(configPath, 'utf8');
-      return Response.json(JSON.parse(raw));
-    } catch {
-      return Response.json({ error: 'config not found' }, { status: 404 });
-    }
+      : resolve(process.env.APPDATA ?? homedir(), '.config', 'opencode', 'extendai-lab.json');
+    try { return Response.json(JSON.parse(await readFile(configPath, 'utf8'))); }
+    catch { return Response.json({ error: 'config not found' }, { status: 404 }); }
   }
 
-  // Pages
   if (path === '/' || path === '/dashboard') return new Response(renderDashboard({ sessions: connectedSSE.size }), { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   if (path === '/docs') {
     const docs = await scanDocFolders(workspaceRoot);
@@ -204,90 +183,85 @@ async function handleRequest(req: Request): Promise<Response> {
     const scope = path.includes('global') ? 'global' : 'project';
     const configPath = scope === 'project'
       ? join(workspaceRoot, '.opencode', 'extendai-lab.json')
-      : resolve(process.env.APPDATA ?? process.env.HOME ?? '', '.config', 'opencode', 'extendai-lab.json');
+      : resolve(process.env.APPDATA ?? homedir(), '.config', 'opencode', 'extendai-lab.json');
     let config: Record<string, unknown> = {};
-    try { config = JSON.parse(await readFile(configPath, 'utf8')); } catch { /* use empty */ }
+    try { config = JSON.parse(await readFile(configPath, 'utf8')); } catch { /* empty */ }
     return new Response(renderConfigEditor(config, scope, configPath), { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   }
-
-  // Style
-  if (path === '/style.css') return new Response(STYLE_CSS, { headers: { 'Content-Type': 'text/css' } });
+  if (path === '/style.css') return new Response(CSS, { headers: { 'Content-Type': 'text/css' } });
 
   return new Response(renderErrorPage('Not found'), { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
 
-// ── CSS ──────────────────────────────────────────────
-const STYLE_CSS = `
-*{margin:0;padding:0;box-sizing:border-box}
-body{font:14px/1.6 system-ui,-apple-system,sans-serif;background:#0d1117;color:#c9d1d9}
-nav{background:#161b22;padding:12px 24px;display:flex;gap:20px;border-bottom:1px solid #30363d}
-nav a{color:#58a6ff;text-decoration:none;font-weight:500}
-nav a:hover{color:#79c0ff}
-main{padding:24px;max-width:1200px;margin:0 auto}
-h1{font-size:22px;margin-bottom:16px;color:#f0f6fc}
-.card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px;margin-bottom:12px}
-.card h3{margin-bottom:8px;color:#58a6ff}
-.card p{color:#8b949e;font-size:13px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.status{margin-bottom:16px;color:#8b949e;font-size:13px}
-form label{display:block;margin-bottom:12px;color:#c9d1d9}
-form input,form select,form textarea{width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:4px;color:#c9d1d9;font:inherit}
-form input:focus,form select:focus{outline:none;border-color:#58a6ff}
-button{padding:8px 16px;background:#238636;color:#fff;border:none;border-radius:4px;cursor:pointer;font:inherit}
-button:hover{background:#2ea043}
-.error{color:#f85149;background:#1f1317;padding:12px;border-radius:4px;margin:12px 0}
-`;
+const CSS = `*{margin:0;padding:0;box-sizing:border-box}body{font:14px/1.6 system-ui,-apple-system,sans-serif;background:#0d1117;color:#c9d1d9}nav{background:#161b22;padding:12px 24px;display:flex;gap:20px;border-bottom:1px solid #30363d}nav a{color:#58a6ff;text-decoration:none;font-weight:500}nav a:hover{color:#79c0ff}main{padding:24px;max-width:1200px;margin:0 auto}h1{font-size:22px;margin-bottom:16px;color:#f0f6fc}.card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px;margin-bottom:12px}.card h3{margin-bottom:8px;color:#58a6ff}.card p{color:#8b949e;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}.status{margin-bottom:16px;color:#8b949e;font-size:13px}form label{display:block;margin-bottom:12px;color:#c9d1d9}form input,form select,form textarea{width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:4px;color:#c9d1d9;font:inherit}form input:focus,form select:focus{outline:none;border-color:#58a6ff}button{padding:8px 16px;background:#238636;color:#fff;border:none;border-radius:4px;cursor:pointer;font:inherit}button:hover{background:#2ea043}.error{color:#f85149;background:#1f1317;padding:12px;border-radius:4px;margin:12px 0}`;
 
-// ── Start ────────────────────────────────────────────
-async function startServer() {
-  // Parse workspace root from args or env
+// ═══════════════════════════════════════════════════════
+// MAIN
+// ═══════════════════════════════════════════════════════
+async function main() {
+  initLogger();
+
+  // Parse workspace
   const args = process.argv.slice(2);
   const rootIdx = args.indexOf('--workspace');
-  if (rootIdx >= 0 && args[rootIdx + 1]) {
-    workspaceRoot = resolve(args[rootIdx + 1]);
-  }
+  if (rootIdx >= 0 && args[rootIdx + 1]) workspaceRoot = resolve(args[rootIdx + 1]);
   workspaceRoot = process.env.EXTENDAI_WORKSPACE ?? workspaceRoot;
 
-  console.error(`[extendai-lab] Server starting on http://${HOST}:${PORT}`);
-  console.error(`[extendai-lab] Workspace: ${workspaceRoot}`);
+  await serverLog(`Starting extendai-lab MCP server, workspace: ${workspaceRoot}`);
 
-  const server = Bun.serve({ port: PORT, hostname: HOST, fetch: handleRequest });
+  // ── MCP Server (stdio) ──────────────────────────────
+  const mcp = new McpServer(
+    { name: 'extendai-lab', version: '1.0.0' },
+    { capabilities: { tools: {} } },
+  );
 
-  // Handle MCP protocol on stdin in background
-  handleMcpStdio();
-
-  process.on('SIGINT', () => {
-    server.stop();
-    process.exit(0);
+  mcp.setRequestHandler(ListToolsRequestSchema, async () => {
+    await serverLog(`MCP: tools/list → ${mcpTools.length} tools`);
+    return { tools: mcpTools };
   });
 
-  process.on('SIGTERM', () => {
-    server.stop();
-    process.exit(0);
-  });
-}
+  mcp.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+    await serverLog(`MCP: tools/call → ${name}`);
 
-function handleMcpStdio() {
-  let buf = '';
-  process.stdin.setEncoding('utf8');
-  process.stdin.on('data', (chunk: string) => {
-    buf += chunk;
-    const lines = buf.split('\n');
-    buf = lines.pop() ?? '';
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      try {
-        const msg = JSON.parse(line);
-        const response = handleMcpMessage(msg);
-        process.stdout.write(JSON.stringify(response) + '\n');
-      } catch {
-        // skip invalid lines
+    switch (name) {
+      case 'extendai_list_skills': {
+        const skills = listSkills(args?.category as string | undefined);
+        return { content: [{ type: 'text' as const, text: JSON.stringify(skills, null, 2) }] };
       }
+      case 'extendai_read_plan': {
+        return { content: [{ type: 'text' as const, text: `Plan reader available at http://${HOST}:${PORT}/plans` }] };
+      }
+      case 'extendai_list_checkpoints': {
+        return { content: [{ type: 'text' as const, text: `Checkpoints available at http://${HOST}:${PORT}/dashboard` }] };
+      }
+      case 'extendai_dashboard_status': {
+        return { content: [{ type: 'text' as const, text: JSON.stringify({ sessions: connectedSSE.size, uptime: process.uptime() }) }] };
+      }
+      default:
+        return { content: [{ type: 'text' as const, text: `Unknown tool: ${name}` }], isError: true };
     }
   });
+
+  // ── Start HTTP server ───────────────────────────────
+  const httpServer = Bun.serve({ port: PORT, hostname: HOST, fetch: handleRequest });
+  await serverLog(`HTTP server listening on http://${HOST}:${PORT}`);
+
+  // ── Connect MCP transport ───────────────────────────
+  const transport = new StdioServerTransport();
+  await mcp.connect(transport);
+  await serverLog('MCP transport connected (stdio)');
+
+  process.on('SIGINT', () => { httpServer.stop(); process.exit(0); });
+  process.on('SIGTERM', () => { httpServer.stop(); process.exit(0); });
 }
 
-startServer().catch((err) => {
-  console.error('[extendai-lab] Failed to start:', err);
+main().catch(async (err) => {
+  // Log to file before crashing
+  try {
+    initLogger();
+    await serverLog(`FATAL: ${String(err)}`);
+  } catch { /* can't log */ }
+  console.error('[extendai-lab] Fatal:', err);
   process.exit(1);
 });
