@@ -11,6 +11,7 @@ import {
   paper_search_mcp,
   semantic_scholar_fastmcp,
 } from './extended';
+import { extendaiLab } from './extendai-lab';
 import { grep_app } from './grep-app';
 import type { McpConfig } from './types';
 import { createWebsearchConfig, websearch } from './websearch';
@@ -34,6 +35,7 @@ const allBuiltinMcps: Record<McpName, McpConfig> = {
   semantic_scholar_fastmcp,
   bioNext,
   uniprot,
+  extendaiLab,
 };
 
 /**

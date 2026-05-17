@@ -176,6 +176,7 @@ export const McpNameSchema = z.enum([
   'semantic_scholar_fastmcp',
   'bioNext',
   'uniprot',
+  'extendaiLab',
 ]);
 export type McpName = z.infer<typeof McpNameSchema>;
 

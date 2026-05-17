@@ -15,10 +15,11 @@ describe('createBuiltinMcps', () => {
     const mcps = createBuiltinMcps([]);
     const names = Object.keys(mcps);
 
-    expect(names.length).toBe(12); // 3 core + 7 extended + 2 bio MCPs
+    expect(names.length).toBe(13); // 3 core + 7 extended + 2 bio + 1 extendai
     expect(names).toContain('websearch');
     expect(names).toContain('context7');
     expect(names).toContain('grep_app');
+    expect(names).toContain('extendaiLab');
   });
 
   test('excludes single disabled MCP', () => {
@@ -37,7 +38,7 @@ describe('createBuiltinMcps', () => {
     expect(names).not.toContain('websearch');
     expect(names).not.toContain('grep_app');
     expect(names).toContain('context7');
-    expect(names.length).toBe(10); // 12 - 2 disabled
+    expect(names.length).toBe(11); // 13 - 2 disabled
   });
 
   test('excludes all MCPs when all disabled', () => {
@@ -54,6 +55,7 @@ describe('createBuiltinMcps', () => {
       'semantic_scholar_fastmcp',
       'bioNext',
       'uniprot',
+      'extendaiLab',
     ];
     const mcps = createBuiltinMcps(allMcpNames);
     const names = Object.keys(mcps);
@@ -66,7 +68,7 @@ describe('createBuiltinMcps', () => {
     const names = Object.keys(mcps);
 
     // All valid MCPs should still be present
-    expect(names.length).toBe(12); // 3 core + 7 extended + 2 bio MCPs
+    expect(names.length).toBe(13); // 3 core + 7 extended + 2 bio + 1 extendai
     expect(names).toContain('websearch');
     expect(names).toContain('context7');
     expect(names).toContain('grep_app');

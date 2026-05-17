@@ -15,7 +15,8 @@
     }
   },
   "bin": {
-    "extendai-lab": "./dist/cli/index.js"
+    "extendai-lab": "./dist/cli/index.js",
+    "extendai-server": "./dist/server/index.js"
   },
   "type": "module",
   "license": "Apache-2.0",
@@ -44,6 +45,7 @@
   "homepage": "https://github.com/BOHUYESHAN-APB/openagent-labforge-bio#readme",
   "files": [
     "dist",
+    "ThirdParty",
     "src/skills",
     "resources/bioSkills",
     "src/config/presets",
@@ -55,7 +57,8 @@
   "scripts": {
     "build:plugin": "bun build src/index.ts src/tui.ts --outdir dist --target node --format esm --external @ast-grep/napi --external @opencode-ai/plugin --external @opencode-ai/sdk --external @opentui/core --external @opentui/solid --external jsdom --external zod",
     "build:cli": "bun build src/cli/index.ts --outdir dist/cli --target node --format esm --external @ast-grep/napi --external @opencode-ai/plugin --external @opencode-ai/sdk --external jsdom --external zod",
-    "build": "bun run build:plugin && bun run build:cli && tsc --emitDeclarationOnly && bun run generate-schema && bun run generate-bio-skills-catalog",
+    "build:server": "bun build src/server/index.ts --outdir dist/server --target node --format esm --external @ast-grep/napi --external @opencode-ai/plugin --external @opencode-ai/sdk --external jsdom --external zod",
+    "build": "bun run build:plugin && bun run build:cli && bun run build:server && tsc --emitDeclarationOnly && bun run generate-schema && bun run generate-bio-skills-catalog",
     "prepare": "bun run build",
     "contributors:add": "all-contributors add",
     "contributors:check": "all-contributors check",
@@ -71,6 +74,7 @@
     "check": "biome check --write .",
     "check:ci": "biome check .",
     "dev": "bun run build && opencode",
+    "extendai-server": "bun run dist/server/index.js",
     "prepublishOnly": "bun run build",
     "release:patch": "npm version patch && git push --follow-tags && npm publish",
     "release:minor": "npm version minor && git push --follow-tags && npm publish",
@@ -84,6 +88,7 @@
     "@opencode-ai/sdk": "^1.4.0",
     "jsdom": "^26.1.0",
     "lru-cache": "^11.3.3",
+    "pdf-parse": "^2.4.5",
     "turndown": "^7.2.4"
   },
   "optionalDependencies": {
