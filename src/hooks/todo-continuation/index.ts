@@ -312,6 +312,7 @@ function loadContinuationState(
     // Restore persisted fields into runtime state
     for (const [sessionID, enabled] of persisted.enabledBySession) {
       state.enabledBySession.set(sessionID, enabled);
+      if (enabled) state.enabled = true; // global fallback for new sessions
     }
     for (const [sessionID, count] of persisted.consecutiveContinuationsBySession) {
       state.consecutiveContinuationsBySession.set(sessionID, count);
@@ -977,7 +978,6 @@ export function createTodoContinuationHook(
       // Other agents can only enable. Internal/system calls (no agent) allowed.
       if (!enabled) {
         const callerAgent = (toolContext as { agent?: string } | undefined)?.agent ?? '';
-        // Allow when no agent info (internal/system call)
         if (callerAgent) {
           const isReviewer =
             callerAgent === 'reviewer' ||
@@ -988,6 +988,7 @@ export function createTodoContinuationHook(
         }
       }
 
+      // Always set both global and per-session so auto-continue survives restarts
       setContinuationEnabled(state, sessionID, enabled);
       setConsecutiveContinuations(state, sessionID, 0);
 
