@@ -194,7 +194,7 @@ const TODO_HYGIENE_INSTRUCTION_CLOSE = '</instruction>';
 
 // Suppress window after user abort (Esc/Ctrl+C) to avoid immediately
 // re-continuing something the user explicitly stopped
-const SUPPRESS_AFTER_ABORT_MS = 5_000;
+const SUPPRESS_AFTER_ABORT_MS = 30_000; // 30s — user ESC means "stop", don't retry
 const NOTIFICATION_BUSY_GRACE_MS = 250;
 
 const QUESTION_PHRASES = [
@@ -223,6 +223,7 @@ interface ContinuationState {
   pendingTimer: ReturnType<typeof setTimeout> | null;
   pendingTimerSessionId: string | null;
   suppressUntil: number;
+  abortedByUser: boolean;
   orchestratorSessionIds: Set<string>;
   sawChatMessage: boolean;
   isAutoInjecting: boolean;
@@ -569,6 +570,7 @@ export function createTodoContinuationHook(
     pendingTimer: null,
     pendingTimerSessionId: null,
     suppressUntil: 0,
+    abortedByUser: false, // user ESC → true, cleared on next chat.message
     orchestratorSessionIds: new Set<string>(),
     sawChatMessage: false,
     isAutoInjecting: false,
@@ -1052,6 +1054,12 @@ export function createTodoContinuationHook(
       }
 
       log(`[${HOOK_NAME}] Session idle`, { sessionID });
+
+      // Gate: user aborted — don't continue
+      if (state.abortedByUser) {
+        log(`[${HOOK_NAME}] Skipped: user aborted (ESC). New message required.`, { sessionID });
+        return;
+      }
 
       // Gate: settle delay (OpenCode v1.15.0 event system can fire idle
       // events while the session is still mid-response — this small delay
@@ -1544,9 +1552,8 @@ export function createTodoContinuationHook(
         }
 
         // Only reset consecutive counter for user-initiated activity,
-        // not for our own auto-injection prompt. Scope to orchestrator only.
+        // not for internal notifications.
         if (
-          !state.isAutoInjecting &&
           !isNotification &&
           isOrchestrator &&
           getConsecutiveContinuations(state, sessionID) > 0
@@ -1555,6 +1562,11 @@ export function createTodoContinuationHook(
           log(`[${HOOK_NAME}] Reset consecutive count on user activity`, {
             sessionID,
           });
+        }
+
+        // User activity means they're engaged — clear abort flag
+        if (!isNotification && isOrchestrator) {
+          state.abortedByUser = false;
         }
       }
     } else if (event.type === 'session.error') {
@@ -1567,6 +1579,7 @@ export function createTodoContinuationHook(
         (errorName === 'MessageAbortedError' || errorName === 'AbortError')
       ) {
         state.suppressUntil = Date.now() + SUPPRESS_AFTER_ABORT_MS;
+        state.abortedByUser = true;
         log(`[${HOOK_NAME}] Suppressed continuation after abort`, {
           sessionID,
           errorName,
