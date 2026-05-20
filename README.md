@@ -278,6 +278,75 @@ Built-in MCPs: UniProt (proteins), BioNext (multi-omics), Semantic Scholar (pape
 
 ---
 
+## Academic Writing
+
+Literature management, citation validation, and Chinese academic formatting (GB/T 7714-2015).
+
+### Features
+
+- **Literature management** — Papis CLI integration for paper organization
+- **Citation validation** — Check citations against bibliography
+- **MD → HTML → DOCX pipeline** — Avoids Markdown syntax leakage in final documents
+- **Chinese academic formatting** — GB/T 7714-2015 standards (SimSun/Times New Roman/SimHei fonts, proper sizing)
+- **Environment-aware tool checking** — Windows/WSL/Linux/macOS support
+
+### Setup
+
+Check tools (on-demand, only when writing):
+
+```typescript
+academic_check_tools()
+```
+
+Install missing tools:
+
+```bash
+pip install papis                    # Literature management
+pip install python-docx beautifulsoup4 lxml  # DOCX generation
+# Pandoc: https://pandoc.org/installing.html
+```
+
+### Workflow
+
+1. **Add papers**:
+   ```bash
+   papis add paper.pdf --from doi 10.1234/example
+   papis add --from arxiv 2301.12345
+   ```
+
+2. **Write in Markdown**: `manuscripts/paper.md`
+   ```markdown
+   # Paper Title
+   
+   ## Introduction
+   
+   Previous work [@smith2020] has shown...
+   ```
+
+3. **Export bibliography**:
+   ```bash
+   papis export --all --format bibtex > manuscripts/paper.bib
+   ```
+
+4. **Generate DOCX**:
+   ```typescript
+   academic_build_docx({
+     manuscriptPath: "manuscripts/paper.md",
+     options: {
+       fontCn: "SimSun",      // 宋体
+       fontEn: "Times New Roman",
+       fontHeading: "SimHei",  // 黑体
+       lineSpacing: 1.5
+     }
+   })
+   ```
+
+Output: `manuscripts/paper.docx` with proper Chinese/English font separation, GB/T 7714-2015 formatting, and processed citations.
+
+**Skill**: Load `academic-writing` skill for detailed workflows and troubleshooting.
+
+---
+
 ## Development
 
 ```bash
@@ -307,6 +376,42 @@ bun run check:ci   # Lint + format + organize imports
 ## 中文文档
 
 完整中文文档请阅读 **[README.zh-CN.md](README.zh-CN.md)**。
+
+---
+
+## Known Issues
+
+### MCP Multi-Window Sharing
+- **Issue**: When multiple OpenCode windows are open, only the first window's `extendai-lab` and `semantic_scholar_fastmcp` MCP servers work. Subsequent windows fail to connect.
+- **Root cause**: MCP stdio transport is 1:1 — cannot share across processes. Current "shared mode" logic attempts to reuse the first process but fails due to stdio limitations.
+- **Workaround**: Close all OpenCode windows and reopen. The first window to start will have working MCP servers.
+- **Status**: Under investigation. May require switching to SSE transport or removing shared-server logic entirely.
+
+### Delete Command Guard
+- **Issue**: The delete command safety guard (`src/safety/delete-guard.ts`) is registered but may not trigger in all cases.
+- **Root cause**: Guard only intercepts specific tool names (`bash`, `shell`, `exec`, `execute_command`, `powershell`). OpenCode may use different tool names in some contexts.
+- **Workaround**: Manually review destructive commands before execution.
+- **Status**: Needs runtime debugging to confirm tool name mismatches.
+
+### Plan Mode Prompt Overhead
+- **Issue**: Some guidelines/tool usage instructions are embedded in prompts, causing context cache invalidation and token waste when prompts change.
+- **Root cause**: Prompts should contain only core logic. Guidelines/rules should be loaded on-demand via `load_agent_instructions` or `skill` tools.
+- **Impact**: Reduced cache hit rate, increased token costs (especially for Chinese providers with token-based pricing).
+- **Recommendation**: Move guidelines to Skill files, load only when needed.
+- **Status**: Optimization pending.
+
+### Plan File Write Permissions
+- **Issue**: AI cannot proactively write plan files to `.opencode/extendai-lab/plans/`.
+- **Root cause**: Possible permission issue or tool limitation.
+- **Workaround**: Manually create plan files or use `save_plan` tool when available.
+- **Status**: Under investigation.
+
+### Start Work Command Detection
+- **Issue**: When main agent (engineer), expert agents, or plan agent (planner/prometheus) create a plan and the user runs `/ol-start-work {plan-name}` in a new window, the AI cannot correctly execute the command. The instruction detection mechanism fails to automatically trigger the executor.
+- **Root cause**: Command detection logic may not properly recognize the `/ol-start-work` command context or fails to route to the appropriate executor agent.
+- **Impact**: Users must manually guide the AI to execute saved plans, reducing the value of persistent plan storage.
+- **Workaround**: Explicitly tell the AI to "execute the plan in .opencode/extendai-lab/plans/{plan-name}.md" instead of using the slash command.
+- **Status**: Needs investigation into command routing and executor triggering logic. Marked for future fix.
 
 ---
 

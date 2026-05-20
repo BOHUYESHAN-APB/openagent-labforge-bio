@@ -10,6 +10,7 @@ import { Server as McpServer } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema, type Tool } from '@modelcontextprotocol/sdk/types.js';
 import { renderDashboard, renderSkillsList, renderSkillDetail, renderDocs, renderDocFile, renderPlans, renderPlanFile, renderConfigEditor, renderHtmlViewer, renderHtmlPage, renderError } from './pages';
+import { academicTools, checkTools, handleAcademicBuildDocx } from '../academic/tools/index.js';
 
 // ── Constants ─────────────────────────────────────────
 const PORT = 25569;
@@ -212,6 +213,12 @@ async function handleRequest(req: Request): Promise<Response> {
       try { config = JSON.parse(readFileSync(cp, 'utf8')); } catch {}
       return new Response(renderConfigEditor(config, scope, cp, t), { headers: { 'Content-Type': 'text/html; charset=utf-8' } } as any);
     }
+    // TODO: Implement papers library page (P1 priority)
+    // if (p === '/papers') {
+    //   const { loadPaperDatabase } = await import('../academic/tools/index.js');
+    //   const papers = loadPaperDatabase(workspaceRoot);
+    //   return new Response(renderPapersLibrary(papers, t), { headers: { 'Content-Type': 'text/html; charset=utf-8' } } as any);
+    // }
 
     return err(404, 'Not found');
   } catch (e) { return err(500, String(e)); }
@@ -223,6 +230,7 @@ const mcpTools: Tool[] = [
   { name: 'extendai_read_plan', description: 'Read a plan', inputSchema: { type: 'object', properties: { name: { type: 'string' } } } },
   { name: 'extendai_list_checkpoints', description: 'List checkpoints', inputSchema: { type: 'object', properties: {} } },
   { name: 'extendai_dashboard_status', description: 'Dashboard status', inputSchema: { type: 'object', properties: {} } },
+  ...academicTools,
 ];
 
 // ═══════════════════════════════════════════════════════
@@ -243,9 +251,21 @@ async function main() {
     const mcp = new McpServer({ name: 'extendai-lab', version: '1.0.0' }, { capabilities: { tools: {} } });
     mcp.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: mcpTools }));
     mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
-      const { name, args } = req.params;
+      const { name, arguments: toolArgs } = req.params;
       if (name === 'extendai_list_skills') return { content: [{ type: 'text' as const, text: JSON.stringify(scanAllSkills()) }] };
       if (name === 'extendai_dashboard_status') return { content: [{ type: 'text' as const, text: JSON.stringify({ workspace: workspaceRoot, shared: true, port: existingPort }) }] };
+      
+      // Academic tools
+      if (name === 'academic_check_tools') {
+        const tools = (toolArgs as any)?.tools;
+        const results = await checkTools(tools);
+        return { content: [{ type: 'text' as const, text: JSON.stringify(results, null, 2) }] };
+      }
+      if (name === 'academic_build_docx') {
+        const docxPath = await handleAcademicBuildDocx(toolArgs as any);
+        return { content: [{ type: 'text' as const, text: `DOCX generated: ${docxPath}` }] };
+      }
+      
       return { content: [{ type: 'text' as const, text: `Done. Dashboard: http://${HOST}:${existingPort}` }] };
     });
     const trans = new StdioServerTransport();
@@ -264,9 +284,21 @@ async function main() {
   const mcp = new McpServer({ name: 'extendai-lab', version: '1.0.0' }, { capabilities: { tools: {} } });
   mcp.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: mcpTools }));
   mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
-    const { name } = req.params;
+    const { name, arguments: toolArgs } = req.params;
     if (name === 'extendai_list_skills') return { content: [{ type: 'text' as const, text: JSON.stringify(scanAllSkills()) }] };
     if (name === 'extendai_dashboard_status') return { content: [{ type: 'text' as const, text: JSON.stringify({ workspace: workspaceRoot, skills: skills.length, port: PORT }) }] };
+    
+    // Academic tools
+    if (name === 'academic_check_tools') {
+      const tools = (toolArgs as any)?.tools;
+      const results = await checkTools(tools);
+      return { content: [{ type: 'text' as const, text: JSON.stringify(results, null, 2) }] };
+    }
+    if (name === 'academic_build_docx') {
+      const docxPath = await handleAcademicBuildDocx(toolArgs as any);
+      return { content: [{ type: 'text' as const, text: `DOCX generated: ${docxPath}` }] };
+    }
+    
     return { content: [{ type: 'text' as const, text: `Dashboard: http://${HOST}:${PORT}` }] };
   });
 
