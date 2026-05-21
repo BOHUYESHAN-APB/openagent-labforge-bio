@@ -1,6 +1,6 @@
 # ExtendAI Lab
 
-> Lightweight Agent Orchestration for [OpenCode](https://github.com/anomalyco/opencode) — 5 orchestrators · 15 specialists · 3-tier prompts · Bioinformatics · Auto-review
+> Lightweight Agent Orchestration for [OpenCode](https://github.com/anomalyco/opencode) — 5 orchestrators · 15 specialists · 3-tier prompts · Bioinformatics · Academic Paper Mode · Auto-review
 
 [![Version](https://img.shields.io/github/v/release/BOHUYESHAN-APB/openagent-labforge-bio?label=release)](https://github.com/BOHUYESHAN-APB/openagent-labforge-bio/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
@@ -381,31 +381,40 @@ bun run check:ci   # Lint + format + organize imports
 
 ## Changelog
 
-### v1.1.0 (2025-01-XX)
+### v1.1.0 (2026-05-20)
 
-**Major Release: Core Architecture Improvements**
+**Paper Mode & Path Resolution Fix**
 
 #### Breaking Changes
 - Removed MCP shared-server logic — each OpenCode window now runs an independent MCP server instance
 - This fixes multi-window MCP connection failures but means each window has its own server process
 
 #### Core Fixes
-- **Auto-Review System**: Refactored to support both main-agent self-review (Option A) and @oracle delegation (Option B)
-  - Main agent can now perform reviews using an internal checklist for simple tasks
-  - @oracle delegation preserved for complex/high-risk work
-  - Reduces token costs by avoiding unnecessary child session spawns
+- **Plugin Path Resolution**: Fixed build-time `__dirname` hardcoding — paths now resolve via
+  `getPackageRoot(import.meta.url)` at runtime, enabling built-in skill discovery when installed
+  from npm on any machine.
+- **Bio Skills Catalog**: Replaced hardcoded routing guide with auto-generated entries from catalog.json.
+  Removed absolute file path exposure from loaded skills prompt to prevent AI from copying files.
+- **Auto-Review System**: Refactored to support both main-agent self-review (Option A) and
+  @oracle delegation (Option B)
 - **save_plan Tool**: Enhanced description to explicitly prevent AI from outputting plans to conversation
-  - Added "CRITICAL: You MUST use this tool to save the plan. Do NOT output the plan content in the conversation."
-  - Eliminates path confusion and repeated prompt injections
-- **Start Work Command**: Improved cross-window state recovery
-  - Added explicit "Cross-window state recovery" section in hook-injected context
-  - Clarifies that all necessary information is already provided
-  - Prevents AI from claiming it cannot find the plan file
-- **Delete Guard**: Expanded tool name matching to cover more shell execution tools
-  - Now intercepts: bash, shell, exec, execute_command, powershell, run_command, system, cmd, terminal
-  - Better protection against accidental data loss
+- **Start Work Command**: Improved cross-window state recovery with explicit context section
+- **Delete Guard**: Expanded tool name matching (bash, shell, exec, execute_command, powershell, etc.)
+
+#### New Features
+- **Academic Paper Mode Skills**: New `resources/academicSkills/` category system with:
+  - `academic-cnki-parser` — Parse CNKI export files (`.txt`, `.net`, `.enw`, `.ris`, `.bib`)
+    into unified BibTeX, auto-detect format, merge multi-file exports
+  - `academic-cite-match` — Match `[[cite:keywords]]` markers in body text to bibliography
+    entries, multi-layer matching (keyword → TF-IDF → semantic)
+  - `academic-md2docx` — Markdown → HTML → DOCX pipeline with Chinese academic formatting
+    (SimSun/SimHei/Times New Roman proper sizing)
+  - MIT-licensed upstream skills integrated: research-writing, office-academic, scientific-toolkit
+- **`THIRD_PARTY_NOTICES.md`**: Extended with full provenance tracking for all integrated
+  third-party skills and AI-assisted content
 
 #### Known Issues Resolved
+- ✅ Plugin Skill Path Resolution (build-time `__dirname` hardcoding — fixed)
 - ✅ MCP Multi-Window Sharing (removed shared logic)
 - ✅ Delete Command Guard (expanded tool matching)
 - ✅ Plan Mode Prompt Overhead (optimized save_plan description)
@@ -441,10 +450,10 @@ bun run check:ci   # Lint + format + organize imports
 
 ### Other Planned Features
 
-- **Paper Library Integration** (v2.1.0): Full Papis integration with citation graph visualization
 - **Citation Validation** (v2.1.0): Real-time citation checking against bibliography
 - **Dashboard Enhancements** (v2.2.0): Real-time context pressure visualization, checkpoint history
 - **Bio Skills Expansion** (v2.3.0): Additional bioinformatics workflows and tool integrations
+- **Academic Skills Expansion**: More paper-mode writing assistants, automated reference matching
 
 ---
 

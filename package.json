@@ -48,6 +48,7 @@
     "ThirdParty",
     "src/skills",
     "resources/bioSkills",
+    "resources/academicSkills",
     "src/config/presets",
     "extendai-lab.schema.json",
     "extendai-lab.example.jsonc",

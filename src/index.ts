@@ -1114,7 +1114,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       modeCommandHandler.registerCommand(opencodeConfig);
 
       // Register builtin skills path
-      const skillsPath = join(__dirname, '../src/skills');
+      const skillsPath = join(packageRoot, 'src/skills');
       if (!opencodeConfig.skills) {
         opencodeConfig.skills = {};
       }
@@ -1135,10 +1135,16 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         'guizang-ppt-skill',
         'html-ppt-skill',
       ]) {
-        const tpPath = join(__dirname, '../ThirdParty', tpDir);
+        const tpPath = join(packageRoot, 'ThirdParty', tpDir);
         if (!configSkills.paths.includes(tpPath)) {
           configSkills.paths.push(tpPath);
         }
+      }
+
+      // Register bundled Academic Skills
+      const academicSkillsPath = join(packageRoot, 'resources/academicSkills');
+      if (!configSkills.paths.includes(academicSkillsPath)) {
+        configSkills.paths.push(academicSkillsPath);
       }
 
       // Allow reading bundled bioSkills even when OpenCode runs in another
@@ -1162,6 +1168,21 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         permission.external_directory = externalDirectory;
         opencodeConfig.permission = permission;
       }
+
+      // Allow reading bundled academicSkills
+      const permission2 = (opencodeConfig.permission ?? {}) as Record<
+        string,
+        unknown
+      >;
+      const externalDirectory2 =
+        typeof permission2.external_directory === 'object' &&
+        permission2.external_directory !== null
+          ? (permission2.external_directory as Record<string, string>)
+          : {};
+      externalDirectory2[join(academicSkillsPath, '*')] ??= 'allow';
+      externalDirectory2[join(academicSkillsPath, '**', '*')] ??= 'allow';
+      permission2.external_directory = externalDirectory2;
+      opencodeConfig.permission = permission2;
 
       // Register checkpoint commands (/ol-checkpoint, /ol-handoff, /ol-checkpoint-resume)
       if (!configCommand?.['ol-checkpoint']) {

@@ -36,17 +36,14 @@ export function formatCatalogForPrompt(categories: BioSkillCategory[]): string {
 
   lines.push('');
   lines.push('### Routing Guide:');
-  lines.push('- RNA sequencing → rna-seq');
-  lines.push('- Chromatin/epigenetics → chip-seq, atac-seq');
-  lines.push('- CRISPR/gene editing → crispr');
-  lines.push('- Genetic variants → variant-calling');
-  lines.push('- Single-cell → single-cell');
-  lines.push('- Protein analysis → proteomics');
-  lines.push('- Microbial communities → metagenomics');
-  lines.push('- Evolution/phylogeny → phylogenetics');
-  lines.push('- Protein structure → structural-biology');
-  lines.push('- Pathway enrichment → pathway-analysis');
-  lines.push('- Literature search → pubmed-search');
+  for (const cat of categories) {
+    const routeName = cat.name.replace(/-/g, ' ');
+    if (cat.sampleSkills && cat.sampleSkills.length > 0) {
+      lines.push(`- ${routeName} → \`${cat.name}\` (e.g. ${cat.sampleSkills.slice(0, 3).join(', ')})`);
+    } else {
+      lines.push(`- ${routeName} → \`${cat.name}\``);
+    }
+  }
   lines.push('');
   lines.push('</bio_skills_catalog>');
   return lines.join('\n');
@@ -78,7 +75,6 @@ export function formatLoadedSkillsForPrompt(
     if (skill.primaryTool) {
       lines.push(`Primary tool: ${skill.primaryTool}`);
     }
-    lines.push(`Path: ${skill.filePath}`);
     lines.push('');
   }
 

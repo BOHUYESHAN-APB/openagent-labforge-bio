@@ -5,6 +5,57 @@ All notable changes to this project are documented here.
 本文件记录项目的重要变更。由于 `v1.0.5` 之前主要是内部开发、迁移和
 checkpoint 式迭代，早期版本条目为基于现有提交历史和功能阶段整理的补记。
 
+## v1.1.0 — 2026-05-20
+
+### Fixed / 修复
+
+- **Plugin path resolution bug**: replaced build-time `__dirname` hardcoding with
+  runtime `getPackageRoot(import.meta.url)` for `src/skills` and `ThirdParty`
+  paths. Previously, paths were baked to the build machine's filesystem at
+  build time, causing `src/skills` and `ThirdParty` skill discovery to fail
+  when the plugin was installed via npm on another machine.
+- 修复插件路径硬编码问题：构建时 `__dirname` 改为运行时 `import.meta.url` 动态解析。
+  此前路径绑定到构建机器的绝对路径，用户安装后无法发现内置 skills。
+
+- **Bio skills catalog routing guide**: replaced hardcoded route hints with
+  auto-generated entries from catalog.json. Previously, adding new categories
+  required manual editing of the routing guide.
+- Bio Skills 目录路由指南从硬编码改为从 catalog.json 自动生成。
+
+- **Absolute path leakage in bio skills prompt**: removed `Path:` line from
+  `<bio_skills_loaded>` block to prevent AI from copying SKILL.md files to
+  third-party directories.
+- 移除 Bio Skills 加载提示中的绝对路径暴露，防止 AI 误复制文件。
+
+### Added / 新增
+
+- **Academic Paper Mode skills** (`resources/academicSkills/`): new skill
+  category system following the same pattern as `resources/bioSkills/`.
+  Includes:
+  - `citation/cnki-parser` — CNKI multi-format export → unified BibTeX
+  - `citation/cite-match` — Body text `[[cite:keywords]]` → `[N]` citation
+  - `formatting/md2docx` — Markdown → HTML → DOCX academic formatting
+    (dual pipeline: HTML intermediate for font accuracy, direct for hyperlinks)
+  - MIT-licensed upstream skills (research-writing, office-academic,
+    scientific-toolkit) from codex-claude-academic-skills by zLanqing
+- 新增论文模式技能体系 (`resources/academicSkills/`)，包含 CNKI 解析、
+  正文引文匹配、MD→DOCX 管线，以及来自第三方的学术写作技能。
+
+- **`THIRD_PARTY_NOTICES.md` updated**: added Section 5 (Integrated Skills)
+  and Section 6 (Contribution Guidelines) with full provenance tracking for
+  all third-party and AI-assisted content.
+- 更新 Third-Party Notices，完整标注所有第三方技能出处和许可证。
+
+### Changed / 变更
+
+- **`package.json` files**: added `resources/academicSkills` to published
+  package manifest.
+- npm 包新增 `resources/academicSkills` 目录发布。
+
+- **`src/index.ts`**: registered `resources/academicSkills` path in
+  `opencodeConfig.skills.paths` and `external_directory` permission rules.
+- 注册学术技能路径和文件读取权限。
+
 ## v1.0.24 - 2026-05-11
 
 ### Added / 新增
