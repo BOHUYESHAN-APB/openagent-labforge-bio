@@ -2,7 +2,8 @@ import * as fs from "fs"
 import * as os from "os"
 import * as path from "path"
 
-const LOG_FILENAME = "extendai-lab.log"
+import { LOG_FILENAME } from "./plugin-identity"
+
 const DEFAULT_MAX_LOG_FILE_SIZE_BYTES = 50 * 1024 * 1024
 const DEFAULT_MAX_LOG_FILE_BACKUPS = 2
 
@@ -16,6 +17,12 @@ const FLUSH_INTERVAL_MS = 500
 const BUFFER_SIZE_LIMIT = 50
 
 function rotateLogFileIfNeeded(): void {
+  // Best-effort, single-process: not safe under concurrent writers from sibling
+  // agents sharing the same tmpdir (worst case: one rotated backup is clobbered;
+  // primary writes still succeed). Same TOCTOU profile as
+  // src/openclaw/reply-listener-log.ts. All errors are swallowed because logging
+  // itself must never throw — a corrupt rotation state is preferable to crashing
+  // the agent over a temp-file rename failure.
   try {
     if (!fs.existsSync(logFile)) return
     const stats = fs.statSync(logFile)
@@ -72,4 +79,43 @@ export function log(message: string, data?: unknown): void {
 
 export function getLogFilePath(): string {
   return logFile
+}
+
+interface LoggerTestOverrides {
+  filePath?: string
+  maxSizeBytes?: number
+  maxBackups?: number
+}
+
+/** @internal test-only seam */
+export function _setLoggerForTesting(overrides: LoggerTestOverrides): void {
+  buffer = []
+  if (flushTimer) {
+    clearTimeout(flushTimer)
+    flushTimer = null
+  }
+  if (overrides.filePath !== undefined) logFile = overrides.filePath
+  if (overrides.maxSizeBytes !== undefined) maxLogFileSizeBytes = overrides.maxSizeBytes
+  if (overrides.maxBackups !== undefined) maxLogFileBackups = overrides.maxBackups
+}
+
+/** @internal test-only seam */
+export function _resetLoggerForTesting(): void {
+  logFile = path.join(os.tmpdir(), LOG_FILENAME)
+  maxLogFileSizeBytes = DEFAULT_MAX_LOG_FILE_SIZE_BYTES
+  maxLogFileBackups = DEFAULT_MAX_LOG_FILE_BACKUPS
+  buffer = []
+  if (flushTimer) {
+    clearTimeout(flushTimer)
+    flushTimer = null
+  }
+}
+
+/** @internal test-only seam: synchronously flush the buffer */
+export function _flushForTesting(): void {
+  if (flushTimer) {
+    clearTimeout(flushTimer)
+    flushTimer = null
+  }
+  flush()
 }
