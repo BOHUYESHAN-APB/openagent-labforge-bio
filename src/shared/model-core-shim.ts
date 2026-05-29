@@ -1,4 +1,4 @@
 // Shim for @oh-my-opencode/model-core
-// Re-exports from upstream model-core package
+// Re-exports from local model-core module
 
-export * from "../../Future/oh-my-openagent/packages/model-core/src/index"
+export * from "./model-core/index"

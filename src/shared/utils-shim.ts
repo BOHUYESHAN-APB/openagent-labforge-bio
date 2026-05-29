@@ -1,4 +1,4 @@
 // Shim for @oh-my-opencode/utils
-// Re-exports from upstream utils package
+// Re-exports from local utils module
 
-export * from "../../Future/oh-my-openagent/packages/utils/src/index"
+export * from "./utils/index"
