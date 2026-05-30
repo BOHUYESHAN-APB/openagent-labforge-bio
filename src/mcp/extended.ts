@@ -84,3 +84,15 @@ export const semantic_scholar_fastmcp: McpConfig = {
   },
   timeout: LOCAL_MCP_STARTUP_TIMEOUT_MS,
 };
+
+// open-computer-use: Desktop automation via Accessibility API
+// MIT License - https://github.com/iFurySt/open-codex-computer-use
+// Supports macOS, Windows, Linux
+// Install: npm install -g open-computer-use
+// Requires: Accessibility + Screen Recording permissions on macOS
+export const open_computer_use: McpConfig = {
+  type: 'local',
+  command: ['open-computer-use', 'mcp'],
+  enabled: false,  // Disabled by default, enable via config
+  timeout: LOCAL_MCP_STARTUP_TIMEOUT_MS,
+};
