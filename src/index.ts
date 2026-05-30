@@ -99,6 +99,17 @@ import {
 import { createSubtaskState } from './tools/subtask/state';
 import { detectBioTaskTool } from './tools/detect-bio-task.js';
 import {
+  createTeamCreateTool,
+  createTeamDeleteTool,
+  createTeamSendTool,
+  createTeamTaskCreateTool,
+  createTeamTaskListTool,
+  createTeamTaskUpdateTool,
+  createTeamTaskGetTool,
+  createTeamStatusTool,
+  createTeamListTool,
+} from './features/team-mode/tools/team-tools';
+import {
   createDisplayNameMentionRewriter,
   createInternalAgentTextPart,
   resolveRuntimeAgentName,
@@ -780,6 +791,18 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       ...(bioSkillsManager
         ? { load_bio_skills: createLoadBioSkillsTool(bioSkillsManager) }
         : {}),
+      // Team Mode tools (only registered when team_mode.enabled)
+      ...(config.team_mode?.enabled ? {
+        team_create: createTeamCreateTool(),
+        team_delete: createTeamDeleteTool(),
+        team_send_message: createTeamSendTool(),
+        team_task_create: createTeamTaskCreateTool(),
+        team_task_list: createTeamTaskListTool(),
+        team_task_update: createTeamTaskUpdateTool(),
+        team_task_get: createTeamTaskGetTool(),
+        team_status: createTeamStatusTool(),
+        team_list: createTeamListTool(),
+      } : {}),
     },
 
     mcp: mcps,

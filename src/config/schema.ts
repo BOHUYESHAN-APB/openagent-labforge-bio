@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { AGENT_ALIASES, ALL_AGENT_NAMES } from './constants';
 import { CouncilConfigSchema } from './council-schema';
+import { TeamModeConfigSchema } from './schema/team-mode';
 
 const FALLBACK_AGENT_NAMES = [
   'orchestrator',
@@ -629,6 +630,7 @@ export const PluginConfigSchema = z
           'Default: both hidden. Set to false to show them.',
       ),
     council: CouncilConfigSchema.optional(),
+    team_mode: TeamModeConfigSchema.optional(),
   })
   .superRefine((value, ctx) => {
     if (value.agents) {

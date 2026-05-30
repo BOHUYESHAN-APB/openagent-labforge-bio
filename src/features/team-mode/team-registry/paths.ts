@@ -1,9 +1,18 @@
 // Team registry paths
 import { join } from "node:path"
 import { homedir } from "node:os"
+import type { TeamModeConfig } from "../../../config/schema/team-mode"
 
 export function getTeamBaseDir(): string {
   return join(homedir(), ".omo", "teams")
+}
+
+export function resolveBaseDir(config?: TeamModeConfig): string {
+  return config?.base_dir || join(homedir(), ".omo")
+}
+
+export function getRuntimeStateDir(baseDir: string, teamRunId: string): string {
+  return join(baseDir, "runtime", teamRunId)
 }
 
 export function getTeamDir(teamName: string): string {
