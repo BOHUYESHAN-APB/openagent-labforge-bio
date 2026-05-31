@@ -38,23 +38,27 @@
 
 ## 修复方案
 
-### Phase 1：修复指令系统
+### Phase 1：修复 subagent policy 切换指令（P0）
 
-**目标**：subagent policy 指令能正确执行，不变成提示词
+**目标**：subagent policy 切换指令能实际修改配置文件，不只是生成文本
 
-**方案 A：改成模板注入（推荐）**
-- 把 `ol-subagents-*` 指令改成模板注入（和 checkpoint 一样）
-- 模板内容：让 LLM 展示当前 policy 状态 + 提示用户如何切换
-- 优点：简单可靠，不需要 hook
+**当前问题**：
+- `/ol-subagents-UM/M/F/C/MO` 指令只是生成 policy 文本发给 LLM
+- 没有实际修改配置文件
+- 用户切换模式后，下一轮对话仍然使用旧的 policy
 
-**方案 B：修复 hook 拦截**
-- 在 `command.execute.before` hook 中正确拦截
-- 需要确保 hook 输出不被当作 prompt 发给 LLM
-- 缺点：复杂，可能有边界问题
+**修复方案**：
+1. 在 `command.execute.before` hook 中添加配置文件修改逻辑
+2. 调用 `writeExtendaiConfig()` 修改 `subagentPolicy.mode` 字段
+3. 生成确认信息（不是 policy 文本）
+4. 注入到 output.parts
 
-**选择方案 A**
+**关键点**：
+- 查看当前 policy（`/ol-subagents`）：只生成文本，不修改配置
+- 切换 policy（`/ol-subagents-UM` 等）：修改配置文件，生成确认信息
+- 确认信息应该包含：当前模式、可用 agent 列表、生效时间
 
-### Phase 2：修复模型继承
+### Phase 2：修复模型继承（P0）
 
 **目标**：free preset 下子 agent 继承当前 session 的模型
 
@@ -63,7 +67,7 @@
 2. 当 preset 是 "free" 且没有 override 时，返回 `undefined`
 3. orchestrator prompt 中添加说明：free 模式下不传 `agent` 参数给 `task` 工具
 
-### Phase 3：补充提示词
+### Phase 3：补充提示词（P1）
 
 **目标**：orchestrator prompt 清楚说明子 agent 使用方式
 
@@ -76,35 +80,103 @@
 
 ## 指令清单（修复后）
 
-| 指令 | 机制 | 效果 | 是否需要重启 |
-|------|------|------|-------------|
-| `/ol-checkpoint-light` | 模板注入 | LLM 执行 checkpoint | 否 |
-| `/ol-checkpoint-heavy` | 模板注入 | LLM 执行 checkpoint | 否 |
-| `/ol-checkpoint-resume-latest` | 模板注入 | LLM 恢复 checkpoint | 否 |
-| `/ol-auto-continue-on` | Hook 拦截 | 开启自动继续 | 否 |
-| `/ol-auto-continue-off` | Hook 拦截 | 关闭自动继续 | 否 |
-| `/ol-subagents` | 模板注入 | 展示当前 policy | 否 |
-| `/ol-subagents-UM` | 模板注入 | 切换到 ultra-minimal | 是（需重启） |
-| `/ol-subagents-M` | 模板注入 | 切换到 minimal | 是（需重启） |
-| `/ol-subagents-F` | 模板注入 | 切换到 full | 是（需重启） |
-| `/ol-subagents-C` | 模板注入 | 切换到 custom | 是（需重启） |
-| `/ol-subagents-MO` | 模板注入 | 切换到 main-only | 是（需重启） |
+### 两套机制
 
-**注意**：切换 policy 需要重启，因为 agent 注册在 plugin 初始化时完成。但展示当前 policy 不需要重启。
+#### 机制 1：Agent 数量控制（Subagent Policy）
+- **作用**：控制主 agent 可以调用哪些子 agent
+- **配置位置**：`extendai-lab.json` 的 `subagentPolicy` 字段
+- **生效方式**：修改配置文件 → 下一轮对话读取配置 → 应用新的 agent 列表
+- **动态切换**：✅ 支持（修改配置文件后，下一轮对话生效）
 
-### auto-continue 指令验证
+#### 机制 2：Agent 模型配置（Model Presets）
+- **作用**：控制每个 agent 使用哪个模型
+- **配置位置**：`extendai-lab.json` 的 `modelPreferences` 字段
+- **生效方式**：调用 `client.config.update()` → 运行时立即生效
+- **动态切换**：✅ 支持（通过 `client.config.update()` 运行时切换）
 
-**机制**：
-- `/ol-auto-continue-on` → hook 拦截 → 重写为 `/ol-auto-continue on`
-- `/ol-auto-continue-off` → hook 拦截 → 重写为 `/ol-auto-continue off`
-- `/ol-auto-continue` → hook 拦截 → 调用 `auto_continue` 工具
+### 指令清单
 
-**当前状态**：需要验证 hook 是否正确工作
+| 指令 | 机制 | 效果 | 动态切换 | 状态 |
+|------|------|------|----------|------|
+| `/ol-subagents` | Hook 拦截 | 展示当前 policy | N/A | ✅ 正确 |
+| `/ol-subagents-UM` | Hook 拦截 | 切换到 ultra-minimal | ✅ 支持 | ❌ 需要修改 |
+| `/ol-subagents-M` | Hook 拦截 | 切换到 minimal | ✅ 支持 | ❌ 需要修改 |
+| `/ol-subagents-F` | Hook 拦截 | 切换到 full | ✅ 支持 | ❌ 需要修改 |
+| `/ol-subagents-C` | Hook 拦截 | 切换到 custom | ✅ 支持 | ❌ 需要修改 |
+| `/ol-subagents-MO` | Hook 拦截 | 切换到 main-only | ✅ 支持 | ❌ 需要修改 |
+| `/ol-preset` | Hook 拦截 | 列出可用预设 | N/A | ✅ 正确 |
+| `/ol-preset-free` | Hook 拦截 | 切换到 free 预设 | ✅ 支持 | ✅ 正确 |
+| `/ol-preset-ds-first` | Hook 拦截 | 切换到 ds-first 预设 | ✅ 支持 | ✅ 正确 |
+| `/ol-preset-openai` | Hook 拦截 | 切换到 openai 预设 | ✅ 支持 | ✅ 正确 |
+| `/ol-preset-openai-go` | Hook 拦截 | 切换到 openai-go 预设 | ✅ 支持 | ✅ 正确 |
+| `/ol-preset-ds-mimo` | Hook 拦截 | 切换到 ds-mimo 预设 | ✅ 支持 | ✅ 正确 |
+| `/ol-preset-3-mix` | Hook 拦截 | 切换到 3-mix 预设 | ✅ 支持 | ✅ 正确 |
+| `/ol-preset-custom` | Hook 拦截 | 切换到 custom 预设 | ✅ 支持 | ✅ 正确 |
+| `/ol-auto-continue-on` | Hook 拦截 | 开启自动继续 | ✅ 支持 | ✅ 正确 |
+| `/ol-auto-continue-off` | Hook 拦截 | 关闭自动继续 | ✅ 支持 | ✅ 正确 |
+| `/ol-checkpoint-light` | Hook 拦截 | 创建轻量 checkpoint | N/A | ✅ 正确 |
+| `/ol-checkpoint-heavy` | Hook 拦截 | 创建重量 checkpoint | N/A | ✅ 正确 |
+| `/ol-checkpoint-resume-latest` | Hook 拦截 | 恢复最新 checkpoint | N/A | ✅ 正确 |
 
-**验证方法**：
-1. 输入 `/ol-auto-continue-on` → 应该开启自动继续
-2. 输入 `/ol-auto-continue-off` → 应该关闭自动继续
-3. 检查日志确认 hook 被调用
+**关键点**：
+1. **Subagent Policy 指令**：需要修改配置文件，下一轮对话生效
+2. **Model Preset 指令**：通过 `client.config.update()` 运行时切换，立即生效
+3. **Auto-Continue 指令**：hook 拦截 → 重写命令 → LLM 执行
+4. **Checkpoint 指令**：hook 拦截 → 重写命令 → LLM 执行
+
+### 详细说明
+
+#### Subagent Policy 指令（需要修改）
+
+**当前实现**：
+- hook 拦截 → 生成 policy 文本 → 注入到 output.parts
+- LLM 收到 policy 文本，但没有实际修改配置
+
+**正确实现**：
+- hook 拦截 → 修改配置文件 → 生成确认信息 → 注入到 output.parts
+- 下一轮对话读取配置 → 应用新的 agent 列表
+
+**代码修改**：
+1. 在 `command.execute.before` hook 中添加配置文件修改逻辑
+2. 调用 `writeExtendaiConfig()` 修改 `subagentPolicy.mode` 字段
+3. 生成确认信息（包含当前模式、可用 agent 列表、生效时间）
+
+#### Model Preset 指令（已正确实现）
+
+**当前实现**：
+- hook 拦截 → 调用 `client.config.update()` → 运行时切换模型
+- 无需重启，立即生效
+
+**正确行为**：
+- 用户输入 `/ol-preset-ds-first` → 切换到 ds-first 预设
+- 所有 agent 的模型立即切换为 ds-first 预设中定义的模型
+- 无需重启 OpenCode
+
+#### Auto-Continue 指令（已正确实现）
+
+**当前实现**：
+- hook 拦截 → 重写命令 → LLM 执行重写后的命令
+- `/ol-auto-continue-on` → 重写为 `/ol-auto-continue on`
+- `/ol-auto-continue-off` → 重写为 `/ol-auto-continue off`
+
+**正确行为**：
+- 用户输入 `/ol-auto-continue-on` → 开启自动继续
+- 用户输入 `/ol-auto-continue-off` → 关闭自动继续
+- LLM 调用 `auto_continue` 工具执行相应操作
+
+#### Checkpoint 指令（已正确实现）
+
+**当前实现**：
+- hook 拦截 → 重写命令 → LLM 执行重写后的命令
+- `/ol-checkpoint-light` → 重写为 `/ol-checkpoint light`
+- `/ol-checkpoint-heavy` → 重写为 `/ol-checkpoint heavy`
+- `/ol-checkpoint-resume-latest` → 重写为 `/ol-checkpoint-resume latest`
+
+**正确行为**：
+- 用户输入 `/ol-checkpoint-light` → 创建轻量 checkpoint
+- 用户输入 `/ol-checkpoint-heavy` → 创建重量 checkpoint
+- 用户输入 `/ol-checkpoint-resume-latest` → 恢复最新 checkpoint
+- LLM 执行 checkpoint 模板中的指令
 
 ---
 
@@ -620,59 +692,151 @@ OpenCode 用解析出的模型创建子 session
 
 ## 关键代码位置
 
+### 需要修改的代码
+
 | 修改 | 文件 | 行号 | 说明 |
 |------|------|------|------|
-| 指令模板 | `src/index.ts` | 282-296 | 注册指令时使用模板 |
-| 指令拦截删除 | `src/index.ts` | 1473-1486 | 删除 hook 中的 subagent policy 处理 |
-| 模型继承 | `src/agents/index.ts` | 434-435 | 去掉 `?? DEFAULT_MODELS[name]` |
-| 提示词 | `src/agents/orchestrator.ts` | 311 | 添加子 agent 使用指南 |
-| 模板文件 | `src/commands/subagent-policy-template.ts` | - | 新建模板文件 |
-| subtask 工具 | `src/tools/subtask/tools.ts` | - | 添加 background 参数和模型继承 |
-| team agent | `src/features/team-mode/team-runtime/create.ts` | - | 添加模型继承 |
+| subagent policy 切换 | `src/index.ts` | 1473-1486 | 添加配置文件修改逻辑 |
+| 配置文件读写函数 | `src/index.ts` | 新增 | 添加 readExtendaiConfig/writeExtendaiConfig 函数 |
+| 模式对应的 agent 列表 | `src/index.ts` | 新增 | 添加 getAllowedAgentsForMode 函数 |
+
+### 已正确实现的代码
+
+| 功能 | 文件 | 行号 | 说明 |
+|------|------|------|------|
+| Model Preset 切换 | `src/tools/preset-manager.ts` | 208-283 | 通过 `client.config.update()` 运行时切换 |
+| Auto-Continue 拦截 | `src/index.ts` | 1420-1425 | hook 拦截 → 重写命令 |
+| Checkpoint 拦截 | `src/index.ts` | 1426-1435 | hook 拦截 → 重写命令 |
+| Subagent Policy 查看 | `src/index.ts` | 1473-1486 | hook 拦截 → 生成文本 |
 
 ---
 
 ## 具体代码修改
 
-### 修改 1：subagent policy 指令改成模板注入
+### 修改 1：subagent policy 切换指令（P0）
 
 **文件**：`src/index.ts`
 
-**当前代码**（line 282-296）：
-```typescript
-registerCommandIfMissing(commands, SUBAGENT_POLICY_COMMAND, {
-  template: '',
-  description: 'Show active subagent policy and cache guidance',
-});
+**位置**：`command.execute.before` hook（line 1473-1486）
 
-for (const [command, mode] of Object.entries(SUBAGENT_POLICY_COMMAND_MODES)) {
-  registerCommandIfMissing(commands, command, {
-    template: '',
-    description: SUBAGENT_POLICY_COMMAND_DESCRIPTIONS[...],
-    metadata: { subagentPolicyMode: mode },
-  });
+**当前代码**：
+```typescript
+if (
+  typedInput.command === SUBAGENT_POLICY_COMMAND ||
+  getSubagentPolicyModeForCommand(typedInput.command)
+) {
+  const requestedMode =
+    getSubagentPolicyModeForCommand(typedInput.command) ??
+    parseSubagentPolicyMode(typedInput.arguments);
+  typedOutput.parts.length = 0;
+  typedOutput.parts.push(
+    createInternalAgentTextPart(
+      formatSubagentPolicyStatus(config, requestedMode),
+    ),
+  );
 }
 ```
 
 **修改为**：
 ```typescript
-registerCommandIfMissing(commands, SUBAGENT_POLICY_COMMAND, {
-  template: SUBAGENT_POLICY_TEMPLATE,
-  description: 'Show active subagent policy and cache guidance',
-});
+if (
+  typedInput.command === SUBAGENT_POLICY_COMMAND ||
+  getSubagentPolicyModeForCommand(typedInput.command)
+) {
+  const requestedMode =
+    getSubagentPolicyModeForCommand(typedInput.command) ??
+    parseSubagentPolicyMode(typedInput.arguments);
+  
+  // 如果是切换模式的指令，修改配置文件
+  if (requestedMode && typedInput.command !== SUBAGENT_POLICY_COMMAND) {
+    // 读取当前配置
+    const currentConfig = readExtendaiConfig();
+    
+    // 修改配置
+    writeExtendaiConfig({
+      ...currentConfig,
+      subagentPolicy: {
+        ...currentConfig.subagentPolicy,
+        mode: requestedMode,
+      },
+    });
+    
+    // 生成确认信息
+    const confirmation = `✅ 已切换到 ${requestedMode} 模式
 
-for (const [command, mode] of Object.entries(SUBAGENT_POLICY_COMMAND_MODES)) {
-  registerCommandIfMissing(commands, command, {
-    template: SUBAGENT_POLICY_TEMPLATE,
-    description: SUBAGENT_POLICY_COMMAND_DESCRIPTIONS[...],
-    metadata: { subagentPolicyMode: mode },
-  });
+可用子 agent: ${getAllowedAgentsForMode(requestedMode).join(', ')}
+生效时间: 下一轮对话
+
+注意: 当前对话仍使用旧的 policy，新 policy 将在下一轮对话中生效`;
+    
+    typedOutput.parts.length = 0;
+    typedOutput.parts.push(
+      createInternalAgentTextPart(confirmation),
+    );
+  } else {
+    // 查看当前 policy
+    typedOutput.parts.length = 0;
+    typedOutput.parts.push(
+      createInternalAgentTextPart(
+        formatSubagentPolicyStatus(config, requestedMode),
+      ),
+    );
+  }
 }
 ```
 
-**同时删除** `command.execute.before` hook 中的 subagent policy 处理（line 1473-1486）
+**需要添加的函数**：
+```typescript
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
-### 修改 2：free preset 模型继承
+function readExtendaiConfig(): Record<string, unknown> {
+  const configPath = path.join(
+    process.env.HOME || process.env.USERPROFILE || '',
+    '.config',
+    'opencode',
+    'extendai-lab.json',
+  );
+  
+  if (fs.existsSync(configPath)) {
+    const content = fs.readFileSync(configPath, 'utf-8');
+    return JSON.parse(content);
+  }
+  
+  return {};
+}
+
+function writeExtendaiConfig(config: Record<string, unknown>): void {
+  const configPath = path.join(
+    process.env.HOME || process.env.USERPROFILE || '',
+    '.config',
+    'opencode',
+    'extendai-lab.json',
+  );
+  
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+}
+
+function getAllowedAgentsForMode(mode: string): string[] {
+  const modeAgents: Record<string, string[]> = {
+    'ultra-minimal': ['explorer', 'librarian', 'oracle'],
+    'minimal': ['explorer', 'librarian', 'oracle', 'fixer'],
+    'full': ['explorer', 'librarian', 'oracle', 'fixer', 'designer', 'council', 'reviewer'],
+    'custom': [], // 从配置文件读取
+    'main-only': [], // 不允许子 agent
+  };
+  
+  return modeAgents[mode] || [];
+}
+```
+
+**原理**：
+- 查看当前 policy（`/ol-subagents`）：只生成文本，不修改配置
+- 切换 policy（`/ol-subagents-UM` 等）：修改配置文件，生成确认信息
+- 确认信息包含：当前模式、可用 agent 列表、生效时间
+- 下一轮对话读取配置 → 应用新的 agent 列表
+
+### 修改 2：free preset 模型继承（P0）
 
 **文件**：`src/agents/index.ts`
 
@@ -702,7 +866,42 @@ return factory(model, customPrompts.prompt, customPrompts.appendPrompt);
 
 **注意**：primary agents（line 395-425）已经正确使用 `getModelForAgent` 不带 fallback。只有 subagents（line 427-438）有这个问题。
 
-### 修改 4：subtask 工具添加 background 参数和模型继承
+### 修改 3：orchestrator prompt 添加子 agent 使用说明（P1）
+
+**文件**：`src/agents/orchestrator.ts`
+
+**位置**：在 `buildOrchestratorPrompt` 函数中，line 311 附近（`${buildSubagentPolicyPrompt(subagentPolicy)}` 之后）
+
+**添加内容**：
+```typescript
+### 子 Agent 使用指南
+
+#### 三种子 agent 工具
+1. **task**（OpenCode 内置）：用注册的 agent 执行任务
+   - 参数：description, prompt, subagent_type, background
+   - 适用：需要特定 agent 专业能力的任务
+   - TUI：支持查看子 agent 内容（Ctrl+X 或底部 tab）
+
+2. **subtask**（插件）：简单子 session
+   - 参数：prompt, files, background
+   - 适用：简单的文件处理任务
+   - TUI：不支持查看
+
+3. **team_create**（插件）：多 agent 并行
+   - 参数：teamName, inline_spec
+   - 适用：需要多个 agent 并行工作的任务
+
+#### free 模式下的模型继承
+- 当前使用 free preset，子 agent 自动继承当前 session 的模型
+- 调用 task 工具时不需要指定 subagent_type
+- 直接用 prompt 参数描述任务即可
+
+#### 查看子 agent 内容
+- 使用 task 工具创建的子 agent 可以在 TUI 中查看
+- 快捷键：Ctrl+X 或点击底部的 subagent tab
+```
+
+### 修改 4：subtask 工具添加 background 参数和模型继承（P0）
 
 **文件**：`src/tools/subtask/tools.ts`
 
@@ -746,7 +945,7 @@ await client.session.prompt({
 });
 ```
 
-### 修改 5：team agent 模型继承
+### 修改 5：team agent 模型继承（P0）
 
 **文件**：`src/features/team-mode/team-runtime/create.ts`
 
@@ -781,37 +980,103 @@ await client.session.create({
 });
 ```
 
-### 修改 3：orchestrator prompt 添加子 agent 使用说明
+---
 
-**文件**：`src/agents/orchestrator.ts`
+## 验证方法
 
-**位置**：在 `buildOrchestratorPrompt` 函数中，line 311 附近（`${buildSubagentPolicyPrompt(subagentPolicy)}` 之后）
+### 1. 验证 subagent policy 切换
 
-**添加内容**：
-```typescript
-### 子 Agent 使用指南
+```bash
+# 1. 输入 /ol-subagents-UM
+# 2. 检查配置文件是否被修改
+cat ~/.config/opencode/extendai-lab.json | grep subagentPolicy
+# 应该看到: "mode": "ultra-minimal"
 
-#### 三种子 agent 工具
-1. **task**（OpenCode 内置）：用注册的 agent 执行任务
-   - 参数：description, prompt, subagent_type, background
-   - 适用：需要特定 agent 专业能力的任务
-   - TUI：支持查看子 agent 内容（Ctrl+X 或底部 tab）
+# 3. 输入 /ol-subagents
+# 4. 检查是否显示当前 policy
+# 应该看到: Active mode: ultra-minimal
 
-2. **subtask**（插件）：简单子 session
-   - 参数：prompt, files, background
-   - 适用：简单的文件处理任务
-   - TUI：不支持查看
-
-3. **team_create**（插件）：多 agent 并行
-   - 参数：teamName, inline_spec
-   - 适用：需要多个 agent 并行工作的任务
-
-#### free 模式下的模型继承
-- 当前使用 free preset，子 agent 自动继承当前 session 的模型
-- 调用 task 工具时不需要指定 subagent_type
-- 直接用 prompt 参数描述任务即可
-
-#### 查看子 agent 内容
-- 使用 task 工具创建的子 agent 可以在 TUI 中查看
-- 快捷键：Ctrl+X 或点击底部的 subagent tab
+# 5. 开始新对话
+# 6. 检查是否使用新的 policy
+# 应该看到: 只能使用 ultra-minimal 模式下允许的 agent
 ```
+
+### 2. 验证 model preset 切换
+
+```bash
+# 1. 输入 /ol-preset-ds-first
+# 2. 检查模型是否切换
+# 应该看到: 模型切换成功，无需重启
+
+# 3. 输入 /ol-preset
+# 4. 检查是否显示当前预设
+# 应该看到: ds-first ← active
+
+# 5. 创建子 agent 任务
+# 6. 检查子 agent 是否使用 ds-first 预设中的模型
+```
+
+### 3. 验证 auto-continue
+
+```bash
+# 1. 输入 /ol-auto-continue-on
+# 2. 检查是否开启自动继续
+# 应该看到: 自动继续已开启
+
+# 3. 创建多个 todo 任务
+# 4. 检查是否自动继续执行
+# 应该看到: 完成一个任务后自动执行下一个
+
+# 5. 输入 /ol-auto-continue-off
+# 6. 检查是否关闭自动继续
+# 应该看到: 自动继续已关闭
+```
+
+### 4. 验证 checkpoint
+
+```bash
+# 1. 输入 /ol-checkpoint-light
+# 2. 检查是否创建 checkpoint
+# 应该看到: checkpoint 创建成功
+
+# 3. 修改一些内容
+# 4. 输入 /ol-checkpoint-resume-latest
+# 5. 检查是否恢复到 checkpoint 状态
+# 应该看到: 内容恢复到 checkpoint 时的状态
+```
+
+### 5. 验证模型继承
+
+```bash
+# 1. 确保使用 free preset
+# 2. 创建子 agent 任务（不指定 subagent_type）
+# 3. 检查子 agent 是否继承当前 session 的模型
+# 应该看到: 子 agent 使用与主 agent 相同的模型
+
+# 4. 切换到 ds-first preset
+# 5. 创建子 agent 任务（指定 subagent_type="explorer"）
+# 6. 检查子 agent 是否使用 ds-first 预设中的模型
+# 应该看到: 子 agent 使用 ds-first 预设中 explorer 对应的模型
+```
+
+---
+
+## 总结
+
+### 当前状态
+- ✅ Model Preset 指令：已正确实现（运行时切换，无需重启）
+- ✅ Auto-Continue 指令：已正确实现（hook 拦截 → 重写命令）
+- ✅ Checkpoint 指令：已正确实现（hook 拦截 → 重写命令）
+- ❌ Subagent Policy 指令：需要修改（添加配置文件修改逻辑）
+
+### 修改计划
+1. 修改 `src/index.ts` 的 `command.execute.before` hook
+2. 添加配置文件读写函数
+3. 添加模式对应的 agent 列表函数
+4. 测试验证
+
+### 关键点
+1. **两套机制**：Agent 数量控制（subagent policy）和 Agent 模型配置（model presets）
+2. **动态切换**：两者都应该支持运行时切换，无需重启
+3. **配置文件**：subagent policy 存储在 `extendai-lab.json` 的 `subagentPolicy` 字段
+4. **运行时更新**：model presets 通过 `client.config.update()` 运行时更新
