@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Plugin } from '@opencode-ai/plugin';
 import { createAgents, getAgentConfigs, getDisabledAgents } from './agents';
@@ -108,6 +108,9 @@ import {
   createTeamTaskGetTool,
   createTeamStatusTool,
   createTeamListTool,
+  createTeamShutdownRequestTool,
+  createTeamApproveShutdownTool,
+  createTeamRejectShutdownTool,
 } from './features/team-mode/tools/team-tools';
 import {
   createDisplayNameMentionRewriter,
@@ -133,6 +136,66 @@ function resolveBioSkillsRepoPath(
   ].filter((path): path is string => Boolean(path));
 
   return candidates.find((path) => existsSync(path)) ?? candidates[0];
+}
+
+/**
+ * Read the extendai-lab config file.
+ */
+function readExtendaiConfig(): Record<string, unknown> {
+  const configPath = join(
+    process.env.HOME || process.env.USERPROFILE || '',
+    '.config',
+    'opencode',
+    'extendai-lab.json',
+  );
+
+  if (existsSync(configPath)) {
+    try {
+      const content = readFileSync(configPath, 'utf-8');
+      return JSON.parse(content);
+    } catch {
+      return {};
+    }
+  }
+
+  return {};
+}
+
+/**
+ * Write the extendai-lab config file.
+ */
+function writeExtendaiConfig(config: Record<string, unknown>): void {
+  const configPath = join(
+    process.env.HOME || process.env.USERPROFILE || '',
+    '.config',
+    'opencode',
+    'extendai-lab.json',
+  );
+
+  writeFileSync(configPath, JSON.stringify(config, null, 2));
+}
+
+/**
+ * Get the allowed agents for a given subagent policy mode.
+ */
+function getAllowedAgentsForMode(mode: string): string[] {
+  const modeAgents: Record<string, string[]> = {
+    'ultra-minimal': ['explorer', 'librarian', 'oracle'],
+    minimal: ['explorer', 'librarian', 'oracle', 'fixer'],
+    full: [
+      'explorer',
+      'librarian',
+      'oracle',
+      'fixer',
+      'designer',
+      'council',
+      'reviewer',
+    ],
+    custom: [], // 从配置文件读取
+    'main-only': [], // 不允许子 agent
+  };
+
+  return modeAgents[mode] || [];
 }
 
 /**
@@ -793,15 +856,18 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         : {}),
       // Team Mode tools (only registered when team_mode.enabled)
       ...(config.team_mode?.enabled ? {
-        team_create: createTeamCreateTool(),
-        team_delete: createTeamDeleteTool(),
-        team_send_message: createTeamSendTool(),
-        team_task_create: createTeamTaskCreateTool(),
-        team_task_list: createTeamTaskListTool(),
-        team_task_update: createTeamTaskUpdateTool(),
-        team_task_get: createTeamTaskGetTool(),
-        team_status: createTeamStatusTool(),
-        team_list: createTeamListTool(),
+        team_create: createTeamCreateTool({ config: config.team_mode, ctx }),
+        team_delete: createTeamDeleteTool({ config: config.team_mode, ctx }),
+        team_send_message: createTeamSendTool({ config: config.team_mode, ctx }),
+        team_task_create: createTeamTaskCreateTool({ config: config.team_mode, ctx }),
+        team_task_list: createTeamTaskListTool({ config: config.team_mode, ctx }),
+        team_task_update: createTeamTaskUpdateTool({ config: config.team_mode, ctx }),
+        team_task_get: createTeamTaskGetTool({ config: config.team_mode, ctx }),
+        team_status: createTeamStatusTool({ config: config.team_mode, ctx }),
+        team_list: createTeamListTool({ config: config.team_mode, ctx }),
+        team_shutdown_request: createTeamShutdownRequestTool({ config: config.team_mode, ctx }),
+        team_approve_shutdown: createTeamApproveShutdownTool({ config: config.team_mode, ctx }),
+        team_reject_shutdown: createTeamRejectShutdownTool({ config: config.team_mode, ctx }),
       } : {}),
     },
 
@@ -1471,12 +1537,46 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         const requestedMode =
           getSubagentPolicyModeForCommand(typedInput.command) ??
           parseSubagentPolicyMode(typedInput.arguments);
-        typedOutput.parts.length = 0;
-        typedOutput.parts.push(
-          createInternalAgentTextPart(
-            formatSubagentPolicyStatus(config, requestedMode),
-          ),
-        );
+
+        // If it's a mode switch command, modify the config file
+        if (
+          requestedMode &&
+          typedInput.command !== SUBAGENT_POLICY_COMMAND
+        ) {
+          // Read current config
+          const currentConfig = readExtendaiConfig();
+
+          // Modify config
+          writeExtendaiConfig({
+            ...currentConfig,
+            subagentPolicy: {
+              ...(currentConfig.subagentPolicy as Record<string, unknown>),
+              mode: requestedMode,
+            },
+          });
+
+          // Generate confirmation message
+          const allowedAgents = getAllowedAgentsForMode(requestedMode);
+          const confirmation = `✅ 已切换到 ${requestedMode} 模式
+
+可用子 agent: ${allowedAgents.length > 0 ? allowedAgents.join(', ') : '(无)'}
+生效时间: 下一轮对话
+
+注意: 当前对话仍使用旧的 policy，新 policy 将在下一轮对话中生效`;
+
+          typedOutput.parts.length = 0;
+          typedOutput.parts.push(
+            createInternalAgentTextPart(confirmation),
+          );
+        } else {
+          // View current policy
+          typedOutput.parts.length = 0;
+          typedOutput.parts.push(
+            createInternalAgentTextPart(
+              formatSubagentPolicyStatus(config, requestedMode),
+            ),
+          );
+        }
       }
     },
 
@@ -1687,6 +1787,33 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         input as { sessionID?: string; model: { providerID?: string } },
         output,
       );
+
+      // Team mode context injection for team members
+      if (config.team_mode?.enabled && input.sessionID) {
+        const { lookupTeamSession } = await import('./features/team-mode/team-session-registry');
+        const teamEntry = lookupTeamSession(input.sessionID);
+        if (teamEntry) {
+          const { loadRuntimeState } = await import('./features/team-mode/team-state-store/index');
+          const state = await loadRuntimeState(teamEntry.teamName);
+          if (state && state.status === 'active') {
+            const member = state.members.find(m => m.name === teamEntry.memberName);
+            if (member) {
+              const isLead = teamEntry.role === 'lead';
+              const teamInfo = [
+                `## Team Mode Active`,
+                `You are ${isLead ? 'the lead' : 'a member'} of team "${state.teamName}".`,
+                `TeamRunId: ${state.teamRunId}`,
+                `### Team Members`,
+                ...state.members.map(m => `- ${m.status === 'running' ? '?' : '?'} ${m.name}: ${m.status}`),
+                `### Communication`,
+                `Use team_send_message to communicate with team members.`,
+                `Use team_task_update to report task progress.`,
+              ];
+              output.system.unshift(teamInfo.join('\n'));
+            }
+          }
+        }
+      }
 
       // Collapse to single system message for provider compatibility.
       // Some providers (e.g. Qwen via VLLM/DashScope) reject multiple

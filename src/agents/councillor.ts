@@ -48,7 +48,7 @@ other agents. You are an advisor, not an implementer.
 - Note any uncertainties`;
 
 export function createCouncillorAgent(
-  model: string,
+  model: string | undefined,
   customPrompt?: string,
   customAppendPrompt?: string,
 ): AgentDefinition {

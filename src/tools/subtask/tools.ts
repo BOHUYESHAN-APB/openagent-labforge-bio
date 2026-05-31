@@ -61,8 +61,13 @@ export function createSubtaskTool(
         .array(tool.schema.string())
         .optional()
         .describe("Array of file paths to load into the new session's context"),
+      background: tool.schema
+        .boolean()
+        .optional()
+        .describe('Execution mode: false (default) = blocking, main agent waits for result. true = fire-and-forget, main agent continues immediately.'),
     },
     async execute(args, context) {
+      const runInBackground = args.background === true;
       const directory =
         context &&
         typeof context === 'object' &&
@@ -74,7 +79,6 @@ export function createSubtaskTool(
         context && typeof context === 'object' && 'sessionID' in context
           ? (context as { sessionID: string }).sessionID
           : 'unknown';
-      const abortSignal = getAbortSignal(context);
       if (state.isSubtaskSession(sessionID)) {
         return 'Nested subtask is disabled: this session is already a subtask worker. Finish this worker and return its summary to the parent session instead.';
       }
@@ -84,6 +88,26 @@ export function createSubtaskTool(
         depthTracker.getDepth(sessionID) + 1 > depthTracker.maxDepth
       ) {
         return `Subtask worker blocked: max subagent depth ${depthTracker.maxDepth} would be exceeded.`;
+      }
+
+      // Get current session's model to inherit via prompt body
+      let inheritedModel: { providerID: string; modelID: string } | undefined;
+      if (sessionID !== 'unknown') {
+        try {
+          const sessionData = await client.session.get({
+            path: { id: sessionID },
+            query: { directory },
+          });
+          const session = (sessionData as { data?: { model?: { providerID: string; id: string } } })?.data;
+          if (session?.model) {
+            inheritedModel = {
+              providerID: session.model.providerID,
+              modelID: session.model.id,
+            };
+          }
+        } catch {
+          // ignore - will use default
+        }
       }
 
       const sessionReference = `You are a subtask worker spawned by parent session ${sessionID}.
@@ -108,7 +132,7 @@ Do not spawn another subtask.`;
           throwOnError: true,
           query: { directory },
           body: {
-            parentID: sessionID === 'unknown' ? undefined : sessionID,
+            ...(sessionID !== 'unknown' ? { parentID: sessionID } : {}),
             title: `Subtask worker from ${sessionID}`,
           },
         });
@@ -132,6 +156,36 @@ Do not spawn another subtask.`;
         }
         state.markSession(childSessionID, sessionID);
 
+        // Background mode: fire and forget
+        if (runInBackground) {
+          void client.session.prompt({
+            responseStyle: 'data',
+            throwOnError: true,
+            query: { directory },
+            path: { id: childSessionID },
+            body: {
+              parts: [
+                {
+                  type: 'text',
+                  text: `${fullPrompt}\n\nInstructions:\n1. Understand the task and relevant file context.\n2. Make only necessary changes.\n3. Run the most relevant validation checks when practical.\n4. Stop when the requested task is done.\n\nReturn your final response in this format:\n\n<subtask_summary>\nStatus: completed | blocked | partial\n\nWhat changed:\n- ...\n\nFiles touched:\n- ...\n\nValidation:\n- ...\n\nRisks / follow-up:\n- ...\n</subtask_summary>`,
+                },
+                ...(await buildSyntheticFileParts(directory, files)),
+              ],
+              ...(inheritedModel ? { model: inheritedModel } : {}),
+            },
+          }).catch(() => {});
+
+          return [
+            `task_id: ${childSessionID}`,
+            'state: running',
+            '',
+            '<subtask_summary>',
+            'Background task started.',
+            '</subtask_summary>',
+          ].join('\n');
+        }
+
+        // Sync mode: wait for completion
         await promptWithTimeout(
           client,
           {
@@ -140,7 +194,6 @@ Do not spawn another subtask.`;
             query: { directory },
             path: { id: childSessionID },
             body: {
-              agent: 'orchestrator',
               parts: [
                 {
                   type: 'text',
@@ -148,6 +201,7 @@ Do not spawn another subtask.`;
                 },
                 ...(await buildSyntheticFileParts(directory, files)),
               ],
+              ...(inheritedModel ? { model: inheritedModel } : {}),
             },
           },
           SUBTASK_TIMEOUT_MS,

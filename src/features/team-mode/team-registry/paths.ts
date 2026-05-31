@@ -15,6 +15,14 @@ export function getRuntimeStateDir(baseDir: string, teamRunId: string): string {
   return join(baseDir, "runtime", teamRunId)
 }
 
+export function getInboxDir(baseDir: string, teamRunId: string, memberName: string): string {
+  return join(baseDir, "runtime", teamRunId, "inboxes", memberName)
+}
+
+export function getTasksDir(baseDir: string, teamRunId: string): string {
+  return join(baseDir, "runtime", teamRunId, "tasks")
+}
+
 export function getTeamDir(teamName: string): string {
   return join(getTeamBaseDir(), teamName)
 }

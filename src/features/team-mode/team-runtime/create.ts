@@ -1,57 +1,44 @@
-// Team runtime create - with BackgroundManager integration
+// Team runtime create — synchronous: creates member sessions, waits for all to complete
 import { randomUUID } from "node:crypto"
+import type { PluginInput } from "@opencode-ai/plugin"
 import type { TeamSpec, RuntimeState, Member } from "../types"
 import { saveRuntimeState, loadRuntimeState } from "../team-state-store/index"
 import { registerTeamSession } from "../team-session-registry"
-
-// Type for BackgroundManager (simplified)
-interface BackgroundManager {
-  launch(input: {
-    description: string
-    prompt: string
-    agent: string
-    parentSessionId: string
-    parentMessageId: string
-    teamRunId?: string
-    suppressTmuxSpawn?: boolean
-    model?: { providerID: string; modelID: string }
-    category?: string
-    onSessionCreated?: (sessionId: string) => void | Promise<void>
-  }): Promise<{ id: string; sessionId?: string }>
-}
+import {
+  promptWithTimeout,
+} from "../../../utils/session"
 
 export interface CreateTeamRunOptions {
   leadSessionId?: string
   parentMessageID?: string
 }
 
+const MEMBER_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes per member
+
 function buildMemberPrompt(
   spec: TeamSpec,
   member: Member,
   teamRunId: string,
-  worktreePath?: string,
 ): string {
-  const promptLines = [
-    `Team: ${spec.name}`,
+  return [
+    `## Team Assignment`,
+    `You are "${member.name}" in team "${spec.name}".`,
     `TeamRunId: ${teamRunId}`,
-    `Member: ${member.name}`,
-  ]
-  if (worktreePath) promptLines.push(`Worktree: ${worktreePath}`)
-  if (member.prompt) promptLines.push(member.prompt)
-  promptLines.push(`
-# Team Communication
-
-You are running as a team member. Use team_send_message to communicate.
-Use team_task_update to report task progress.
-`)
-  return promptLines.join("\n")
+    ``,
+    member.prompt || `Research and report your findings.`,
+    ``,
+    `## Instructions`,
+    `1. Complete ONLY the task described above.`,
+    `2. Report your results when done using team_send_message to "lead".`,
+    `3. Stop when your task is complete.`,
+  ].join("\n")
 }
 
 export async function createTeamRun(
   teamName: string,
   spec: TeamSpec,
   specSource: "project" | "user" = "user",
-  bgMgr?: BackgroundManager,
+  client?: PluginInput["client"],
   options?: CreateTeamRunOptions,
 ): Promise<RuntimeState> {
   const teamRunId = randomUUID()
@@ -75,101 +62,107 @@ export async function createTeamRun(
       pendingInjectedMessageIds: [],
     })),
     shutdownRequests: [],
-    bounds: {
-      maxMembers: 8,
-      maxParallelMembers: 4,
-      maxMessagesPerRun: 10000,
-      maxWallClockMinutes: 120,
-      maxMemberTurns: 500,
-    },
+    bounds: { maxMembers: 8, maxParallelMembers: 4, maxMessagesPerRun: 10000, maxWallClockMinutes: 120, maxMemberTurns: 500 },
   }
 
   await saveRuntimeState(teamName, state)
 
-  // If we have a BackgroundManager, launch member sessions
-  if (bgMgr) {
-    await launchMemberSessions(teamName, spec, state, bgMgr, leadSessionId, options?.parentMessageID)
+  if (client) {
+    // Synchronous: launch all members and wait for results
+    await launchAndWait(state, spec, client, teamName, leadSessionId)
+    await saveRuntimeState(teamName, state)
   }
 
   return state
 }
 
-async function launchMemberSessions(
-  teamName: string,
-  spec: TeamSpec,
+async function launchAndWait(
   state: RuntimeState,
-  bgMgr: BackgroundManager,
+  spec: TeamSpec,
+  client: PluginInput["client"],
+  teamName: string,
   leadSessionId?: string,
-  parentMessageID?: string,
 ): Promise<void> {
-  const launchPromises = spec.members.map(async (member, index) => {
-    // Skip lead if it's reusing the caller session
-    if (leadSessionId && member.name === spec.leadAgentId) {
-      const currentState = await loadRuntimeState(teamName)
-      if (currentState) {
-        currentState.members[index].sessionId = leadSessionId
-        currentState.members[index].status = "running"
-        await saveRuntimeState(teamName, currentState)
-      }
-      registerTeamSession(leadSessionId, {
-        teamRunId: state.teamRunId,
-        memberName: member.name,
-        role: "lead",
-      })
-      return
-    }
+  const directory = process.cwd()
 
-    // Launch member session
+  // Get lead session's model to inherit via prompt body
+  let leadModel: { providerID: string; modelID: string } | undefined;
+  if (leadSessionId) {
+    try {
+      const sessionData = await client.session.get({
+        path: { id: leadSessionId },
+        query: { directory },
+      });
+      const session = (sessionData as { data?: { model?: { providerID: string; id: string } } })?.data;
+      if (session?.model) {
+        leadModel = {
+          providerID: session.model.providerID,
+          modelID: session.model.id,
+        };
+      }
+    } catch {
+      // ignore - will use default
+    }
+  }
+
+  const promises = spec.members.map(async (member, index) => {
     const prompt = buildMemberPrompt(spec, member, state.teamRunId)
-    const agent = member.kind === "subagent_type" ? member.subagent_type : "orchestrator"
+    let sessionId: string | undefined
 
     try {
-      const task = await bgMgr.launch({
-        description: `Team member: ${teamName}/${member.name}`,
-        prompt,
-        agent,
-        parentSessionId: leadSessionId || state.teamRunId,
-        parentMessageId: parentMessageID || `team-create:${state.teamRunId}:${member.name}`,
-        teamRunId: state.teamRunId,
-        suppressTmuxSpawn: true,
-        category: member.kind === "category" ? member.category : undefined,
-        onSessionCreated: async (sessionId: string) => {
-          registerTeamSession(sessionId, {
-            teamRunId: state.teamRunId,
-            memberName: member.name,
-            role: member.name === spec.leadAgentId ? "lead" : "member",
-          })
-          const currentState = await loadRuntimeState(teamName)
-          if (currentState) {
-            currentState.members[index].sessionId = sessionId
-            currentState.members[index].status = "running"
-            await saveRuntimeState(teamName, currentState)
-          }
-        },
+      // Create session (no model - passed via prompt body)
+      const createResult = await client.session.create({
+        body: {
+          parentID: leadSessionId || undefined,
+        } as Record<string, unknown>,
+        query: { directory },
       })
 
-      // Update task ID in state
-      const currentState = await loadRuntimeState(teamName)
-      if (currentState) {
-        currentState.members[index].taskId = task.id
-        await saveRuntimeState(teamName, currentState)
+      if (createResult.error) throw new Error(`Session create failed: ${createResult.error}`)
+      sessionId = createResult.data.id
+
+      registerTeamSession(sessionId, {
+        teamRunId: state.teamRunId,
+        teamName,
+        memberName: member.name,
+        role: "member",
+      })
+
+      state.members[index].sessionId = sessionId
+      state.members[index].status = "running"
+      await saveRuntimeState(teamName, state)
+
+      // Send prompt with inherited model
+      await promptWithTimeout(
+        client,
+        {
+          responseStyle: "data",
+          throwOnError: true,
+          query: { directory },
+          path: { id: sessionId },
+          body: {
+            agent: member.kind === "subagent_type" ? member.subagent_type : undefined,
+            parts: [{ type: "text", text: prompt }],
+            ...(leadModel ? { model: leadModel } : {}),
+          },
+        },
+        MEMBER_TIMEOUT_MS,
+      )
+
+      // Extract result and cleanup
+      try {
+        await client.session.abort({ path: { id: sessionId }, query: { directory } })
+      } catch {
+        // ignore cleanup errors
       }
     } catch (error) {
-      console.error(`Failed to launch team member ${member.name}:`, error)
-      const currentState = await loadRuntimeState(teamName)
-      if (currentState) {
-        currentState.members[index].status = "errored"
-        await saveRuntimeState(teamName, currentState)
+      state.members[index].status = "errored"
+      if (sessionId) {
+        try { await client.session.abort({ path: { id: sessionId }, query: { directory } }) } catch {}
       }
     }
   })
 
-  await Promise.all(launchPromises)
-
-  // Update team status to active
-  const finalState = await loadRuntimeState(teamName)
-  if (finalState) {
-    finalState.status = "active"
-    await saveRuntimeState(teamName, finalState)
-  }
+  await Promise.all(promises)
+  state.status = "active"
 }

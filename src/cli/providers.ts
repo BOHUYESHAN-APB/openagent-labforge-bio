@@ -6,17 +6,21 @@ import type { InstallConfig } from './types';
 
 const SCHEMA_URL = `https://unpkg.com/${PACKAGE_NAME}@latest/${SCHEMA_FILE_NAME}`;
 
-// ── Five presets ──────────────────────────────────────────────────
+// ── Seven presets ─────────────────────────────────────────────────
 //   free       — 默认，不绑定模型，无侵入（DEFAULT）
 //   ds-first   — DS 优先，适配 OpenCode Go 订阅
 //   openai     — OpenAI 订阅优化
 //   openai-go  — 双订阅最优组合
+//   ds-mimo    — DS + 小米 MiMo 组合
+//   3-mix      — 三模型混合（DS + GPT + MiMo）
 //   custom     — 用户自配每个 agent
 export const GENERATED_PRESETS = [
   'free',
   'ds-first',
   'openai',
   'openai-go',
+  'ds-mimo',
+  '3-mix',
   'custom',
 ] as const;
 
@@ -56,10 +60,10 @@ export const MODEL_MAPPINGS: Record<string, Record<string, AgentModelEntry>> = {
     atlas: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
     metis: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
     councillor: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
-    // 视觉 — MiMo 1M上下文 + 视觉
-    designer: { model: 'opencode-go/mimo-v2.5', variant: 'medium' },
-    observer: { model: 'opencode-go/mimo-v2.5', variant: 'medium' },
-    'multimodal-looker': { model: 'opencode-go/mimo-v2.5', variant: 'medium' },
+    // 视觉 — MiMo V2 Omni（有视觉）
+    designer: { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
+    observer: { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
+    'multimodal-looker': { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
   },
 
   openai: {
@@ -104,6 +108,62 @@ export const MODEL_MAPPINGS: Record<string, Record<string, AgentModelEntry>> = {
     atlas: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
     metis: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
     councillor: { model: 'opencode-go/deepseek-v4-flash', variant: 'high' },
+    // 视觉 — GPT-mini（有视觉）
+    designer: { model: 'openai/gpt-5.4-mini', variant: 'medium' },
+    observer: { model: 'openai/gpt-5.4-mini', variant: 'medium' },
+    'multimodal-looker': { model: 'openai/gpt-5.4-mini', variant: 'medium' },
+  },
+
+  'ds-mimo': {
+    // 强推理主力 — DeepSeek V4 Pro
+    orchestrator: { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
+    'deep-worker': { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
+    'bio-orchestrator': {
+      model: 'opencode-go/deepseek-v4-pro',
+      variant: 'max',
+    },
+    // 审查位 — DeepSeek V4 Pro
+    oracle: { model: 'opencode-go/deepseek-v4-pro', variant: 'high' },
+    reviewer: { model: 'opencode-go/deepseek-v4-pro', variant: 'high' },
+    council: { model: 'opencode-go/deepseek-v4-pro', variant: 'high' },
+    momus: { model: 'opencode-go/deepseek-v4-pro', variant: 'high' },
+    // 规划 — GLM 大上下文
+    prometheus: { model: 'opencode-go/glm-5.1', variant: 'high' },
+    // 轻量快速 — MiMo V2 Pro（无视觉，便宜快）
+    explorer: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    librarian: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    fixer: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    atlas: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    metis: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    councillor: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    // 视觉 — MiMo V2 Omni（有视觉）
+    designer: { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
+    observer: { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
+    'multimodal-looker': { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
+  },
+
+  '3-mix': {
+    // 强推理主力 — DeepSeek V4 Pro
+    orchestrator: { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
+    'deep-worker': { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
+    'bio-orchestrator': {
+      model: 'opencode-go/deepseek-v4-pro',
+      variant: 'max',
+    },
+    // 审查位 — GPT-5.5（跨模型审查更客观）
+    oracle: { model: 'openai/gpt-5.5', variant: 'xhigh' },
+    reviewer: { model: 'openai/gpt-5.5', variant: 'xhigh' },
+    council: { model: 'openai/gpt-5.5', variant: 'high' },
+    momus: { model: 'openai/gpt-5.5', variant: 'high' },
+    // 规划 — GPT-5.4
+    prometheus: { model: 'openai/gpt-5.4', variant: 'high' },
+    // 轻量快速 — MiMo V2 Pro（无视觉）
+    explorer: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    librarian: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    fixer: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    atlas: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    metis: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
+    councillor: { model: 'opencode-go/mimo-v2-pro', variant: 'medium' },
     // 视觉 — GPT-mini（有视觉）
     designer: { model: 'openai/gpt-5.4-mini', variant: 'medium' },
     observer: { model: 'openai/gpt-5.4-mini', variant: 'medium' },

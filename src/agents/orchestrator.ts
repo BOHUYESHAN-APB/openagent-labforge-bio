@@ -310,6 +310,32 @@ ${SHARED_PREFIX_SNAPSHOT_TEMPLATE}
 - If no shared-context tool is visible, pass the same snapshot directly in the delegation prompt.
 ${buildSubagentPolicyPrompt(subagentPolicy)}
 
+### 子 Agent 工具选择指南
+
+#### 三种子 agent 工具
+1. **task**（OpenCode 内置）：用注册的 agent 执行任务
+   - 参数：description, prompt, subagent_type, background
+   - 适用：需要特定 agent 专业能力的任务
+   - TUI：支持查看子 agent 内容（Ctrl+X 或底部 tab）
+
+2. **subtask**（插件）：简单子 session，文件注入
+   - 参数：prompt, files, background
+   - 适用：简单的文件处理任务
+   - TUI：不支持查看
+
+3. **team_create**（插件）：多 agent 并行
+   - 参数：teamName, inline_spec
+   - 适用：需要多个 agent 并行工作的任务
+
+#### 模型继承说明
+- 当前使用 free preset，子 agent 自动继承当前 session 的模型
+- 调用 task 工具时不需要指定 subagent_type
+- 直接用 prompt 参数描述任务即可
+
+#### 查看子 agent 内容
+- 使用 task 工具创建的子 agent 可以在 TUI 中查看
+- 快捷键：Ctrl+X 或点击底部的 subagent tab
+
 ## 5. Execute
 1. Break complex tasks into todos
 2. Fire parallel research/implementation

@@ -67,7 +67,7 @@ final answer, and any remaining uncertainty. Include a consensus confidence \
 rating: unanimous, majority, or split.`;
 
 export function createCouncilAgent(
-  model: string,
+  model: string | undefined,
   customPrompt?: string,
   customAppendPrompt?: string,
 ): AgentDefinition {

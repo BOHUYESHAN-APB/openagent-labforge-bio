@@ -26,8 +26,8 @@ const PRESET_SUBCOMMANDS = {
   'ol-preset-ds-first': 'ds-first',
   'ol-preset-openai': 'openai',
   'ol-preset-openai-go': 'openai-go',
-  'ol-preset-mimo': 'mimo',
-  'ol-preset-mimo-ds': 'mimo-ds',
+  'ol-preset-ds-mimo': 'ds-mimo',
+  'ol-preset-3-mix': '3-mix',
   'ol-preset-custom': 'custom',
 } as const;
 

@@ -70,18 +70,6 @@ export const TeamSpecSchema = z.object({
   teamAllowedPaths: z.array(z.string()).optional(),
   sessionPermission: z.string().optional(),
   members: z.array(MemberSchema).min(1).max(8),
-}).transform((teamSpec) => {
-  if (teamSpec.leadAgentId !== undefined) {
-    return teamSpec
-  }
-  const firstMember = teamSpec.members[0]
-  if (!firstMember) {
-    throw new Error("leadAgentId required")
-  }
-  return {
-    ...teamSpec,
-    leadAgentId: firstMember.name,
-  }
 })
 
 // Message schema

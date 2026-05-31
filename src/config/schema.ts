@@ -414,12 +414,14 @@ export const CompressionConfigSchema = z.object({
 
 export type CompressionConfig = z.infer<typeof CompressionConfigSchema>;
 
-// Model profile presets (5 options)
+// Model profile presets (7 options)
 export const ModelProfileSchema = z.enum([
   'free',
   'ds-first',
   'openai',
   'openai-go',
+  'ds-mimo',
+  '3-mix',
   'custom',
 ]);
 export type ModelProfile = z.infer<typeof ModelProfileSchema>;
@@ -449,7 +451,7 @@ export const ModelPreferencesConfigSchema = z.object({
   profile: ModelProfileSchema.optional()
     .default('free')
     .describe(
-      'Model profile preset: free (no binding), ds-first (DS via Go), openai (GPT only), openai-go (dual), custom (user-defined)',
+      'Model profile preset: free (no binding), ds-first (all DeepSeek), openai (all GPT), openai-go (GPT+DS), ds-mimo (DS+mimo), 3-mix (3-model mix), custom (user-defined)',
     ),
   customModels: CustomModelsSchema.optional().describe(
     'Per-agent custom model config (only active when profile=custom)',

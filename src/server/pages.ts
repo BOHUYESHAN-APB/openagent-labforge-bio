@@ -34,7 +34,7 @@ const CONFIG_FIELDS: FieldDef[] = [
     label: 'Default Preset',
     type: 'select',
     section: 'General',
-    options: ['free', 'ds-first', 'openai', 'openai-go', 'custom'],
+    options: ['free', 'ds-first', 'openai', 'openai-go', 'ds-mimo', '3-mix', 'custom'],
     default: 'free',
   },
   {

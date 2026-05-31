@@ -1,9 +1,9 @@
 // Team state store
-import { readFile, writeFile, mkdir } from "node:fs/promises"
-import { dirname } from "node:path"
+import { readFile, writeFile, mkdir, readdir, stat } from "node:fs/promises"
+import { dirname, join } from "node:path"
 import type { RuntimeState } from "../types"
 import { RuntimeStateSchema } from "../types"
-import { getTeamStatePath } from "../team-registry/paths"
+import { getTeamStatePath, getTeamBaseDir } from "../team-registry/paths"
 
 export async function loadRuntimeState(teamName: string): Promise<RuntimeState | null> {
   try {
@@ -30,5 +30,29 @@ export async function deleteRuntimeState(teamName: string): Promise<void> {
     await unlink(statePath)
   } catch {
     // Ignore if file doesn't exist
+  }
+}
+
+export async function listActiveTeams(): Promise<Array<{ teamRunId: string; teamName: string; status: string; memberCount: number }>> {
+  try {
+    const baseDir = getTeamBaseDir()
+    const entries = await readdir(baseDir, { withFileTypes: true })
+    const teams: Array<{ teamRunId: string; teamName: string; status: string; memberCount: number }> = []
+    
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue
+      const state = await loadRuntimeState(entry.name)
+      if (!state) continue
+      teams.push({
+        teamRunId: state.teamRunId,
+        teamName: state.teamName,
+        status: state.status,
+        memberCount: state.members.length,
+      })
+    }
+    
+    return teams
+  } catch {
+    return []
   }
 }

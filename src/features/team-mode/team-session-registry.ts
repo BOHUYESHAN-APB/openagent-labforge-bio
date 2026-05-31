@@ -2,6 +2,7 @@ export type TeamSessionRole = "lead" | "member"
 
 export type TeamSessionEntry = {
   teamRunId: string
+  teamName: string
   memberName: string
   role: TeamSessionRole
 }

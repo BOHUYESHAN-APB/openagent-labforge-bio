@@ -1,15 +1,19 @@
-// Team tools lifecycle
+// Team tools lifecycle — uses OpenCode client directly for session spawning
+import type { PluginInput } from "@opencode-ai/plugin"
+import type { TeamModeConfig } from "../../../config/schema/team-mode"
 import type { TeamSpec } from "../types"
 import { parseMember } from "../types"
 import { loadTeamSpec, saveTeamSpec } from "../team-registry/loader"
 import { createTeamRun } from "../team-runtime/create"
 import { deleteTeam as deleteTeamRuntime } from "../team-runtime/shutdown"
-import { createWorktree, removeWorktree } from "../team-worktree/manager"
 
 export async function teamCreate(
   teamName: string,
-  specInput: unknown
-): Promise<{ teamName: string; spec: TeamSpec }> {
+  specInput: unknown,
+  config?: TeamModeConfig,
+  client?: PluginInput["client"],
+  leadSessionId?: string,
+): Promise<{ teamName: string; spec: TeamSpec; runtimeState: { teamRunId: string } }> {
   // Parse and validate the spec
   const spec = specInput as TeamSpec
   
@@ -21,25 +25,23 @@ export async function teamCreate(
   // Save the spec
   await saveTeamSpec(teamName, spec)
   
-  // Create the runtime state
-  await createTeamRun(teamName, spec)
+  // Create the runtime state and optionally launch member sessions
+  const runtimeState = await createTeamRun(teamName, spec, "user", client, {
+    leadSessionId,
+  })
   
-  // Create worktrees for each member
-  for (const member of spec.members) {
-    await createWorktree(teamName, member.name)
-  }
-  
-  return { teamName, spec }
+  return { teamName, spec, runtimeState: { teamRunId: runtimeState.teamRunId } }
 }
 
-export async function teamDelete(teamName: string): Promise<void> {
+export async function teamDelete(
+  teamName: string,
+  _config?: TeamModeConfig,
+  _client?: PluginInput["client"],
+): Promise<void> {
   // Load the spec to get member names
   const spec = await loadTeamSpec(teamName)
   if (spec) {
-    // Clean up worktrees
-    for (const member of spec.members) {
-      await removeWorktree(teamName, member.name)
-    }
+    // TODO: clean up worktrees (requires team-worktree manager)
   }
   
   // Delete the runtime state
