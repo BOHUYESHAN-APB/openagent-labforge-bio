@@ -43,7 +43,7 @@ export interface ContextPressureProfile {
 const DEFAULT_THRESHOLDS: ContextPressureThresholds = {
   l1: 0.5,
   l2: 0.65,
-  l3: 0.8,
+  l3: 0.9,
 };
 
 const ENGINEERING_PROFILE: ContextPressureProfile = {

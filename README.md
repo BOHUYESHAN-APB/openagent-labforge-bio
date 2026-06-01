@@ -430,6 +430,11 @@ bun run check:ci   # Lint + format + organize imports
 - **save_plan Tool**: Enhanced description to explicitly prevent AI from outputting plans to conversation
 - **Start Work Command**: Improved cross-window state recovery with explicit context section
 - **Delete Guard**: Expanded tool name matching (bash, shell, exec, execute_command, powershell, etc.)
+- **Checkpoint + Compaction Mechanism** (v1.0.25+):
+  - **Compaction**: Fixed prompt replacement to use upstream's correct `output.prompt` mechanism, added language detection and incremental compaction support
+  - **Checkpoint**: Added versioned checkpoint architecture (light/heavy levels, active/consumed/superseded status, per-session history)
+  - **Integration**: Compaction now auto-creates checkpoint before compression (checkpoint is compaction's "reinforcement board")
+  - **Docs**: See `docs/checkpoint-compaction-mechanism.md` for full design and rollback guide
 
 #### New Features
 - **Academic Paper Mode Skills**: New `resources/academicSkills/` category system with:
@@ -483,6 +488,11 @@ bun run check:ci   # Lint + format + organize imports
 - **Citation Validation** (v2.1.0): Real-time citation checking against bibliography
 - **Dashboard Enhancements** (v2.2.0): Real-time context pressure visualization, checkpoint history
 - **Bio Skills Expansion** (v2.3.0): Additional bioinformatics workflows and tool integrations
+  - **Upstream source discovered**: [awesome-bio-agent-skills](https://github.com/BioTender-max/awesome-bio-agent-skills) — 1,676 skills from 20 repos
+  - **Status**: Quality variance too high for direct integration (42-679 lines, inconsistent formats, some with restrictive licenses)
+  - **Plan**: Write deduplication + standardization script to filter (>200 lines), normalize format, remove duplicates against our built-in bioSkills, then cherry-pick the best ones
+  - **Overlap**: `skills/bioskills/` (537 skills) is identical to our built-in `Future/bioSkills-main` — no action needed
+  - **New content**: `skills/openclaw/` (360, clinical/agent-oriented) + `skills/sciagent/` (155, database/tool-oriented) — worth extracting after quality filter
 - **Academic Skills Expansion**: More paper-mode writing assistants, automated reference matching
 
 ---

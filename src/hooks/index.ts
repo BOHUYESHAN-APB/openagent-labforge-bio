@@ -2,6 +2,7 @@ export { createApplyPatchHook } from './apply-patch';
 export type { AutoUpdateCheckerOptions } from './auto-update-checker';
 export { createAutoUpdateCheckerHook } from './auto-update-checker';
 export { createChatHeadersHook } from './chat-headers';
+export { createCompactionHook } from './compaction';
 export { createContextPressureHook } from './context-pressure';
 export { createDelegateTaskRetryHook } from './delegate-task-retry';
 export { createFilterAvailableSkillsHook } from './filter-available-skills';

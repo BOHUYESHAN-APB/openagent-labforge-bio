@@ -143,7 +143,9 @@ export function createContextPressureHook(
       return `${header}\nContext is materially pressured. Before starting a large new phase, handle context pressure first using whatever context-management path is actually available in this runtime. Slow down compression enough to preserve key decisions, constraints, file paths, open todos, and validation status; keep outputs delta-focused; avoid generating large repeated reasoning blocks; and prepare an information-dense summary/checkpoint for the next turn or a fresh session when needed.`;
     }
 
-    return `${header}\nContext is critically pressured. Handle context pressure before further long work using whatever context-management path is actually available in this runtime. Do not rush into lossy compression: first preserve key decisions, constraints, file paths, open todos, validation status, and user preferences. Keep outputs minimal, avoid broad recaps, prefer checkpoint-first continuation over continuing with large context growth, and explicitly prepare a restart-ready summary/handoff for the user or the next session when needed.`;
+    return `${header}\n上下文压力严重。在继续任何更多工作之前，请先处理上下文压力。不要急于进行有损压缩：首先保留关键决策、约束、文件路径、待办事项、验证状态和用户偏好。保持输出最小化，避免广泛回顾，优先使用检查点优先的继续方式而不是继续进行大量上下文增长，并明确为用户或下一个会话准备一个重启就绪的摘要/交接。
+
+**关键指令：请立即使用 /compact 命令进行上下文压缩。** 这将使用改进的中文提示词生成高质量的摘要，保留所有关键信息。`;
   }
 
   async function handleEvent(input: {

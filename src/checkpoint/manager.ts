@@ -9,7 +9,13 @@ import {
   removeGlobalKnowledge,
   removeGlobalPattern,
 } from './global-index';
-import { loadCheckpointStorage, saveCheckpointStorage } from './persistence';
+import {
+  loadCheckpointStorage,
+  saveCheckpointStorage,
+  writeCheckpointFile,
+  writeCheckpointMeta,
+  readCheckpointMeta,
+} from './persistence';
 import {
   classifyAutoPreference,
   validatePreferenceContent,
@@ -17,6 +23,9 @@ import {
 import { RepositoryMemoryStore } from './repository-memory';
 import { SessionMemoryStore } from './session-memory';
 import type {
+  CheckpointLevel,
+  CheckpointStatus,
+  CheckpointTrigger,
   CheckpointStorage,
   ContextCheckpoint,
   PreferenceMemoryEntry,
@@ -133,7 +142,15 @@ export class CheckpointManager {
     openIssues: string[],
     tokenCount: number,
     conversationID?: string,
+    options?: {
+      level?: CheckpointLevel;
+      trigger?: CheckpointTrigger;
+      preCompactionTimestamp?: number;
+    },
   ): ContextCheckpoint {
+    const level = options?.level ?? 'light';
+    const trigger = options?.trigger ?? 'manual';
+
     const checkpoint: ContextCheckpoint = {
       id: `cp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
       timestamp: Date.now(),
@@ -143,7 +160,14 @@ export class CheckpointManager {
       keyDecisions,
       openIssues,
       tokenCount,
+      level,
+      status: 'active',
+      trigger,
+      preCompactionTimestamp: options?.preCompactionTimestamp,
     };
+
+    // Supersede older active checkpoints from the same session
+    this.supersedeOldCheckpoints(sessionID, checkpoint.id);
 
     this.sessionMemory.addCheckpoint(sessionID, checkpoint);
 
@@ -154,6 +178,224 @@ export class CheckpointManager {
     this.persist();
 
     return checkpoint;
+  }
+
+  /**
+   * Create a versioned checkpoint with file persistence.
+   * This is the main entry point for the new checkpoint architecture.
+   */
+  createVersionedCheckpoint(
+    sessionID: string,
+    content: {
+      summary: string;
+      goal: string;
+      keyDecisions: string[];
+      openIssues: string[];
+      pendingTasks: string[];
+      keyFiles: string[];
+      resumeInstructions: string;
+    },
+    options: {
+      level: CheckpointLevel;
+      trigger: CheckpointTrigger;
+      conversationID?: string;
+      preCompactionTimestamp?: number;
+    },
+  ): ContextCheckpoint {
+    const checkpoint = this.createCheckpoint(
+      sessionID,
+      content.summary,
+      content.keyDecisions,
+      content.openIssues,
+      0,
+      options.conversationID,
+      {
+        level: options.level,
+        trigger: options.trigger,
+        preCompactionTimestamp: options.preCompactionTimestamp,
+      },
+    );
+
+    // Write checkpoint file
+    const session = this.sessionMemory.get(sessionID);
+    if (session) {
+      const filePath = writeCheckpointFile(session.workspaceRoot, checkpoint, content);
+      checkpoint.filePath = filePath;
+
+      // Update latest.md reference
+      writeCheckpointMeta(session.workspaceRoot, {
+        checkpoint_id: checkpoint.id,
+        checkpoint_level: checkpoint.level,
+        checkpoint_status: checkpoint.status,
+        checkpoint_trigger: checkpoint.trigger,
+        source_session_id: sessionID,
+        created_at: new Date(checkpoint.timestamp).toISOString(),
+        goal: content.goal,
+        session_switch_recommendation:
+          options.level === 'heavy' ? 'recommend-switch' : 'stay',
+        pre_compaction: !!options.preCompactionTimestamp,
+      });
+
+      this.persist();
+    }
+
+    return checkpoint;
+  }
+
+  /**
+   * Mark a checkpoint as consumed (used by a resume).
+   */
+  consumeCheckpoint(
+    checkpointID: string,
+    consumedBySession: string,
+  ): boolean {
+    for (const session of Array.from(this.storage.sessionMemory.values())) {
+      const checkpoint = session.checkpoints.find(
+        (cp: ContextCheckpoint) => cp.id === checkpointID,
+      );
+      if (checkpoint) {
+        checkpoint.status = 'consumed';
+        checkpoint.consumedBySession = consumedBySession;
+        checkpoint.consumedAt = Date.now();
+        this.persist();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Get the latest active checkpoint for a session.
+   */
+  getLatestCheckpoint(sessionID: string): ContextCheckpoint | undefined {
+    const session = this.sessionMemory.get(sessionID);
+    if (!session) return undefined;
+
+    return session.checkpoints
+      .filter((cp) => cp.status === 'active')
+      .sort((a, b) => b.timestamp - a.timestamp)[0];
+  }
+
+  /**
+   * Get the latest checkpoint across all sessions in a workspace.
+   */
+  getWorkspaceLatestCheckpoint(
+    workspaceRoot: string,
+  ): ContextCheckpoint | undefined {
+    const workspace = this.workspaceMemory.get(workspaceRoot);
+    if (!workspace) return undefined;
+
+    let latest: ContextCheckpoint | undefined;
+    for (const session of workspace.sessions.values()) {
+      for (const cp of session.checkpoints) {
+        if (cp.status === 'active' && (!latest || cp.timestamp > latest.timestamp)) {
+          latest = cp;
+        }
+      }
+    }
+    return latest;
+  }
+
+  /**
+   * Get checkpoint history for a session.
+   */
+  getCheckpointHistory(sessionID: string): ContextCheckpoint[] {
+    const session = this.sessionMemory.get(sessionID);
+    if (!session) return [];
+
+    return [...session.checkpoints].sort(
+      (a, b) => b.timestamp - a.timestamp,
+    );
+  }
+
+  /**
+   * Mark old active checkpoints from the same session as superseded.
+   */
+  private supersedeOldCheckpoints(
+    sessionID: string,
+    newCheckpointID: string,
+  ): void {
+    const session = this.sessionMemory.get(sessionID);
+    if (!session) return;
+
+    for (const cp of session.checkpoints) {
+      if (cp.status === 'active' && cp.id !== newCheckpointID) {
+        cp.status = 'superseded';
+      }
+    }
+  }
+
+  /**
+   * Auto-create a checkpoint before compaction.
+   * This is the key integration point between compaction and checkpoint.
+   */
+  createPreCompactionCheckpoint(
+    sessionID: string,
+    currentContext: {
+      goal: string;
+      pendingTasks: string[];
+      keyFiles: string[];
+      recentDecisions: string[];
+    },
+  ): ContextCheckpoint | null {
+    const session = this.sessionMemory.get(sessionID);
+    if (!session) return null;
+
+    // Check if there's already an active checkpoint created recently
+    const existing = this.getLatestCheckpoint(sessionID);
+    if (existing && Date.now() - existing.timestamp < 60_000) {
+      // Don't create another checkpoint if one was created in the last minute
+      return existing;
+    }
+
+    const summary = `Pre-compaction checkpoint: ${currentContext.goal}`;
+    const checkpoint = this.createVersionedCheckpoint(
+      sessionID,
+      {
+        summary,
+        goal: currentContext.goal,
+        keyDecisions: currentContext.recentDecisions,
+        openIssues: [],
+        pendingTasks: currentContext.pendingTasks,
+        keyFiles: currentContext.keyFiles,
+        resumeInstructions:
+          'Resume from this checkpoint to recover context lost during compaction.',
+      },
+      {
+        level: 'light',
+        trigger: 'auto-compaction',
+        preCompactionTimestamp: Date.now(),
+      },
+    );
+
+    return checkpoint;
+  }
+
+  /**
+   * Get checkpoint statistics for a session.
+   */
+  getCheckpointStats(sessionID: string): {
+    total: number;
+    active: number;
+    consumed: number;
+    superseded: number;
+    light: number;
+    heavy: number;
+  } {
+    const session = this.sessionMemory.get(sessionID);
+    if (!session) {
+      return { total: 0, active: 0, consumed: 0, superseded: 0, light: 0, heavy: 0 };
+    }
+
+    const checkpoints = session.checkpoints;
+    return {
+      total: checkpoints.length,
+      active: checkpoints.filter((cp) => cp.status === 'active').length,
+      consumed: checkpoints.filter((cp) => cp.status === 'consumed').length,
+      superseded: checkpoints.filter((cp) => cp.status === 'superseded').length,
+      light: checkpoints.filter((cp) => cp.level === 'light').length,
+      heavy: checkpoints.filter((cp) => cp.level === 'heavy').length,
+    };
   }
 
   initializeSession(

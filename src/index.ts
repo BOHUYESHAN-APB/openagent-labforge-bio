@@ -54,6 +54,7 @@ import {
   createApplyPatchHook,
   createAutoUpdateCheckerHook,
   createChatHeadersHook,
+  createCompactionHook,
   createContextPressureHook,
   createDelegateTaskRetryHook,
   createFilterAvailableSkillsHook,
@@ -419,6 +420,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   let autoUpdateChecker: ReturnType<typeof createAutoUpdateCheckerHook>;
   let phaseReminderHook: ReturnType<typeof createPhaseReminderHook>;
   let contextPressureHook: ReturnType<typeof createContextPressureHook>;
+  let compactionHook: ReturnType<typeof createCompactionHook>;
   let filterAvailableSkillsHook: ReturnType<
     typeof createFilterAvailableSkillsHook
   >;
@@ -628,6 +630,14 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     contextPressureHook = createContextPressureHook(ctx, {
       enabled: config.compression?.enabled !== false,
       profiles: config.compression?.profiles,
+    });
+
+    // Initialize compaction hook to replace OpenCode's native compaction prompt
+    // with our improved Chinese prompt (combining OpenCode + OpenClaude + Codex)
+    // Also auto-creates checkpoint before compaction (checkpoint is compaction's reinforcement board)
+    compactionHook = createCompactionHook({
+      enabled: config.compression?.enabled !== false,
+      checkpointManager,
     });
 
     // Initialize available skills filter hook
@@ -1940,6 +1950,14 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       output: { description: string; parameters: unknown },
     ) => {
       await schemaSanitizeHook['tool.definition'](input, output);
+    },
+
+    // Replace OpenCode's native compaction prompt with our improved Chinese prompt
+    'experimental.session.compacting': async (
+      input: { sessionID?: string },
+      output: { context: string[]; prompt?: string },
+    ): Promise<void> => {
+      compactionHook['experimental.session.compacting'](input, output);
     },
   };
 };

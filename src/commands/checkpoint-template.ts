@@ -1,6 +1,7 @@
 export const CHECKPOINT_TEMPLATE = `## CHECKPOINT COMMAND
 
 You are creating a durable checkpoint for session recovery.
+Checkpoint is the "reinforcement board" for compaction — it preserves detailed state that compaction might lose.
 
 ### PHASE 0: VALIDATE NEED
 Confirm there is meaningful work worth saving. If no substantive work has been done, inform the user and skip.
@@ -21,78 +22,51 @@ Execute these tools to collect current state:
 - If no kind is specified and context is simple → light checkpoint
 
 **Light checkpoint**: Quick recovery, same-session continuation
+  - For daily notes, current development stage
+  - Each window manages its own checkpoint
+  - Short-distance recovery
+
 **Heavy checkpoint**: Cross-session handoff, long-running work
+  - Complete state, all decisions, detailed context
+  - For session transitions
+  - Long-distance recovery
 
 ### PHASE 3: WRITE CHECKPOINT FILES
 
-Write to \`.opencode/extendai-lab/checkpoints/\`.
+The plugin system handles file persistence automatically via \`createVersionedCheckpoint()\`.
+You do NOT need to write files manually. Instead, provide the structured content below.
 
-Legacy \`.opencode/openagent-labforge/checkpoints/\` may still exist during the
-compatibility window and should be treated as readable fallback state, but new
-checkpoint writes should target \`.opencode/extendai-lab/checkpoints/\`:
+**Provide this structured data (the plugin will persist it):**
 
-**File 1: \`latest.md\`** - Main checkpoint content with these sections:
 \`\`\`
-CHECKPOINT CONTEXT
-==================
+CHECKPOINT ID: [auto-generated]
+SESSION ID: [current session]
+LEVEL: [light|heavy]
+TRIGGER: manual
 
-SOURCE SESSION
---------------
-- Session ID: $SESSION_ID
-- Created At: $TIMESTAMP
-- Checkpoint Kind: [light|heavy]
+GOAL: [One short paragraph]
 
-USER REQUESTS (AS-IS)
----------------------
-[Exact verbatim user requests]
+WORK COMPLETED / CURRENT STATE: [Concrete work done, first person]
 
-GOAL
-----
-[One short paragraph]
+PENDING TASKS:
+- [task 1]
+- [task 2]
 
-WORK COMPLETED
---------------
-[Concrete work done, first person]
+KEY FILES: [Max 12 files with descriptions]
 
-CURRENT STATE
--------------
-[Code/research/document state]
+IMPORTANT DECISIONS:
+- [decision 1]
+- [decision 2]
 
-PENDING TASKS
--------------
-[From todoread(), still-open tasks]
+OPEN ISSUES:
+- [issue 1]
 
-KEY FILES
----------
-[Max 12 files with descriptions]
-
-IMPORTANT DECISIONS
--------------------
-[Technical decisions and rationale]
-
-RESUME INSTRUCTIONS
--------------------
-[How next session should pick up]
-\`\`\`
-
-**File 2: \`by-session/$SESSION_ID.md\`** - Same content as latest.md
-
-**File 3: \`latest.meta.json\`** - Metadata:
-\`\`\`json
-{
-  "checkpoint_kind": "[light|heavy]",
-  "checkpoint_scope": "[same-session|cross-session]",
-  "source_session_id": "$SESSION_ID",
-  "created_at": "$TIMESTAMP",
-  "goal": "...",
-  "status": "pending",
-  "session_switch_recommendation": "[stay|recommend-switch]"
-}
+RESUME INSTRUCTIONS: [How next session should pick up]
 \`\`\`
 
 ### PHASE 4: RESPOND TO USER
-1. Print the checkpoint file path
-2. Print checkpoint kind (light/heavy)
+1. Print the checkpoint level (light/heavy)
+2. Print checkpoint ID
 3. If heavy: recommend switching to new session
 4. If light: suggest continuing in current session
 
@@ -101,8 +75,8 @@ RESUME INSTRUCTIONS
 - Keep full words accepted for readability and backwards compatibility.
 
 ### CONSTRAINTS
-- Use Write tool for file creation
 - Keep checkpoint concise (< 500 lines)
 - Preserve user requests verbatim
 - Use workspace-relative paths
-- No sensitive information (secrets, keys)`;
+- No sensitive information (secrets, keys)
+- The plugin system handles file persistence — you provide the content structure`;
