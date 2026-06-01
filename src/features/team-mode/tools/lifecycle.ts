@@ -36,14 +36,14 @@ export async function teamCreate(
 export async function teamDelete(
   teamName: string,
   _config?: TeamModeConfig,
-  _client?: PluginInput["client"],
+  client?: PluginInput["client"],
 ): Promise<void> {
   // Load the spec to get member names
   const spec = await loadTeamSpec(teamName)
   if (spec) {
     // TODO: clean up worktrees (requires team-worktree manager)
   }
-  
-  // Delete the runtime state
-  await deleteTeamRuntime(teamName)
+
+  // Delete the runtime state (includes session abort)
+  await deleteTeamRuntime(teamName, client)
 }

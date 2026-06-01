@@ -3,7 +3,7 @@ import { type ToolDefinition, tool } from '@opencode-ai/plugin'
 import type { PluginInput } from '@opencode-ai/plugin'
 import type { TeamModeConfig } from '../../../config/schema/team-mode'
 import { teamCreate, teamDelete } from './lifecycle'
-import { sendMessage } from '../team-mailbox/send'
+import { teamSendMessage } from './messaging'
 import { createTask, listTasks, updateTaskStatus, getTask } from '../team-tasklist/index'
 import { loadRuntimeState, listActiveTeams } from '../team-state-store/index'
 import { loadTeamSpec } from '../team-registry/loader'
@@ -109,14 +109,32 @@ Use to: "lead" for the lead, "<name>" for a specific teammate, "*" for team-wide
     },
     async execute(args) {
       try {
-        const message = await sendMessage(
+        // Load runtime state to get teamRunId and sender info
+        const runtimeState = await loadRuntimeState(args.teamName)
+        if (!runtimeState) {
+          return `Error: Team "${args.teamName}" is not active.`
+        }
+
+        // Get sender name from context (lead or first member)
+        const senderMember = runtimeState.members.find(m => m.agentType === 'leader')
+        const senderName = senderMember?.name ?? 'lead'
+
+        // Send message with live delivery
+        const result = await teamSendMessage(
           args.teamName,
+          runtimeState.teamRunId,
           args.to,
-          'user',
+          senderName,
           args.body,
+          ctx.ctx.client,
           args.kind ?? 'message',
         )
-        return `Message sent to ${args.to} (ID: ${message.messageId})`
+
+        const deliveryStatus = result.delivered
+          ? 'delivered live'
+          : 'stored in inbox (recipient will receive when idle)'
+
+        return `Message sent to ${args.to} (ID: ${result.message.messageId}). Status: ${deliveryStatus}`
       } catch (error) {
         return `Error sending message: ${error instanceof Error ? error.message : String(error)}`
       }

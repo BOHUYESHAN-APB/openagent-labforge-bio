@@ -878,13 +878,15 @@
         },
         "profile": {
           "default": "free",
-          "description": "Model profile preset: free (no binding), ds-first (DS via Go), openai (GPT only), openai-go (dual), custom (user-defined)",
+          "description": "Model profile preset: free (no binding), ds-first (all DeepSeek), openai (all GPT), openai-go (GPT+DS), ds-mimo (DS+mimo), 3-mix (3-model mix), custom (user-defined)",
           "type": "string",
           "enum": [
             "free",
             "ds-first",
             "openai",
             "openai-go",
+            "ds-mimo",
+            "3-mix",
             "custom"
           ]
         },
@@ -1131,6 +1133,70 @@
       "required": [
         "presets"
       ]
+    },
+    "team_mode": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "tmux_visualization": {
+          "default": false,
+          "type": "boolean"
+        },
+        "max_parallel_members": {
+          "default": 4,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "max_members": {
+          "default": 8,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "max_messages_per_run": {
+          "default": 10000,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "max_wall_clock_minutes": {
+          "default": 120,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "max_member_turns": {
+          "default": 500,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "base_dir": {
+          "type": "string"
+        },
+        "message_payload_max_bytes": {
+          "default": 32768,
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 9007199254740991
+        },
+        "recipient_unread_max_bytes": {
+          "default": 262144,
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 9007199254740991
+        },
+        "mailbox_poll_interval_ms": {
+          "default": 3000,
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 9007199254740991
+        }
+      }
     }
   },
   "title": "extendai-lab",

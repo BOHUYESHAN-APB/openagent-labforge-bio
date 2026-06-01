@@ -6,8 +6,25 @@ import type { TmuxSessionManager } from "../../tmux-subagent/manager"
 import { removeTeamLayout } from "../team-layout-tmux/layout"
 import { unregisterTeamSessionsByTeam } from "../team-session-registry"
 import { loadRuntimeState, transitionRuntimeState } from "../team-state-store/store"
-import type { TeamRunCreateError } from "./create"
 import { unregisterTeamRunForSessionCleanup } from "./session-team-run-registry"
+
+// Error type for team run creation failures
+export class TeamRunCreateError extends Error {
+  constructor(
+    message: string,
+    public readonly cleanupReport: {
+      cancelledTaskIds: string[]
+      removedLayout: boolean
+      removedWorktrees: string[]
+      errors: string[]
+    },
+    cause: Error,
+  ) {
+    super(`${message}: ${cause.message}`)
+    this.name = "TeamRunCreateError"
+    this.cause = cause
+  }
+}
 
 type SpawnedMemberResource = {
   taskId?: string
