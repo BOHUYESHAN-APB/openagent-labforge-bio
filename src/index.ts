@@ -263,11 +263,6 @@ const SUBAGENT_POLICY_COMMAND_MODES = {
   'ol-subagents-F': 'full',
   'ol-subagents-C': 'custom',
   'ol-subagents-MO': 'main-only',
-  'ol-subagents-um': 'ultra-minimal',
-  'ol-subagents-m': 'minimal',
-  'ol-subagents-f': 'full',
-  'ol-subagents-c': 'custom',
-  'ol-subagents-mo': 'main-only',
 } as const satisfies Record<string, SubagentPolicyMode>;
 
 const SUBAGENT_POLICY_COMMAND_DESCRIPTIONS: Record<
@@ -281,13 +276,6 @@ const SUBAGENT_POLICY_COMMAND_DESCRIPTIONS: Record<
     'Subagent policy: F=full registration, but main-agent execution remains default',
   'ol-subagents-C': 'Subagent policy: C=custom, use allowedAgents allowlist',
   'ol-subagents-MO': 'Subagent policy: MO=main-only, disable child sessions',
-  'ol-subagents-um':
-    'Subagent policy: UM=ultra-minimal, strict main-agent-first default',
-  'ol-subagents-m': 'Subagent policy: M=minimal, cache-first low-agent mode',
-  'ol-subagents-f':
-    'Subagent policy: F=full registration, but main-agent execution remains default',
-  'ol-subagents-c': 'Subagent policy: C=custom, use allowedAgents allowlist',
-  'ol-subagents-mo': 'Subagent policy: MO=main-only, disable child sessions',
 };
 
 function parseSubagentPolicyMode(

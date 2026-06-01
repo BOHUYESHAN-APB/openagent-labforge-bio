@@ -188,12 +188,12 @@ export function createPresetManager(ctx: PluginInput, config: PluginConfig) {
       'Switch preset: openai-go — dual OpenAI + Go subscription optimal mix',
     );
     ensureCommand(
-      'ol-preset-mimo',
-      'Switch preset: mimo — Xiaomi MiMo V2.5 (pro + flash)',
+      'ol-preset-ds-mimo',
+      'Switch preset: ds-mimo — DeepSeek + Xiaomi MiMo combined',
     );
     ensureCommand(
-      'ol-preset-mimo-ds',
-      'Switch preset: mimo-ds — Xiaomi MiMo + DeepSeek combined',
+      'ol-preset-3-mix',
+      'Switch preset: 3-mix — DeepSeek + GPT + MiMo 3-model mix',
     );
     ensureCommand(
       'ol-preset-custom',
