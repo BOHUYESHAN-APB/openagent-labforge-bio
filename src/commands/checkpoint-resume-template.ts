@@ -49,4 +49,5 @@ If checkpoint has \`latest.meta.json\`, update:
 - If checkpoint not found, inform user clearly
 - Preserve all context from checkpoint
 - Create todos from pending tasks immediately
-- Do not modify original checkpoint files`;
+- Do not modify original checkpoint .md files
+- You MAY update latest.meta.json to mark checkpoint as consumed`;

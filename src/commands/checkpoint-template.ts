@@ -8,10 +8,11 @@ Confirm there is meaningful work worth saving. If no substantive work has been d
 
 ### PHASE 1: GATHER PROGRAMMATIC CONTEXT
 Execute these tools to collect current state:
-1. \`todoread()\` - Read current todo list
-2. \`Bash({ command: "git diff --stat HEAD~5..HEAD" })\` - Recent changes
-3. \`Bash({ command: "git status --porcelain" })\` - Working tree status
-4. \`Bash({ command: "git log --oneline -5" })\` - Recent commits
+1. \`Bash({ command: "echo $OPENCODE_SESSION_ID" })\` - Get current session ID (if available, otherwise use "current")
+2. \`todoread()\` - Read current todo list
+3. \`Bash({ command: "git diff --stat HEAD~5..HEAD" })\` - Recent changes
+4. \`Bash({ command: "git status --porcelain" })\` - Working tree status
+5. \`Bash({ command: "git log --oneline -5" })\` - Recent commits
 
 ### PHASE 2: DETERMINE CHECKPOINT KIND
 - Accept shorthand arguments:
@@ -82,7 +83,8 @@ RESUME INSTRUCTIONS
 [How next session should pick up]
 \`\`\`
 
-**File 2: \`by-session/$SESSION_ID.md\`** - Same content as latest.md (copy it)
+**File 2: \`by-session/$SESSION_ID.md\`** - Same content as latest.md (copy it).
+Note: The Write tool will create the by-session directory automatically if it doesn't exist.
 
 **File 3: \`latest.meta.json\`** - Metadata:
 \`\`\`json
