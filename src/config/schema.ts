@@ -178,7 +178,7 @@ export const McpNameSchema = z.enum([
   'bioNext',
   'uniprot',
   'extendaiLab',
-  'open_computer_use',
+  'cua_driver',
 ]);
 export type McpName = z.infer<typeof McpNameSchema>;
 

@@ -38,7 +38,7 @@ This document tracks the provenance and licenses of third-party components
 | open_websearch_mcp | [open-websearch](https://github.com/) | Apache-2.0 | `npx -y open-websearch@2.0.0` |
 | paper_search_mcp | [paper-search-mcp](https://github.com/) | MIT | `uvx --from paper-search-mcp ...` |
 | semantic_scholar_fastmcp | [semantic-scholar-fastmcp](https://github.com/) | MIT | `uvx --from semantic-scholar-fastmcp<3.0 ...` |
-| open_computer_use | [iFurySt/open-codex-computer-use](https://github.com/iFurySt/open-codex-computer-use) | MIT | `open-computer-use mcp` (requires `npm install -g open-computer-use`) |
+| cua_driver | [trycua/cua](https://github.com/trycua/cua) | MIT | `cua-driver` (shell install) | Desktop automation via CUA Driver — background mouse/keyboard control, macOS/Windows/Linux |
 
 ### Bioinformatics MCPs (Project-installable templates)
 

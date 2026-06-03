@@ -85,14 +85,14 @@ export const semantic_scholar_fastmcp: McpConfig = {
   timeout: LOCAL_MCP_STARTUP_TIMEOUT_MS,
 };
 
-// open-computer-use: Desktop automation via Accessibility API
-// MIT License - https://github.com/iFurySt/open-codex-computer-use
-// Supports macOS, Windows, Linux
-// Install: npm install -g open-computer-use
-// Requires: Accessibility + Screen Recording permissions on macOS
-export const open_computer_use: McpConfig = {
+// CUA Driver: Desktop automation via CUA (Computer Use Agent)
+// MIT License - https://github.com/trycua/cua
+// Supports macOS, Windows, Linux (background operation)
+// Install: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/trycua/cua/main/libs/cua-driver/scripts/install.sh)"
+// Or Windows: irm https://raw.githubusercontent.com/trycua/cua/main/libs/cua-driver/scripts/install.ps1 | iex
+export const cua_driver: McpConfig = {
   type: 'local',
-  command: ['open-computer-use', 'mcp'],
+  command: ['cua-driver', 'mcp'],
   enabled: false,  // Disabled by default, enable via config
   timeout: LOCAL_MCP_STARTUP_TIMEOUT_MS,
 };

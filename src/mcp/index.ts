@@ -7,8 +7,8 @@ import {
   arxiv_mcp,
   browser_puppeteer,
   chrome_devtools_mcp,
+  cua_driver,
   deepwiki_mcp,
-  open_computer_use,
   open_websearch_mcp,
   paper_search_mcp,
   semantic_scholar_fastmcp,
@@ -37,7 +37,7 @@ const allBuiltinMcps: Record<McpName, McpConfig> = {
   bioNext,
   uniprot,
   extendaiLab,
-  open_computer_use,
+  cua_driver,
 };
 
 /**
