@@ -1608,7 +1608,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     // injection)
     'chat.message': async (
       input: { sessionID: string; agent?: string },
-      output?: { message?: { agent?: string } },
+      output?: { message?: { agent?: string }; parts?: Array<{ type: string; text?: string }> },
     ) => {
       const rawAgent = input.agent ?? output?.message?.agent;
       const agent = rawAgent
@@ -1638,6 +1638,14 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         { sessionID: input.sessionID, agent, messages: [] },
         {},
       );
+
+      // Inject post-compaction recovery instructions if needed
+      if (output?.parts) {
+        compactionHook['chat.message'](
+          { sessionID: input.sessionID },
+          { message: output.message ?? {}, parts: output.parts },
+        );
+      }
     },
 
     // Inject orchestrator system prompt for serve-mode sessions. In serve
