@@ -31,60 +31,50 @@ const CONTINUATION_PROMPT =
 
 const REVIEW_PROMPT = `[Auto-review: All todos are marked complete. Before finishing, you MUST perform a structured review.
 
-## Review Options
+## Review Instructions
 
-You have TWO options for performing the review:
+Delegate the review to @reviewer using the task tool:
+\`\`\`
+task(subagent_type="reviewer", description="auto review", prompt="Review the completed work against user requirements and todos. Check for lazy patterns like 'If you need, I can do X' — if the AI could have done it, it should have done it. Output [APPROVE] or [REJECT: <reason>].")
+\`\`\`
 
-### Option A: Self-Review (Main Agent Checklist) — Recommended for simple tasks
-Perform the review yourself using this checklist:
-1. **Re-check earliest user request** — Does the work actually solve what the user asked for?
-2. **Verify all todos** — Are they genuinely complete, or just marked complete?
-3. **Check changed files** — Run lsp_diagnostics on all changed files (ZERO errors required)
-4. **Uncommitted files check** — Are there uncommitted analysis/generated files? (REJECT if found)
-5. **Run tests/build** — If applicable, verify the code actually works
-6. **Plan compliance** — If there's a plan file, does the work match it?
+Provide @reviewer with context:
+- Original user requests (verbatim from conversation)
+- All todo items and their current status
+- Changed files (from git diff)
+- Uncommitted files
+- Plan file (if exists)
 
-### Option B: Delegate to @oracle (Sub-Agent) — Use for complex/high-risk work
-When the work is complex, high-risk, or you're uncertain, delegate to @oracle:
-- Use the task tool: task(subagent_type="oracle", description="auto review", prompt="...")
-- Provide context: earliest user request, todos, changed files, uncommitted files, plan files
-- @oracle will return APPROVE, REJECT, NEEDS_USER, or BLOCKED
-- This creates a new session (keeps main UI clean for users who prefer it)
+## What @reviewer Will Check
 
-**When to use Option B:**
-- Multi-file refactoring or architectural changes
-- Security-sensitive changes (auth, permissions, data handling)
-- High-stakes production code
-- When you're genuinely uncertain about correctness
-- User explicitly requested thorough review
+1. **User Requirements** — Are all original requirements addressed?
+2. **Todo Completion** — Are todos genuinely complete, not just marked complete?
+3. **Lazy Patterns** (CRITICAL) — Reject if AI said:
+   - "If you need, I can do X" — should have done X already
+   - "Let me know if you want me to..." — should have done it
+   - "I could also..." — should have done it if possible
+   - Partial implementations with "for now" or "as a starting point"
+4. **Work Quality** — Are there obvious bugs, half-done implementations, or TODO comments?
 
-**When to use Option A:**
-- Simple bug fixes or feature additions
-- Single-file changes
-- Low-risk documentation updates
-- You're confident the work is correct
+## After @reviewer Completes
 
-## Output Format
+@reviewer will output ONE of:
 
-After review (either option), output ONE of:
+**[APPROVE]** — Work is complete, requirements met, no lazy patterns found.
 
-**[APPROVE]** — Work is complete and matches the plan. Include a brief summary of what was delivered.
+**[REJECT: <reason>]** — Work has issues. If rejected:
+- Create new todos for each finding
+- Fix the issues
+- Allow auto-review to run again
 
-**[REJECT: <reason>]** — Work has issues. List each issue as:
-- FINDING: <what is wrong>
-- LOCATION: <where>
-- FIX: <how to fix it>
-
-**[NEEDS_USER: <reason>]** — Work cannot safely continue without user input.
-
-**[BLOCKED: <reason>]** — Blocked by external dependency.
+**[NEEDS_USER: <reason>]** — Cannot safely continue without user input.
 
 ## Critical Rules
 
-- NEVER disable auto-continue unless you output [APPROVE] — only after approval
+- NEVER disable auto-continue — the system handles this automatically after approval
 - DO NOT revert git commits — make corrective commits instead
 - DO NOT claim completion without running diagnostics
-- If you output [REJECT], create new todos for each finding and continue working]`;
+- If @reviewer outputs [REJECT], create new todos and continue working]`;
 
 const AUTO_CONTINUE_USER_NOTIFICATION_PREFIX = '⎔ Auto-continue';
 const CONTEXT_PRESSURE_USER_NOTIFICATION_PREFIX = '⚠ Context pressure';
