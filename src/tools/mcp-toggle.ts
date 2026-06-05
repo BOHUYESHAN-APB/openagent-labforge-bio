@@ -16,9 +16,6 @@ const NEVER_ENABLE = new Set([
   'cua_driver', // Desktop automation — user must enable manually
 ]);
 
-/** Browser MCPs — use chrome_devtools_mcp first, browser_puppeteer as fallback */
-const BROWSER_MCPS = ['chrome_devtools_mcp', 'browser_puppeteer'];
-
 /** Paper search MCPs — only enable ONE at a time */
 const PAPER_MCPS = [
   'semantic_scholar_fastmcp',
@@ -26,15 +23,26 @@ const PAPER_MCPS = [
   'paper_search_mcp',
 ];
 
+/** Primary orchestrator agents that can use this tool */
+const PRIMARY_AGENTS = new Set([
+  'orchestrator',
+  'engineer',
+  'deep-worker',
+  'bio-orchestrator',
+  'prometheus',
+  'atlas',
+]);
+
 /**
  * Creates a tool that allows the AI to enable/disable MCP servers
  * for the current session only (does not modify global config).
+ * Only available to primary orchestrator agents.
  */
 export function createMcpToggleTool(
   client: PluginInput['client'],
 ): ToolDefinition {
   return tool({
-    description: `Enable or disable an MCP server for the current session only. Does NOT modify global config — other sessions are unaffected.
+    description: `Enable or disable an MCP server for the current session only. Does NOT modify global config — other sessions are unaffected. ONLY for primary orchestrator agents.
 
 RULES:
 - NEVER disable: websearch, context7, grep_app, extendaiLab (core infra)
@@ -65,6 +73,12 @@ Available MCPs:
         !('sessionID' in toolContext)
       ) {
         return 'Error: No session ID available';
+      }
+
+      // Restrict to primary orchestrator agents
+      const agent = (toolContext as { agent?: string }).agent;
+      if (agent && !PRIMARY_AGENTS.has(agent)) {
+        return `Error: mcp_toggle is only available to primary orchestrator agents. Current agent: ${agent}`;
       }
 
       const { action, name } = args as { action: string; name: string };
