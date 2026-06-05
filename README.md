@@ -60,6 +60,54 @@ graph TB
 - **442** bioinformatics skills, **64** categories
 - **14** slash commands, **10** tools
 
+### Disclaimer / 免责声明
+
+**We cannot guarantee the accuracy of AI-generated content.** 
+
+This plugin is designed for academic and research workflows. While we have built a comprehensive workflow system — including academic integrity rules, citation validation, source verification, and structured review processes — AI-generated content (text, code, data, citations, analysis) may contain errors, inaccuracies, or fabricated information that cannot be easily detected by humans.
+
+**What we do to mitigate risks:**
+- Academic integrity rules enforced at the agent prompt level
+- Citation validation and source verification workflows
+- Structured review processes with multiple checkpoints
+- Explicit instructions to avoid fabricating data, DOIs, or experimental results
+- Special caution for fields with recent integrity concerns (e.g., biology)
+
+**What we cannot do:**
+- Guarantee that AI-generated content is free from errors
+- Verify the authenticity of all cited sources
+- Detect all forms of academic misconduct
+- Replace human judgment in evaluating research quality
+
+**Users are responsible for:**
+- Verifying all AI-generated content before use
+- Checking cited sources and references independently
+- Exercising critical judgment on all outputs
+- Following their institution's academic integrity policies
+
+**我们无法保证 AI 生成内容的准确性。**
+
+本插件面向学术和研究工作流。虽然我们构建了完整的工作流体系——包括学术诚信规则、引用验证、来源核实和结构化审查流程——但 AI 生成的内容（文本、代码、数据、引用、分析）可能存在错误、不准确或捏造的信息，且这些信息无法被人类快速辨别真伪。
+
+**我们的缓解措施：**
+- 在 agent 提示词层面强制执行学术诚信规则
+- 引用验证和来源核实工作流
+- 多重检查点的结构化审查流程
+- 明确指示禁止捏造数据、DOI 或实验结果
+- 对近期学术诚信事件频发的领域（如生物学）保持特别警惕
+
+**我们无法做到的：**
+- 保证 AI 生成内容无错误
+- 验证所有引用来源的真实性
+- 检测所有形式的学术不端行为
+- 取代人类对研究质量的判断
+
+**用户的责任：**
+- 使用前验证所有 AI 生成内容
+- 独立核实引用的来源和参考文献
+- 对所有输出保持批判性判断
+- 遵守所在机构的学术诚信政策
+
 ---
 
 ## Quick Start
