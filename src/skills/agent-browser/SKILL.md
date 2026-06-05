@@ -1,9 +1,16 @@
 ﻿---
 name: agent-browser
-description: MUST USE for any browser-related tasks. Browser automation via agent-browser CLI - verification, browsing, information gathering, web scraping, testing, screenshots, and all browser interactions.
+description: "Browser automation via agent-browser CLI (standalone, no MCP needed). BEST FOR: quick page verification, screenshots, scraping, form filling. Uses bash commands like `agent-browser open <url>` then `agent-browser snapshot -i`. Works immediately without any server setup."
 ---
 
 # Browser Automation with agent-browser
+
+**When to use this skill**: Quick browser tasks via CLI commands. No server setup needed. Works with `npx agent-browser`.
+
+**Other browser skills** (pick the right one):
+- `playwright` — uses Playwright MCP server (needs `browser_puppeteer` MCP enabled)
+- `playwright-cli` — uses playwright-cli commands (no MCP)
+- `dev-browser` — persistent page state with Node.js scripts (needs server startup)
 
 ## Quick start
 

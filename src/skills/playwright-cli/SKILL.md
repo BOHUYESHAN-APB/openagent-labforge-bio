@@ -1,9 +1,16 @@
 ﻿---
 name: playwright-cli
-description: Browser automation via playwright-cli (CLI variant, no MCP required). Use when Playwright MCP is not available.
+description: "Browser automation via playwright-cli commands (no MCP needed). BEST FOR: when you want Playwright's API but MCP is not available. Uses bash commands like `playwright-cli open` then `playwright-cli snapshot`. Similar to agent-browser but uses Playwright engine."
 ---
 
 # Browser Automation with playwright-cli
+
+**When to use this skill**: Want Playwright engine without MCP setup. CLI-based like agent-browser.
+
+**Other browser skills** (pick the right one):
+- `agent-browser` — standalone CLI, simplest setup (recommended for quick tasks)
+- `playwright` — full Playwright MCP (needs `browser_puppeteer` MCP enabled)
+- `dev-browser` — persistent page state with Node.js scripts
 
 ## Quick start
 

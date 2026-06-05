@@ -1,7 +1,23 @@
 ﻿---
 name: dev-browser
-description: Browser automation with persistent page state. Use when users ask to navigate websites, fill forms, take screenshots, extract web data, test web apps, or automate browser workflows. Trigger phrases include 'go to [url]', 'click on', 'fill out the form', 'take a screenshot', 'scrape', 'automate', 'test the website', 'log into', or any browser interaction request.
+description: "Browser automation with persistent page state via Node.js scripts. BEST FOR: complex multi-step workflows, login sessions, scenarios needing page state across multiple script executions. REQUIRES: server startup (`node skills/dev-browser/server.js`). Also supports `chrome_devtools_mcp` MCP for Chrome DevTools protocol."
 ---
+
+# Dev Browser Skill
+
+**When to use this skill**: Complex workflows needing persistent page state. Write scripts that maintain state across executions.
+
+**MCP Option**: For Chrome DevTools protocol, enable `chrome_devtools_mcp` in config:
+```jsonc
+{
+  "enabled_mcps": ["chrome_devtools_mcp"]
+}
+```
+
+**Other browser skills** (pick the right one):
+- `agent-browser` — standalone CLI, no setup needed (quickest for simple tasks)
+- `playwright` — Playwright MCP server (needs `browser_puppeteer` MCP enabled)
+- `playwright-cli` — playwright via CLI commands (no MCP)
 
 # Dev Browser Skill
 
