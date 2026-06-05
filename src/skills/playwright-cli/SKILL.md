@@ -1,6 +1,8 @@
 ﻿---
 name: playwright-cli
 description: "Browser automation via playwright-cli commands (no MCP needed). BEST FOR: when you want Playwright's API but MCP is not available. Uses bash commands like `playwright-cli open` then `playwright-cli snapshot`. Similar to agent-browser but uses Playwright engine."
+category: browser
+exposure: standard
 ---
 
 # Browser Automation with playwright-cli

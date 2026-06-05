@@ -1,6 +1,8 @@
 ---
 name: plan-review
 description: Criteria for reviewing implementation plans against quality standards
+category: planning
+exposure: standard
 ---
 
 # Plan Review

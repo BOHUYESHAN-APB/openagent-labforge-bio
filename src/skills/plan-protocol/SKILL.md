@@ -1,6 +1,8 @@
 ---
 name: plan-protocol
 description: Guidelines for creating and managing implementation plans with citations
+category: planning
+exposure: standard
 ---
 
 # Plan Protocol

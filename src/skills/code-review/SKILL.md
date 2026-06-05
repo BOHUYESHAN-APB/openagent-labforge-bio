@@ -1,6 +1,8 @@
 ---
 name: code-review
 description: Comprehensive code review methodology with severity classification and confidence thresholds
+category: development
+exposure: standard
 ---
 
 # Code Review Philosophy

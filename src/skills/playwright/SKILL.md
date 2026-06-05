@@ -1,6 +1,8 @@
 ﻿---
 name: playwright
 description: "Browser automation via Playwright MCP server. Uses MCP tools (browser_navigate, browser_click, etc.). If Playwright MCP is not available, fall back to `agent-browser` skill (CLI, always works)."
+category: browser
+exposure: standard
 ---
 
 # Playwright Browser Automation

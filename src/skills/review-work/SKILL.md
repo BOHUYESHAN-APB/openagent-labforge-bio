@@ -1,6 +1,8 @@
 ﻿---
 name: review-work
 description: Post-implementation review orchestrator. Launches 5 parallel background sub-agents: Oracle (goal/constraint verification), Oracle (code quality), Oracle (security), unspecified-high (hands-on QA execution), unspecified-high (context mining from GitHub/git/Slack/Notion). All must pass for review to pass. MUST USE after completing any significant implementation work. Triggers: 'review work', 'review my work', 'review changes', 'QA my work', 'verify implementation', 'check my work', 'validate changes', 'post-implementation review'.
+category: planning
+exposure: standard
 ---
 
 # Review Work - 5-Agent Parallel Review Orchestrator

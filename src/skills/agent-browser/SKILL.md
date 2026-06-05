@@ -1,6 +1,8 @@
 ﻿---
 name: agent-browser
 description: "Browser automation via agent-browser CLI (standalone, no MCP needed). BEST FOR: quick page verification, screenshots, scraping, form filling. Uses bash commands like `agent-browser open <url>` then `agent-browser snapshot -i`. Works immediately without any server setup."
+category: browser
+exposure: standard
 ---
 
 # Browser Automation with agent-browser

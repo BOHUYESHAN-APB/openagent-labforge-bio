@@ -1,6 +1,8 @@
 ﻿---
 name: dev-browser
 description: "Browser automation with persistent page state via Node.js scripts. BEST FOR: complex multi-step workflows, login sessions, scenarios needing page state across multiple script executions. REQUIRES: server startup (`node skills/dev-browser/server.js`). If server is not available, fall back to `agent-browser` skill."
+category: browser
+exposure: standard
 ---
 
 # Dev Browser Skill

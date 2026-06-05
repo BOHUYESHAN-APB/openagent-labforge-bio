@@ -1,6 +1,8 @@
 ---
 name: team-mode
 description: Team Mode - parallel multi-agent coordination for complex tasks
+category: coordination
+exposure: standard
 ---
 
 # Team Mode

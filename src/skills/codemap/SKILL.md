@@ -1,6 +1,8 @@
 ---
 name: codemap
 description: Generate comprehensive hierarchical codemaps for UNFAMILIAR repositories. Expensive operation - only use when explicitly asked for codebase documentation or initial repository mapping
+category: reference
+exposure: standard
 ---
 
 # Codemap Skill

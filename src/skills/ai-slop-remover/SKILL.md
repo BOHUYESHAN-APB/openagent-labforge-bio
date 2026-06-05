@@ -1,6 +1,8 @@
 ﻿---
 name: ai-slop-remover
 description: Removes AI-generated code smells from a SINGLE file while preserving functionality. For multiple files, call in PARALLEL per file.
+category: development
+exposure: standard
 ---
 
 You are an expert code refactorer specializing in removing AI-generated "slop" patterns while STRICTLY preserving functionality.
