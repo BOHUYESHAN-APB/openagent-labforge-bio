@@ -112,19 +112,19 @@ its original license — integration does **not** relicense the upstream work.
 | academic-cite-match | Built-in (`resources/academicSkills/citation/cite-match/`) | Apache-2.0 | Body-text citation matching engine |
 | academic-md2docx | Built-in (`resources/academicSkills/formatting/md2docx/`) | Apache-2.0 | Markdown → HTML → DOCX pipeline |
 
-### Academic Writing Skills (Design References)
+### Academic Writing Skills (Bundled)
 
 The following upstream projects informed the design of our built-in academic
-skills. They are **not bundled** but attributed here:
+skills. These skills are **bundled** in `resources/academicSkills/`:
 
-| Skill | Upstream Source | License |
-|-------|----------------|---------|
-| research-writing-skill | [codex-claude-academic-skills](https://github.com/zLanqing/codex-claude-academic-skills) by [zLanqing](https://github.com/zLanqing) | MIT |
-| office-academic-skill | [codex-claude-academic-skills](https://github.com/zLanqing/codex-claude-academic-skills) by [zLanqing](https://github.com/zLanqing) | MIT |
-| scientific-toolkit-skill | [codex-claude-academic-skills](https://github.com/zLanqing/codex-claude-academic-skills) by [zLanqing](https://github.com/zLanqing) | MIT |
-| cnki-parser (academic-cnki-parser) | Built-in (referenced from `resources/academicSkills/citation/cnki-parser/`) | Apache-2.0 | CNKI export → BibTeX converter |
-| cite-match (academic-cite-match) | Built-in | Apache-2.0 | Body-text citation matching engine |
-| md2docx (academic-md2docx) | Built-in | Apache-2.0 | Markdown → HTML → DOCX pipeline |
+| Skill | Upstream Source | License | Location |
+|-------|----------------|---------|----------|
+| research-writing-skill | [codex-claude-academic-skills](https://github.com/zLanqing/codex-claude-academic-skills) by [zLanqing](https://github.com/zLanqing) | MIT | `resources/academicSkills/writing/research-writing-skill/` |
+| office-academic-skill | [codex-claude-academic-skills](https://github.com/zLanqing/codex-claude-academic-skills) by [zLanqing](https://github.com/zLanqing) | MIT | `resources/academicSkills/office/office-academic-skill/` |
+| scientific-toolkit-skill | [codex-claude-academic-skills](https://github.com/zLanqing/codex-claude-academic-skills) by [zLanqing](https://github.com/zLanqing) | MIT | `resources/academicSkills/computing/scientific-toolkit-skill/` |
+| cnki-parser (academic-cnki-parser) | Built-in | Apache-2.0 | `resources/academicSkills/citation/cnki-parser/` |
+| cite-match (academic-cite-match) | Built-in | Apache-2.0 | `resources/academicSkills/citation/cite-match/` |
+| md2docx (academic-md2docx) | Built-in | Apache-2.0 | `resources/academicSkills/formatting/md2docx/` |
 
 ### ThirdParty Presentation Skills
 
@@ -159,4 +159,4 @@ These tools are not bundled but referenced as runtime dependencies:
 
 ---
 
-*Last updated: 2026-05-30*
+*Last updated: 2026-06-05*

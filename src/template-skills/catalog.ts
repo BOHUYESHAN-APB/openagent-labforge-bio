@@ -52,7 +52,7 @@ export const TEMPLATE_SKILL_CATEGORIES: Array<{
   {
     name: 'academic-tools',
     description:
-      '学术工具（CNKI 解析、引用匹配、MD 转 DOCX、LaTeX 编译、引用数据库）',
+      '学术工具（CNKI 解析、引用匹配、MD 转 DOCX、LaTeX 编译、引用数据库、论文写作、Office 文档、科研计算）',
     relativePaths: ['resources/academicSkills'],
     sampleSkills: [
       'cnki-parser',
@@ -60,6 +60,9 @@ export const TEMPLATE_SKILL_CATEGORIES: Array<{
       'md2docx',
       'latex-pipeline',
       'citation-database',
+      'research-writing-skill',
+      'office-academic-skill',
+      'scientific-toolkit-skill',
     ],
   },
 ];

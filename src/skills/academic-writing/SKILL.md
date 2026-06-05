@@ -56,6 +56,9 @@ Comprehensive academic writing support for ExtendAI Lab. Covers the full pipelin
 | `academic-latex-pipeline` | `resources/academicSkills/writing/latex-pipeline/` | `skill("academic-latex-pipeline")` | LaTeX 模板+编译 |
 | `academic-citation-database` | `resources/academicSkills/writing/citation-database/` | `skill("academic-citation-database")` | 本地向量数据库 |
 | `document-formatting` | `src/skills/document-formatting/` | `skill("document-formatting")` | DOCX 排版规范 v4 |
+| `research-writing-skill` | `resources/academicSkills/writing/research-writing-skill/` | `skill("research-writing-skill")` | 论文写作、修改、润色、审稿回复 |
+| `office-academic-skill` | `resources/academicSkills/office/office-academic-skill/` | `skill("office-academic-skill")` | 学术 Word/PPT 生成与编辑 |
+| `scientific-toolkit-skill` | `resources/academicSkills/computing/scientific-toolkit-skill/` | `skill("scientific-toolkit-skill")` | 科研计算、MATLAB/Python、数据分析 |
 
 ## Tool Checking
 
