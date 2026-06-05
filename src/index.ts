@@ -22,16 +22,27 @@ import {
   formatLoadedSkillsForPrompt,
   scanBioSkillsCatalog,
 } from './bio-skills';
+import {
+  TemplateSkillsSessionManager,
+  buildTemplateCatalog,
+  createLoadSkillTemplateTool,
+  formatTemplateCatalogForPrompt,
+} from './template-skills';
 import { CheckpointManager } from './checkpoint';
 import {
   CANCEL_RALPH_TEMPLATE,
   CHECKPOINT_RESUME_TEMPLATE,
   CHECKPOINT_TEMPLATE,
+  DIAGNOSE_TEMPLATE,
+  GRILL_TEMPLATE,
   HANDOFF_TEMPLATE,
   KARPATHY_TEMPLATE,
   RALPH_LOOP_TEMPLATE,
+  REVIEW_TEMPLATE,
+  SIMPLIFY_TEMPLATE,
   START_WORK_TEMPLATE,
   STOP_CONTINUATION_TEMPLATE,
+  TDD_TEMPLATE,
 } from './commands/index.js';
 import {
   type AgentOverrideConfig,
@@ -452,6 +463,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     typeof createDisplayNameMentionRewriter
   >;
   let bioSkillsManager: BioSkillsSessionManager | null = null;
+  let templateSkillsManager: TemplateSkillsSessionManager | null = null;
   let checkpointManager: CheckpointManager;
   let promptModeManager: PromptModeManager;
   let modeCommandHandler: ReturnType<typeof createModeCommandHandler>;
@@ -611,9 +623,22 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       }
     }
 
+    // Initialize Template Skills (HTML templates, academic tools, etc.)
+    // These are NOT exposed via configSkills.paths — instead, the AI loads
+    // them by category via the load_skill_template tool.
+    {
+      const templateCatalog = buildTemplateCatalog(packageRoot);
+      if (templateCatalog.length > 0) {
+        templateSkillsManager = new TemplateSkillsSessionManager(templateCatalog);
+        log('info', `Template Skills: ${templateCatalog.length} categories available`);
+      } else {
+        log('info', 'Template Skills: no categories found');
+      }
+    }
+
     // Initialize MultiplexerSessionManager to handle OpenCode's built-in
-    // Task tool sessions
-    multiplexerSessionManager = new MultiplexerSessionManager(
+      // Task tool sessions
+      multiplexerSessionManager = new MultiplexerSessionManager(
       ctx,
       multiplexerConfig,
     );
@@ -851,6 +876,9 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       subtask: createSubtaskTool(ctx, subtaskState),
       ...(bioSkillsManager
         ? { load_bio_skills: createLoadBioSkillsTool(bioSkillsManager) }
+        : {}),
+      ...(templateSkillsManager
+        ? { load_skill_template: createLoadSkillTemplateTool(templateSkillsManager) }
         : {}),
       // Team Mode tools (only registered when team_mode.enabled)
       ...(config.team_mode?.enabled ? {
@@ -1227,23 +1255,10 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         configSkills.paths.push(skillsPath);
       }
 
-      // Register bundled ThirdParty skills as OpenCode skill paths
-      for (const tpDir of [
-        'html-anything-skills',
-        'guizang-ppt-skill',
-        'html-ppt-skill',
-      ]) {
-        const tpPath = join(packageRoot, 'ThirdParty', tpDir);
-        if (!configSkills.paths.includes(tpPath)) {
-          configSkills.paths.push(tpPath);
-        }
-      }
-
-      // Register bundled Academic Skills
-      const academicSkillsPath = join(packageRoot, 'resources/academicSkills');
-      if (!configSkills.paths.includes(academicSkillsPath)) {
-        configSkills.paths.push(academicSkillsPath);
-      }
+      // NOTE: ThirdParty skills (html-anything-skills, html-ppt-skill,
+      // guizang-ppt-skill) and academicSkills are NOT registered here.
+      // They are loaded on-demand via the load_skill_template tool by category.
+      // This keeps the user-facing skill list clean.
 
       // Allow reading bundled bioSkills even when OpenCode runs in another
       // project. These are plugin-owned reference files, not project files.
@@ -1267,20 +1282,33 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         opencodeConfig.permission = permission;
       }
 
-      // Allow reading bundled academicSkills
-      const permission2 = (opencodeConfig.permission ?? {}) as Record<
-        string,
-        unknown
-      >;
-      const externalDirectory2 =
-        typeof permission2.external_directory === 'object' &&
-        permission2.external_directory !== null
-          ? (permission2.external_directory as Record<string, string>)
-          : {};
-      externalDirectory2[join(academicSkillsPath, '*')] ??= 'allow';
-      externalDirectory2[join(academicSkillsPath, '**', '*')] ??= 'allow';
-      permission2.external_directory = externalDirectory2;
-      opencodeConfig.permission = permission2;
+      // Allow reading bundled academicSkills and ThirdParty skills
+      // (needed by load_skill_template tool even though not in configSkills.paths)
+      {
+        const academicSkillsPath = join(packageRoot, 'resources/academicSkills');
+        const thirdPartyPaths = [
+          join(packageRoot, 'ThirdParty', 'html-anything-skills'),
+          join(packageRoot, 'ThirdParty', 'html-ppt-skill'),
+          join(packageRoot, 'ThirdParty', 'guizang-ppt-skill'),
+        ];
+        const permission2 = (opencodeConfig.permission ?? {}) as Record<
+          string,
+          unknown
+        >;
+        const externalDirectory2 =
+          typeof permission2.external_directory === 'object' &&
+          permission2.external_directory !== null
+            ? (permission2.external_directory as Record<string, string>)
+            : {};
+        externalDirectory2[join(academicSkillsPath, '*')] ??= 'allow';
+        externalDirectory2[join(academicSkillsPath, '**', '*')] ??= 'allow';
+        for (const tpPath of thirdPartyPaths) {
+          externalDirectory2[join(tpPath, '*')] ??= 'allow';
+          externalDirectory2[join(tpPath, '**', '*')] ??= 'allow';
+        }
+        permission2.external_directory = externalDirectory2;
+        opencodeConfig.permission = permission2;
+      }
 
       // Register checkpoint commands (/ol-checkpoint, /ol-handoff, /ol-checkpoint-resume)
       if (!configCommand?.['ol-checkpoint']) {
@@ -1344,6 +1372,46 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           description:
             'Apply Karpathy coding guidelines: assumptions, simplicity, surgical diffs, verifiable goals',
           argumentHint: '[task-or-review-target]',
+        };
+      }
+      if (!configCommand?.['ol-grill']) {
+        (opencodeConfig.command as Record<string, unknown>)['ol-grill'] = {
+          template: GRILL_TEMPLATE,
+          description:
+            'Get interviewed about your plan before coding — resolve all ambiguity first',
+          argumentHint: '[topic]',
+        };
+      }
+      if (!configCommand?.['ol-tdd']) {
+        (opencodeConfig.command as Record<string, unknown>)['ol-tdd'] = {
+          template: TDD_TEMPLATE,
+          description:
+            'Test-driven development: write failing test first, then implement',
+          argumentHint: '[feature-description]',
+        };
+      }
+      if (!configCommand?.['ol-diagnose']) {
+        (opencodeConfig.command as Record<string, unknown>)['ol-diagnose'] = {
+          template: DIAGNOSE_TEMPLATE,
+          description:
+            'Disciplined diagnosis loop for bugs and performance issues',
+          argumentHint: '[bug-description]',
+        };
+      }
+      if (!configCommand?.['ol-simplify']) {
+        (opencodeConfig.command as Record<string, unknown>)['ol-simplify'] = {
+          template: SIMPLIFY_TEMPLATE,
+          description:
+            'Simplify code for clarity without changing behavior',
+          argumentHint: '[file-or-function]',
+        };
+      }
+      if (!configCommand?.['ol-review']) {
+        (opencodeConfig.command as Record<string, unknown>)['ol-review'] = {
+          template: REVIEW_TEMPLATE,
+          description:
+            'Code review with severity classification (Critical/Major/Minor/Suggestion)',
+          argumentHint: '[files-or-changes]',
         };
       }
     },
@@ -1778,6 +1846,16 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
             const loadedBlock = formatLoadedSkillsForPrompt(loadedSkills);
             output.system.push(loadedBlock);
           }
+        }
+      }
+
+      // Inject template skills catalog (HTML templates, academic tools, etc.)
+      if (templateSkillsManager) {
+        const templateCatalog = formatTemplateCatalogForPrompt(
+          templateSkillsManager.getCatalog(),
+        );
+        if (templateCatalog) {
+          output.system.push(templateCatalog);
         }
       }
 
