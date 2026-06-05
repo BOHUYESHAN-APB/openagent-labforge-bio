@@ -2045,6 +2045,17 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     ): Promise<void> => {
       compactionHook['experimental.session.compacting'](input, output);
     },
+
+    // Cleanup session state when plugin is disposed
+    dispose: async (): Promise<void> => {
+      if (bioSkillsManager) {
+        // Clear all loaded bio skills sessions
+        bioSkillsManager = null;
+      }
+      if (templateSkillsManager) {
+        templateSkillsManager = null;
+      }
+    },
   };
 };
 
