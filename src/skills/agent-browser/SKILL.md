@@ -7,20 +7,24 @@ description: MUST USE for any browser-related tasks. Browser automation via agen
 
 ## Quick start
 
-\`\`\`bash
+```bash
 agent-browser open <url>        # Navigate to page
 agent-browser snapshot -i       # Get interactive elements with refs
 agent-browser click @e1         # Click element by ref
 agent-browser fill @e2 "text"   # Fill input by ref
 agent-browser close             # Close browser
-\`\`\`
+```
 
-## Core workflow
+## MANDATORY workflow (follow this exact sequence)
 
-1. Navigate: \`agent-browser open <url>\`
-2. Snapshot: \`agent-browser snapshot -i\` (returns elements with refs like \`@e1\`, \`@e2\`)
-3. Interact using refs from the snapshot
-4. Re-snapshot after navigation or significant DOM changes
+**Every browser task MUST follow these steps in order:**
+
+1. `agent-browser open <url>` — opens the page, returns title + URL
+2. `agent-browser snapshot -i` — **YOU MUST RUN THIS** to see interactive elements with `@e1`, `@e2` refs
+3. Use refs from snapshot output to interact (`click @e1`, `fill @e2 "text"`, etc.)
+4. After any navigation or DOM change, run `snapshot -i` again to get fresh refs
+
+**CRITICAL: After `open`, you CANNOT interact with the page until you run `snapshot -i`. The refs change on every page load. Always snapshot before interacting.**
 
 ## Commands
 

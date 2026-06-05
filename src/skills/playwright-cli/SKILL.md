@@ -1,6 +1,6 @@
 ﻿---
-name: playwright
-description: MUST USE for any browser-related tasks. Browser automation via playwright-cli - verification, browsing, information gathering, web scraping, testing, screenshots, and all browser interactions.
+name: playwright-cli
+description: Browser automation via playwright-cli (CLI variant, no MCP required). Use when Playwright MCP is not available.
 ---
 
 # Browser Automation with playwright-cli
