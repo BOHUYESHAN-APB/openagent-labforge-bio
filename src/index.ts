@@ -102,6 +102,7 @@ import {
   ast_grep_search,
   createCouncilTool,
   createMediaInventoryTool,
+  createMcpToggleTool,
   createPresetManager,
   createSavePlanTool,
   createSubtaskTool,
@@ -880,6 +881,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       ...(templateSkillsManager
         ? { load_skill_template: createLoadSkillTemplateTool(templateSkillsManager) }
         : {}),
+      mcp_toggle: createMcpToggleTool(ctx.client),
       // Team Mode tools (only registered when team_mode.enabled)
       ...(config.team_mode?.enabled ? {
         team_create: createTeamCreateTool({ config: config.team_mode, ctx }),
