@@ -2,6 +2,7 @@
 name: academic-writing
 description: Academic writing workflow with literature management, citation validation, LaTeX/MD pipelines, local citation vector database, and Chinese academic formatting (GB/T 7714-2015)
 category: academic
+exposure: standard
 ---
 
 # Academic Writing Skill
