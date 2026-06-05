@@ -1,28 +1,22 @@
 ﻿---
 name: playwright
-description: "Browser automation via Playwright MCP server. BEST FOR: complex multi-step browser workflows, testing, scenarios needing full Playwright API. REQUIRES: `browser_puppeteer` MCP server enabled in config. If MCP is not available, use `agent-browser` or `playwright-cli` instead."
+description: "Browser automation via Playwright MCP server. Uses MCP tools (browser_navigate, browser_click, etc.). If Playwright MCP is not available, fall back to `agent-browser` skill (CLI, always works)."
 ---
 
 # Playwright Browser Automation
 
-**When to use this skill**: Complex browser automation needing full Playwright API. Requires `browser_puppeteer` MCP server enabled.
+**When to use this skill**: Complex browser automation needing full Playwright API. Only works when `browser_puppeteer` MCP is enabled.
 
-**MCP Setup**: This skill uses the `browser_puppeteer` MCP server. It is **disabled by default**. Enable it in your config:
-
-```jsonc
-{
-  "enabled_mcps": ["browser_puppeteer"]
-}
-```
+**If MCP is not available**: Use `agent-browser` skill instead — it works via CLI without any MCP.
 
 **Other browser skills** (pick the right one):
-- `agent-browser` — standalone CLI, no MCP needed (quickest for simple tasks)
+- `agent-browser` — standalone CLI, always works (recommended default)
 - `playwright-cli` — playwright via CLI commands (no MCP)
 - `dev-browser` — persistent page state with Node.js scripts
 
 ## Quick Start
 
-Once MCP is enabled, the Playwright tools are available directly:
+When MCP is available, use Playwright MCP tools directly:
 - `browser_navigate` — navigate to URL
 - `browser_click` — click element
 - `browser_type` — type text
