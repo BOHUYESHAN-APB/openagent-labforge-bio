@@ -3,6 +3,29 @@ import { tool } from '@opencode-ai/plugin';
 
 const z = tool.schema;
 
+/** MCPs that CANNOT be disabled (core infrastructure) */
+const NEVER_DISABLE = new Set([
+  'websearch',
+  'context7',
+  'grep_app',
+  'extendaiLab',
+]);
+
+/** MCPs that CANNOT be enabled by AI (too dangerous) */
+const NEVER_ENABLE = new Set([
+  'cua_driver', // Desktop automation — user must enable manually
+]);
+
+/** Browser MCPs — use chrome_devtools_mcp first, browser_puppeteer as fallback */
+const BROWSER_MCPS = ['chrome_devtools_mcp', 'browser_puppeteer'];
+
+/** Paper search MCPs — only enable ONE at a time */
+const PAPER_MCPS = [
+  'semantic_scholar_fastmcp',
+  'arxiv_mcp',
+  'paper_search_mcp',
+];
+
 /**
  * Creates a tool that allows the AI to enable/disable MCP servers
  * for the current session only (does not modify global config).
@@ -13,22 +36,27 @@ export function createMcpToggleTool(
   return tool({
     description: `Enable or disable an MCP server for the current session only. Does NOT modify global config — other sessions are unaffected.
 
-Common MCP servers:
-- browser_puppeteer — Playwright browser automation (disabled by default)
-- chrome_devtools_mcp — Chrome DevTools protocol (disabled by default)
+RULES:
+- NEVER disable: websearch, context7, grep_app, extendaiLab (core infra)
+- NEVER enable: cua_driver (desktop automation — user must enable manually)
+- Browser: prefer chrome_devtools_mcp first; browser_puppeteer as fallback
+- Paper search: enable ONLY ONE at a time (semantic_scholar_fastmcp recommended)
+
+Available MCPs:
+- chrome_devtools_mcp — Chrome DevTools browser (disabled by default)
+- browser_puppeteer — Playwright browser (disabled by default)
+- semantic_scholar_fastmcp — Semantic Scholar paper search (disabled by default)
+- arxiv_mcp — arXiv paper search (disabled by default)
+- paper_search_mcp — Paper search (disabled by default)
 - bioNext — Multi-omics data (disabled by default)
 - uniprot — Protein data (disabled by default)
-
-Use when: you need a browser tool but agent-browser is not sufficient, or need a specific MCP tool that is currently disabled.`,
+- deepwiki_mcp — DeepWiki (disabled by default)
+- open_websearch_mcp — Open web search (disabled by default)`,
     args: {
       action: z
         .enum(['enable', 'disable'])
         .describe('Enable or disable the MCP server'),
-      name: z
-        .string()
-        .describe(
-          'MCP server name (e.g. "browser_puppeteer", "chrome_devtools_mcp")',
-        ),
+      name: z.string().describe('MCP server name'),
     },
     async execute(args, toolContext) {
       if (
@@ -41,18 +69,24 @@ Use when: you need a browser tool but agent-browser is not sufficient, or need a
 
       const { action, name } = args as { action: string; name: string };
 
+      // Safety checks
+      if (action === 'disable' && NEVER_DISABLE.has(name)) {
+        return `Error: MCP "${name}" is a core infrastructure server and cannot be disabled.`;
+      }
+      if (action === 'enable' && NEVER_ENABLE.has(name)) {
+        return `Error: MCP "${name}" requires explicit user enable for security. Ask the user to enable it manually.`;
+      }
       try {
         if (action === 'enable') {
           // SDK v1 path format: { path: { name } }
-          await (client.mcp as any).connect({ // eslint-disable-line @typescript-eslint/no-explicit-any
-            path: { name },
-          });
-          return `MCP server "${name}" enabled for this session. Tools from this MCP are now available.`;
+          await (client.mcp as any).connect({ path: { name } });
+          const warning = PAPER_MCPS.includes(name)
+            ? `\nNote: Only enable ONE paper search MCP at a time.`
+            : '';
+          return `MCP server "${name}" enabled for this session.${warning}`;
         }
         // SDK v1 path format: { path: { name } }
-        await (client.mcp as any).disconnect({ // eslint-disable-line @typescript-eslint/no-explicit-any
-          path: { name },
-        });
+        await (client.mcp as any).disconnect({ path: { name } });
         return `MCP server "${name}" disabled for this session.`;
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
