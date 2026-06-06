@@ -84,16 +84,29 @@ RULES:
 - Browser: prefer chrome_devtools_mcp first; browser_puppeteer as fallback
 - Paper search: enable ONLY ONE at a time (semantic_scholar_fastmcp recommended)
 
-Available MCPs:
-- chrome_devtools_mcp — Chrome DevTools browser (disabled by default)
-- browser_puppeteer — Playwright browser (disabled by default)
-- semantic_scholar_fastmcp — Semantic Scholar paper search (disabled by default)
-- arxiv_mcp — arXiv paper search (disabled by default)
-- paper_search_mcp — Paper search (disabled by default)
-- bioNext — Multi-omics data (disabled by default)
-- uniprot — Protein data (disabled by default)
-- deepwiki_mcp — DeepWiki (disabled by default)
-- open_websearch_mcp — Open web search (disabled by default)
+Available MCPs (enable when user needs these capabilities):
+
+Browser automation (for web testing, screenshots, scraping):
+- chrome_devtools_mcp — Chrome DevTools protocol. Control Chrome browser. Best for most use cases.
+- browser_puppeteer — Playwright browser. Alternative if chrome_devtools_mcp unavailable.
+
+Academic paper search (for finding papers, citations, references):
+- semantic_scholar_fastmcp — Semantic Scholar API. Search papers, get citations, find references. RECOMMENDED.
+- arxiv_mcp — arXiv API. Search and download arXiv preprints.
+- paper_search_mcp — General paper search across multiple sources.
+
+Bioinformatics (for protein/genomics data):
+- bioNext — Multi-omics data analysis platform.
+- uniprot — UniProt protein database. Query protein sequences, functions, structures.
+
+Web search (alternative to built-in websearch):
+- open_websearch_mcp — Open web search via DuckDuckGo/Bing/Exa/Brave/Baidu.
+
+Knowledge base:
+- deepwiki_mcp — DeepWiki. Query GitHub repository documentation and wikis.
+
+NEVER enable:
+- cua_driver — Desktop automation via CUA. SECURITY RISK. User must enable manually.
 
 NOTE: If enable fails with timeout, retry automatically (multi-window race condition).`,
     args: {
