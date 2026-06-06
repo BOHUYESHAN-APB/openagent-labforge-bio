@@ -99,7 +99,7 @@ Use `academic_check_tools()` to check available tools:
 academic_check_tools()
 
 // Check specific
-academic_check_tools({ tools: ["pandoc", "papis", "python-docx", "xelatex"] })
+academic_check_tools({ tools: ["pandoc", "papis", "python-docx", "xelatex", "officecli"] })
 ```
 
 | Tool | Check command | Purpose |
@@ -113,6 +113,7 @@ academic_check_tools({ tools: ["pandoc", "papis", "python-docx", "xelatex"] })
 | `chromadb` | `python -c "import chromadb"` | 向量数据库 |
 | `sentence-transformers` | `python -c "import sentence_transformers"` | 嵌入模型 |
 | `jieba` | `python -c "import jieba"` | 中文分词 |
+| `officecli` | `officecli --version` | Office 文档操作（Word/Excel/PPT） |
 
 ## Writing Workflows
 

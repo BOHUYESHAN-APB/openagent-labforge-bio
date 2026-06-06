@@ -301,6 +301,7 @@ const toolCheckers: Record<string, (env: Environment) => Promise<ToolStatus>> =
     docker: async (env) => checkDocker(env),
     xelatex: async () => checkCommand('xelatex', ['--version']),
     noteexpress: async () => checkNoteExpress(),
+    officecli: async () => checkCommand('officecli', ['--version']),
   };
 
 /**

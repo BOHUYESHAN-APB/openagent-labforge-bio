@@ -18,6 +18,61 @@ Use this skill for:
 
 Do not use this skill for pure manuscript prose drafting without a Word/PPT deliverable; use `research-writing-skill` instead. Do not use it for MATLAB, Python analysis, statistics, or plotting unless those outputs are being inserted into Word/PPT.
 
+## Recommended Tool: OfficeCLI
+
+**OfficeCLI** is the preferred tool for Word/Excel/PowerPoint operations. It is a single-binary CLI that creates, reads, and modifies `.docx`/`.xlsx`/`.pptx` files without requiring Microsoft Office.
+
+### Installation
+
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.sh | bash
+
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.ps1 | iex
+```
+
+### Key Commands
+
+```bash
+# Create
+officecli create report.docx
+officecli create deck.pptx
+officecli create budget.xlsx
+
+# Add content
+officecli add report.docx / --type paragraph --prop text="Title" --prop style=Heading1
+officecli add deck.pptx / --type slide --prop title="Q4 Results"
+officecli add budget.xlsx / --type sheet --prop name="Data"
+
+# Read/inspect
+officecli view report.docx outline
+officecli view deck.pptx html -o /tmp/deck.html
+officecli get report.docx /body/p[1] --json
+
+# Modify
+officecli set report.docx /body/p[1]/r[1] --prop text="New Title"
+officecli set deck.pptx '/slide[1]/shape[1]' --prop color=FF0000
+
+# Validate
+officecli validate report.docx
+officecli view report.docx issues --json
+```
+
+### When to Use OfficeCLI vs python-docx
+
+| Scenario | Tool | Reason |
+|----------|------|--------|
+| Create new Word/PPT/Excel | OfficeCLI | Single command, no Python setup |
+| Edit existing Office files | OfficeCLI | Path-based element access |
+| Complex data processing + Office | python-docx + pandas | Better for data pipelines |
+| CI/CD document generation | OfficeCLI | Zero dependencies, single binary |
+| Template-based batch reports | OfficeCLI `merge` | `{{key}}` placeholder replacement |
+
+### Detection
+
+Use `academic_check_tools({ tools: ["officecli"] })` to check if OfficeCLI is installed.
+
 ## Language And Evidence
 
 - Default to Chinese for explanations, Word report prose, slide text, outlines, and speaker notes.
