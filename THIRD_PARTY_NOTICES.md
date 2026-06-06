@@ -143,7 +143,7 @@ attribution. The full repos are available in `Future/skills/` for reference.
 | Repository | License | Skills | Use |
 |------------|---------|--------|-----|
 | [google-deepmind/science-skills](https://github.com/google-deepmind/science-skills) | Apache-2.0 | 37 | AlphaFold, Ensembl, ClinVar, UniProt, literature search |
-| [K-Dense-AI/scientific-agent-skills](https://github.com/K-Dense-AI/scientific-agent-skills) | MIT | 143 | BioPython, Astropy, DeepChem, clinical databases, molecular dynamics |
+| [K-Dense-AI/scientific-agent-skills](https://github.com/K-Dense-AI/scientific-agent-skills) | MIT | 141 | BioPython, Astropy, DeepChem, clinical databases, molecular dynamics, quantum computing |
 
 ### Dependency Tools (Referenced by Skills)
 

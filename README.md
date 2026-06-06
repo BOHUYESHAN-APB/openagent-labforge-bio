@@ -51,13 +51,13 @@ graph TB
 | Thinking Language | — | Provider-aware (CN→中文, EN→English) |
 | Checkpoints | — | Light (same-session) + Heavy (cross-session) |
 | Context Pressure | — | L1/L2/L3 monitoring |
-| Bioinformatics | — | 442 skills, 3 MCPs |
+| Bioinformatics | — | 617 skills, 3 MCPs |
 
 ### Key Numbers
 
 - **1221** tests passing, **101** test files, **0** failures
 - **5** primary orchestrators + **15** subagents
-- **442** bioinformatics skills, **64** categories
+- **617** bioinformatics skills, **88** categories
 - **14** slash commands, **10** tools
 
 ### Recommended Companion Tools

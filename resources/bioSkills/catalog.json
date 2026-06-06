@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-06-06T09:34:45.566Z",
-  "categoryCount": 65,
-  "skillCount": 476,
+  "generatedAt": "2026-06-06T09:48:30.048Z",
+  "categoryCount": 88,
+  "skillCount": 617,
   "categories": [
     {
       "name": "alignment",
@@ -362,7 +362,7 @@
     {
       "name": "chemoinformatics",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\chemoinformatics",
-      "skillCount": 7,
+      "skillCount": 8,
       "sampleSkills": [
         "bio-admet-prediction",
         "bio-molecular-descriptors",
@@ -427,13 +427,18 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\chemoinformatics\\virtual-screening\\SKILL.md",
           "toolType": "python",
           "primaryTool": "vina"
+        },
+        {
+          "name": "rdkit",
+          "description": "Cheminformatics toolkit for fine-grained molecular control. SMILES/SDF parsing, descriptors (MW, LogP, TPSA), fingerprints, substructure search, 2D/3D generation, similarity, reactions. For standard workflows with simpler interface, use datamol (wrapper around RDKit). Use rdkit for advanced control, custom sanitization, specialized algorithms.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\chemoinformatics\\rdkit\\SKILL.md"
         }
       ]
     },
     {
       "name": "chip-seq",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\chip-seq",
-      "skillCount": 7,
+      "skillCount": 8,
       "sampleSkills": [
         "bio-chipseq-differential-binding",
         "bio-chipseq-motif-analysis",
@@ -502,6 +507,11 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\chip-seq\\chipseq-visualization\\SKILL.md",
           "toolType": "mixed",
           "primaryTool": "deepTools"
+        },
+        {
+          "name": "deeptools",
+          "description": "NGS analysis toolkit. BAM to bigWig conversion, QC (correlation, PCA, fingerprints), heatmaps/profiles (TSS, peaks), for ChIP-seq, RNA-seq, ATAC-seq visualization.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\chip-seq\\deeptools\\SKILL.md"
         }
       ]
     },
@@ -573,7 +583,7 @@
     {
       "name": "clinical-databases",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-databases",
-      "skillCount": 16,
+      "skillCount": 18,
       "sampleSkills": [
         "bio-clinical-databases-clinvar-lookup",
         "bio-clinical-databases-dbsnp-queries",
@@ -682,9 +692,19 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-databases\\dbsnp-database\\SKILL.md"
         },
         {
+          "name": "depmap",
+          "description": "Query the Cancer Dependency Map (DepMap) for cancer cell line gene dependency scores (CRISPR Chronos), drug sensitivity data, and gene effect profiles. Use for identifying cancer-specific vulnerabilities, synthetic lethal interactions, and validating oncology drug targets.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-databases\\depmap\\SKILL.md"
+        },
+        {
           "name": "gnomad-database",
           "description": ">",
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-databases\\gnomad-database\\SKILL.md"
+        },
+        {
+          "name": "imaging-data-commons",
+          "description": "Query and download public cancer imaging data from NCI Imaging Data Commons using idc-index. Use for accessing large-scale radiology (CT, MR, PET) and pathology datasets for AI training or research. No authentication required. Query by metadata, visualize in browser, check licenses.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-databases\\imaging-data-commons\\SKILL.md"
         },
         {
           "name": "openfda-database",
@@ -695,6 +715,41 @@
           "name": "opentargets-database",
           "description": ">",
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-databases\\opentargets-database\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "clinical-tools",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-tools",
+      "skillCount": 4,
+      "sampleSkills": [
+        "clinical-decision-support",
+        "clinical-reports",
+        "pyhealth",
+        "treatment-plans"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "clinical-decision-support",
+          "description": "Generate professional clinical decision support (CDS) documents for pharmaceutical and clinical research settings, including patient cohort analyses (biomarker-stratified with outcomes) and treatment recommendation reports (evidence-based guidelines with decision algorithms). Supports GRADE evidence grading, statistical analysis (hazard ratios, survival curves, waterfall plots), biomarker integration, and regulatory compliance. Outputs publication-ready LaTeX/PDF format optimized for drug development, clinical research, and evidence synthesis.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-tools\\clinical-decision-support\\SKILL.md"
+        },
+        {
+          "name": "clinical-reports",
+          "description": "Write comprehensive clinical reports including case reports (CARE guidelines), diagnostic reports (radiology/pathology/lab), clinical trial reports (ICH-E3, SAE, CSR), and patient documentation (SOAP, H&P, discharge summaries). Full support with templates, regulatory compliance (HIPAA, FDA, ICH-GCP), and validation tools.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-tools\\clinical-reports\\SKILL.md"
+        },
+        {
+          "name": "pyhealth",
+          "description": "Build clinical/healthcare deep-learning pipelines with PyHealth — loading EHR/signal/imaging datasets (MIMIC-III/IV, eICU, OMOP, SleepEDF, ChestXray14, EHRShot), defining tasks (mortality, readmission, length-of-stay, drug recommendation, sleep staging, ICD coding, EEG events), instantiating models (Transformer, RETAIN, GAMENet, SafeDrug, MICRON, StageNet, AdaCare, CNN/RNN/MLP), training with the PyHealth Trainer, computing clinical metrics, and using medical code utilities (ICD/ATC/NDC/RxNorm lookup and cross-mapping). Use this skill whenever the user mentions PyHealth, MIMIC, eICU, OMOP, EHR modeling, clinical prediction, drug recommendation, sleep staging, medical code mapping, ICD/ATC codes, or any healthcare ML pipeline that fits the dataset → task → model → trainer → metrics pattern, even if \"PyHealth\" isn't named explicitly.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-tools\\pyhealth\\SKILL.md"
+        },
+        {
+          "name": "treatment-plans",
+          "description": "Generate concise (3-4 page), focused medical treatment plans in LaTeX/PDF format for all clinical specialties. Supports general medical treatment, rehabilitation therapy, mental health care, chronic disease management, perioperative care, and pain management. Includes SMART goal frameworks, evidence-based interventions with minimal text citations, regulatory compliance (HIPAA), and professional formatting. Prioritizes brevity and clinical actionability.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clinical-tools\\treatment-plans\\SKILL.md"
         }
       ]
     },
@@ -755,6 +810,29 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\clip-seq\\clip-preprocessing\\SKILL.md",
           "toolType": "cli",
           "primaryTool": "umi_tools"
+        }
+      ]
+    },
+    {
+      "name": "cloud-compute",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\cloud-compute",
+      "skillCount": 2,
+      "sampleSkills": [
+        "get-available-resources",
+        "modal"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "get-available-resources",
+          "description": "This skill should be used at the start of any computationally intensive scientific task to detect and report available system resources (CPU cores, GPUs, memory, disk space). It creates a JSON file with resource information and strategic recommendations that inform computational approach decisions such as whether to use parallel processing (joblib, multiprocessing), out-of-core computing (Dask, Zarr), GPU acceleration (PyTorch, JAX), or memory-efficient strategies. Use this skill before running analyses, training models, processing large datasets, or any task where resource constraints matter.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\cloud-compute\\get-available-resources\\SKILL.md"
+        },
+        {
+          "name": "modal",
+          "description": "Modal is a serverless cloud platform for running Python on demand, including on-demand GPUs. Use when deploying or serving AI/ML models, running GPU-accelerated workloads (training, fine-tuning, inference), serving web endpoints, scheduling batch jobs, or scaling Python code to cloud containers with the Modal SDK.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\cloud-compute\\modal\\SKILL.md"
         }
       ]
     },
@@ -953,9 +1031,55 @@
       ]
     },
     {
+      "name": "data-processing",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-processing",
+      "skillCount": 6,
+      "sampleSkills": [
+        "dask",
+        "lamindb",
+        "polars",
+        "polars-bio",
+        "usfiscaldata"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "dask",
+          "description": "Distributed computing for larger-than-RAM pandas/NumPy workflows. Use when you need to scale existing pandas/NumPy code beyond memory or across clusters. Best for parallel file processing, distributed ML, integration with existing pandas code. For out-of-core analytics on single machine use vaex; for in-memory speed use polars.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-processing\\dask\\SKILL.md"
+        },
+        {
+          "name": "lamindb",
+          "description": "Use when working with LaminDB, the open-source lineage-native lakehouse for biological datasets and models. Covers setup, artifact registration, query/search, lineage tracking, validation, ontology-backed annotation with Bionty, collections, branches, storage, and workflow integrations.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-processing\\lamindb\\SKILL.md"
+        },
+        {
+          "name": "polars",
+          "description": "Fast in-memory DataFrame library for datasets that fit in RAM. Use when pandas is too slow but data still fits in memory. Lazy evaluation, parallel execution, Apache Arrow backend. Best for 1-100GB datasets, ETL pipelines, faster pandas replacement. For larger-than-RAM data use dask or vaex.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-processing\\polars\\SKILL.md"
+        },
+        {
+          "name": "polars-bio",
+          "description": "High-performance genomic interval operations and bioinformatics file I/O on Polars DataFrames. Overlap, nearest, merge, coverage, complement, subtract for BED/VCF/BAM/GFF intervals. Streaming, cloud-native, faster bioframe alternative.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-processing\\polars-bio\\SKILL.md"
+        },
+        {
+          "name": "usfiscaldata",
+          "description": "Query the U.S. Treasury Fiscal Data REST API for federal financial data. No API key required. Use for national debt (Debt to the Penny), Daily Treasury Statements, Monthly Treasury Statements, Treasury securities auctions, interest rates, foreign exchange rates, savings bonds, or U.S. government revenue and spending statistics.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-processing\\usfiscaldata\\SKILL.md"
+        },
+        {
+          "name": "vaex",
+          "description": "Use this skill for processing and analyzing large tabular datasets (billions of rows) that exceed available RAM. Vaex excels at out-of-core DataFrame operations, lazy evaluation, fast aggregations, efficient visualization of big data, and machine learning on large datasets. Apply when users need to work with large CSV/HDF5/Arrow/Parquet files, perform fast statistics on massive datasets, create visualizations of big data, or build ML pipelines that do not fit in memory.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-processing\\vaex\\SKILL.md"
+        }
+      ]
+    },
+    {
       "name": "data-visualization",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-visualization",
-      "skillCount": 12,
+      "skillCount": 16,
       "sampleSkills": [
         "bio-data-visualization-circos-plots",
         "bio-data-visualization-color-palettes",
@@ -1063,13 +1187,33 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-visualization\\volcano-customization\\SKILL.md",
           "toolType": "mixed",
           "primaryTool": "ggplot2"
+        },
+        {
+          "name": "matplotlib",
+          "description": "Low-level plotting library for full customization. Use when you need fine-grained control over every plot element, creating novel plot types, or integrating with specific scientific workflows. Export to PNG/PDF/SVG for publication. For quick statistical plots use seaborn; for interactive plots use plotly; for publication-ready multi-panel figures with journal styling, use scientific-visualization.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-visualization\\matplotlib\\SKILL.md"
+        },
+        {
+          "name": "networkx",
+          "description": "Comprehensive toolkit for creating, analyzing, and visualizing complex networks and graphs in Python. Use when working with network/graph data structures, analyzing relationships between entities, computing graph algorithms (shortest paths, centrality, clustering), detecting communities, generating synthetic networks, or visualizing network topologies. Applicable to social networks, biological networks, transportation systems, citation networks, and any domain involving pairwise relationships.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-visualization\\networkx\\SKILL.md"
+        },
+        {
+          "name": "scientific-visualization",
+          "description": "Meta-skill for publication-ready figures. Use when creating journal submission figures requiring multi-panel layouts, significance annotations, error bars, colorblind-safe palettes, and specific journal formatting (Nature, Science, Cell). Orchestrates matplotlib/seaborn/plotly with publication styles. For quick exploration use seaborn or plotly directly.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-visualization\\scientific-visualization\\SKILL.md"
+        },
+        {
+          "name": "seaborn",
+          "description": "Statistical visualization with pandas integration. Use for quick exploration of distributions, relationships, and categorical comparisons with attractive defaults. Best for box plots, violin plots, pair plots, heatmaps. Built on matplotlib. For interactive plots use plotly; for publication styling use scientific-visualization.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\data-visualization\\seaborn\\SKILL.md"
         }
       ]
     },
     {
       "name": "database-access",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\database-access",
-      "skillCount": 28,
+      "skillCount": 31,
       "sampleSkills": [
         "bio-batch-downloads",
         "bio-blast-searches",
@@ -1169,9 +1313,19 @@
           "primaryTool": "requests"
         },
         {
+          "name": "bioservices",
+          "description": "Unified Python interface to 40+ bioinformatics services. Use when querying multiple databases (UniProt, KEGG, ChEMBL, Reactome) in a single workflow with consistent API. Best for cross-database analysis, ID mapping across services. For quick single-database lookups use gget; for sequence/file manipulation use biopython.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\database-access\\bioservices\\SKILL.md"
+        },
+        {
           "name": "chembl-database",
           "description": ">",
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\database-access\\chembl-database\\SKILL.md"
+        },
+        {
+          "name": "database-lookup",
+          "description": "Search 78 public scientific, biomedical, materials science, and economic databases via REST APIs. Covers physics/astronomy (NASA, NIST, SDSS, SIMBAD), earth/environment (USGS, NOAA, EPA), chemistry/drugs (PubChem, ChEMBL, DrugBank, FDA, KEGG, ZINC, BindingDB), materials (Materials Project, COD), biology/genomics (Reactome, UniProt, STRING, Ensembl, NCBI Gene, GEO, GTEx, PDB, AlphaFold, InterPro, BioGRID, Gene Ontology, dbSNP, gnomAD, ENCODE, Human Protein Atlas, Human Cell Atlas), disease/clinical (COSMIC, Open Targets, ClinicalTrials.gov, OMIM, ClinVar, GDC/TCGA, cBioPortal, DisGeNET, GWAS Catalog), regulatory (FDA, USPTO, SEC EDGAR), economics/finance (FRED, World Bank, US Treasury), demographics (US Census, Eurostat, WHO). Use when looking up compounds, genes, proteins, pathways, variants, clinical trials, patents, economic indicators, or any public database API query.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\database-access\\database-lookup\\SKILL.md"
         },
         {
           "name": "embl-ebi-ols",
@@ -1187,6 +1341,11 @@
           "name": "ensembl-database",
           "description": ">",
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\database-access\\ensembl-database\\SKILL.md"
+        },
+        {
+          "name": "gget",
+          "description": "Fast CLI/Python queries to 20+ bioinformatics databases. Use for quick lookups: gene info, BLAST searches, AlphaFold structures, enrichment analysis. Best for interactive exploration, simple queries. For batch processing or advanced BLAST use biopython; for multi-database Python workflows use bioservices.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\database-access\\gget\\SKILL.md"
         },
         {
           "name": "gtex-database",
@@ -1256,9 +1415,32 @@
       ]
     },
     {
+      "name": "deep-learning",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\deep-learning",
+      "skillCount": 2,
+      "sampleSkills": [
+        "pytorch-lightning",
+        "transformers"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "pytorch-lightning",
+          "description": "Deep learning framework (PyTorch Lightning / lightning package). Organize PyTorch code into LightningModules, configure Trainers for multi-GPU/TPU, implement data pipelines, callbacks, logging (W&B, TensorBoard, MLflow), distributed training (DDP, FSDP, DeepSpeed), for scalable neural network training.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\deep-learning\\pytorch-lightning\\SKILL.md"
+        },
+        {
+          "name": "transformers",
+          "description": "Hugging Face Transformers for loading Hub models, running pipeline inference, text generation, and Trainer fine-tuning on NLP, vision, audio, and multimodal tasks. Use when working with AutoModel, pipelines, tokenizers, or TrainingArguments—not for general ML outside the Transformers library.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\deep-learning\\transformers\\SKILL.md"
+        }
+      ]
+    },
+    {
       "name": "differential-expression",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\differential-expression",
-      "skillCount": 6,
+      "skillCount": 7,
       "sampleSkills": [
         "bio-de-deseq2-basics",
         "bio-de-edger-basics",
@@ -1317,6 +1499,72 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\differential-expression\\timeseries-de\\SKILL.md",
           "toolType": "r",
           "primaryTool": "limma"
+        },
+        {
+          "name": "pydeseq2",
+          "description": "Differential gene expression analysis (Python DESeq2). Identify DE genes from bulk RNA-seq counts, Wald tests, FDR correction, volcano/MA plots, for RNA-seq analysis.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\differential-expression\\pydeseq2\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "drug-discovery",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\drug-discovery",
+      "skillCount": 9,
+      "sampleSkills": [
+        "datamol",
+        "deepchem",
+        "diffdock",
+        "medchem",
+        "molecular-dynamics"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "datamol",
+          "description": "Pythonic wrapper around RDKit with simplified interface and sensible defaults. Preferred for standard drug discovery including SMILES parsing, standardization, descriptors, fingerprints, clustering, 3D conformers, parallel processing. Returns native rdkit.Chem.Mol objects. For advanced control or custom parameters, use rdkit directly.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\drug-discovery\\datamol\\SKILL.md"
+        },
+        {
+          "name": "deepchem",
+          "description": "Molecular ML with diverse featurizers and pre-built datasets. Use for property prediction (ADMET, toxicity) with traditional ML or GNNs when you want extensive featurization options and MoleculeNet benchmarks. Best for quick experiments with pre-trained models, diverse molecular representations. For graph-first PyTorch workflows use torchdrug; for benchmark datasets use pytdc.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\drug-discovery\\deepchem\\SKILL.md"
+        },
+        {
+          "name": "diffdock",
+          "description": "Diffusion-based molecular docking. Predict protein-ligand binding poses from PDB/SMILES, confidence scores, virtual screening, for structure-based drug design. Not for affinity prediction.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\drug-discovery\\diffdock\\SKILL.md"
+        },
+        {
+          "name": "medchem",
+          "description": "Medicinal chemistry filters for compound triage. Apply drug-likeness rules (Lipinski, Veber, CNS), structural alert catalogs (PAINS, NIBR, ChEMBL), complexity metrics, and the medchem query language for library filtering.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\drug-discovery\\medchem\\SKILL.md"
+        },
+        {
+          "name": "molecular-dynamics",
+          "description": "Run and analyze molecular dynamics simulations with OpenMM and MDAnalysis. Set up protein/small molecule systems, define force fields, run energy minimization and production MD, analyze trajectories (RMSD, RMSF, contact maps, free energy surfaces). For structural biology, drug binding, and biophysics.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\drug-discovery\\molecular-dynamics\\SKILL.md"
+        },
+        {
+          "name": "molfeat",
+          "description": "Molecular featurization for ML (100+ featurizers). ECFP, MACCS, descriptors, pretrained models (ChemBERTa), convert SMILES to features, for QSAR and molecular ML.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\drug-discovery\\molfeat\\SKILL.md"
+        },
+        {
+          "name": "pytdc",
+          "description": "Therapeutics Data Commons. AI-ready drug discovery datasets (ADME, toxicity, DTI), benchmarks, scaffold splits, molecular oracles, for therapeutic ML and pharmacological prediction.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\drug-discovery\\pytdc\\SKILL.md"
+        },
+        {
+          "name": "rowan",
+          "description": "Rowan is a cloud-native molecular modeling and medicinal-chemistry workflow platform with a Python API. Use for pKa and macropKa prediction, conformer and tautomer ensembles, docking and analogue docking, protein-ligand cofolding, MSA generation, molecular dynamics, permeability, descriptor workflows, and related small-molecule or protein modeling tasks. Ideal for programmatic batch screening, multi-step chemistry pipelines, and workflows that would otherwise require maintaining local HPC/GPU infrastructure.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\drug-discovery\\rowan\\SKILL.md"
+        },
+        {
+          "name": "torchdrug",
+          "description": "PyTorch-native graph neural networks for molecules and proteins. Use when building custom GNN architectures for drug discovery, protein modeling, or knowledge graph reasoning. Best for custom model development, protein property prediction, retrosynthesis. For pre-trained models and diverse featurizers use deepchem; for benchmark datasets use pytdc.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\drug-discovery\\torchdrug\\SKILL.md"
         }
       ]
     },
@@ -1648,7 +1896,7 @@
     {
       "name": "flow-cytometry",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\flow-cytometry",
-      "skillCount": 8,
+      "skillCount": 9,
       "sampleSkills": [
         "bio-flow-cytometry-bead-normalization",
         "bio-flow-cytometry-clustering-phenotyping",
@@ -1721,19 +1969,24 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\flow-cytometry\\gating-analysis\\SKILL.md",
           "toolType": "r",
           "primaryTool": "flowWorkspace"
+        },
+        {
+          "name": "flowio",
+          "description": "Parse FCS (Flow Cytometry Standard) files v2.0-3.1. Extract events as NumPy arrays, read metadata/channels, convert to CSV/DataFrame, for flow cytometry data preprocessing.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\flow-cytometry\\flowio\\SKILL.md"
         }
       ]
     },
     {
       "name": "gene-regulatory-networks",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\gene-regulatory-networks",
-      "skillCount": 5,
+      "skillCount": 6,
       "sampleSkills": [
+        "arboreto",
         "bio-gene-regulatory-networks-coexpression-networks",
         "bio-gene-regulatory-networks-differential-networks",
         "bio-gene-regulatory-networks-multiomics-grn",
-        "bio-gene-regulatory-networks-perturbation-simulation",
-        "bio-gene-regulatory-networks-scenic-regulons"
+        "bio-gene-regulatory-networks-perturbation-simulation"
       ],
       "toolTypes": [
         "python",
@@ -1747,6 +2000,11 @@
         "pySCENIC"
       ],
       "skills": [
+        {
+          "name": "arboreto",
+          "description": "Infer gene regulatory networks (GRNs) from gene expression data using scalable algorithms (GRNBoost2, GENIE3). Use when analyzing transcriptomics data (bulk RNA-seq, single-cell RNA-seq) to identify transcription factor-target gene relationships and regulatory interactions. Supports distributed computation for large-scale datasets.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\gene-regulatory-networks\\arboreto\\SKILL.md"
+        },
         {
           "name": "bio-gene-regulatory-networks-coexpression-networks",
           "description": "Build weighted gene co-expression networks to identify modules of co-regulated genes and relate them to phenotypes using WGCNA and CEMiTool. Detects hub genes and module-trait relationships from bulk or single-cell expression data. Use when finding co-expression modules, identifying hub genes, or relating gene networks to clinical or experimental variables.",
@@ -2002,7 +2260,7 @@
     {
       "name": "genome-intervals",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\genome-intervals",
-      "skillCount": 7,
+      "skillCount": 9,
       "sampleSkills": [
         "bio-bedgraph-handling",
         "bio-genome-intervals-bed-file-basics",
@@ -2067,6 +2325,102 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\genome-intervals\\proximity-operations\\SKILL.md",
           "toolType": "mixed",
           "primaryTool": "bedtools"
+        },
+        {
+          "name": "geniml",
+          "description": "This skill should be used when working with genomic interval data (BED files) for machine learning tasks. Use for training region embeddings (Region2Vec, BEDspace), single-cell ATAC-seq analysis (scEmbed), building consensus peaks (universes), or any ML-based analysis of genomic regions. Applies to BED file collections, scATAC-seq data, chromatin accessibility datasets, and region-based genomic feature learning.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\genome-intervals\\geniml\\SKILL.md"
+        },
+        {
+          "name": "gtars",
+          "description": "High-performance toolkit for genomic interval analysis in Rust with Python bindings. Use when working with genomic regions, BED files, coverage tracks, overlap detection, tokenization for ML models, or fragment analysis in computational genomics and machine learning applications.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\genome-intervals\\gtars\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "genomics-platforms",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\genomics-platforms",
+      "skillCount": 3,
+      "sampleSkills": [
+        "dnanexus-integration",
+        "latchbio-integration",
+        "omero-integration"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "dnanexus-integration",
+          "description": "DNAnexus cloud genomics platform. Build apps/applets, manage data (upload/download), dxpy Python SDK, run workflows, FASTQ/BAM/VCF, for genomics pipeline development and execution.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\genomics-platforms\\dnanexus-integration\\SKILL.md"
+        },
+        {
+          "name": "latchbio-integration",
+          "description": "Latch platform for bioinformatics workflows. Build pipelines with Latch SDK, @workflow/@task decorators, deploy serverless workflows, LatchFile/LatchDir, Nextflow/Snakemake integration.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\genomics-platforms\\latchbio-integration\\SKILL.md"
+        },
+        {
+          "name": "omero-integration",
+          "description": "Microscopy data management platform. Access images via Python, retrieve datasets, analyze pixels, manage ROIs/annotations, batch processing, for high-content screening and microscopy workflows.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\genomics-platforms\\omero-integration\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "geospatial",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\geospatial",
+      "skillCount": 2,
+      "sampleSkills": [
+        "geomaster",
+        "geopandas"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "geomaster",
+          "description": "Comprehensive geospatial science skill covering remote sensing, GIS, spatial analysis, machine learning for earth observation, and 30+ scientific domains. Supports satellite imagery processing (Sentinel, Landsat, MODIS, SAR, hyperspectral), vector and raster data operations, spatial statistics, point cloud processing, network analysis, cloud-native workflows (STAC, COG, Planetary Computer), and 8 programming languages (Python, R, Julia, JavaScript, C++, Java, Go, Rust) with 500+ code examples. Use for remote sensing workflows, GIS analysis, spatial ML, Earth observation data processing, terrain analysis, hydrological modeling, marine spatial analysis, atmospheric science, and any geospatial computation task.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\geospatial\\geomaster\\SKILL.md"
+        },
+        {
+          "name": "geopandas",
+          "description": "Python library for working with geospatial vector data including shapefiles, GeoJSON, and GeoPackage files. Use when working with geographic data for spatial analysis, geometric operations, coordinate transformations, spatial joins, overlay operations, choropleth mapping, or any task involving reading/writing/analyzing vector geographic data. Supports PostGIS databases, interactive maps, and integration with matplotlib/folium/cartopy. Use for tasks like buffer analysis, spatial joins between datasets, dissolving boundaries, clipping data, calculating areas/distances, reprojecting coordinate systems, creating maps, or converting between spatial file formats.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\geospatial\\geopandas\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "gpu-acceleration",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\gpu-acceleration",
+      "skillCount": 1,
+      "sampleSkills": [
+        "optimize-for-gpu"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "optimize-for-gpu",
+          "description": "GPU-accelerate Python code using CuPy, Numba CUDA, Warp, cuDF, cuML, cuGraph, KvikIO, cuCIM, cuxfilter, cuVS, cuSpatial, and RAFT. Use whenever the user mentions GPU/CUDA/NVIDIA acceleration, or wants to speed up NumPy, pandas, scikit-learn, scikit-image, NetworkX, GeoPandas, or Faiss workloads. Covers physics simulation, differentiable rendering, mesh ray casting, particle systems (DEM/SPH/fluids), vector/similarity search, GPUDirect Storage file IO, interactive dashboards, geospatial analysis, medical imaging, and sparse eigensolvers. Also use when you see CPU-bound Python code (loops, large arrays, ML pipelines, graph analytics, image processing) that would benefit from GPU acceleration, even if not explicitly requested.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\gpu-acceleration\\optimize-for-gpu\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "graph-ml",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\graph-ml",
+      "skillCount": 1,
+      "sampleSkills": [
+        "torch-geometric"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "torch-geometric",
+          "description": "PyTorch Geometric (PyG) for graph neural networks — node/link/graph classification, message passing (GCN, GAT, GraphSAGE, GIN), heterogeneous graphs, neighbor sampling, and custom datasets. Use when working with torch_geometric, not for general NetworkX analytics or non-graph PyTorch models.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\graph-ml\\torch-geometric\\SKILL.md"
         }
       ]
     },
@@ -2276,6 +2630,69 @@
       ]
     },
     {
+      "name": "knowledge-graphs",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\knowledge-graphs",
+      "skillCount": 1,
+      "sampleSkills": [
+        "primekg"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "primekg",
+          "description": "Query the Precision Medicine Knowledge Graph (PrimeKG) for multiscale biological data including genes, drugs, diseases, phenotypes, and more.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\knowledge-graphs\\primekg\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "lab-automation",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\lab-automation",
+      "skillCount": 6,
+      "sampleSkills": [
+        "benchling-integration",
+        "ginkgo-cloud-lab",
+        "labarchive-integration",
+        "opentrons-integration",
+        "protocolsio-integration"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "benchling-integration",
+          "description": "Benchling Python SDK and REST API integration for registry entities, inventory, ELN entries, workflows, Benchling Apps, and Data Warehouse queries. Use when automating lab data with benchling-sdk or the v2 API.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\lab-automation\\benchling-integration\\SKILL.md"
+        },
+        {
+          "name": "ginkgo-cloud-lab",
+          "description": "Submit and manage protocols on Ginkgo Bioworks Cloud Lab (cloud.ginkgo.bio), a web-based interface for autonomous lab execution on Reconfigurable Automation Carts (RACs). Use when the user wants to run cell-free protein expression (validation or optimization), generate fluorescent pixel art, or interact with Ginkgo Cloud Lab services. Covers protocol selection, input preparation, pricing, and ordering workflows.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\lab-automation\\ginkgo-cloud-lab\\SKILL.md"
+        },
+        {
+          "name": "labarchive-integration",
+          "description": "Electronic lab notebook API integration. Access notebooks, manage entries/attachments, backup notebooks, integrate with Protocols.io/Jupyter/REDCap, for programmatic ELN workflows.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\lab-automation\\labarchive-integration\\SKILL.md"
+        },
+        {
+          "name": "opentrons-integration",
+          "description": "Official Opentrons Protocol API for OT-2 and Flex robots. Use when writing protocols specifically for Opentrons hardware with full access to Protocol API v2 features. Best for production Opentrons protocols, official API compatibility. For multi-vendor automation or broader equipment control use pylabrobot.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\lab-automation\\opentrons-integration\\SKILL.md"
+        },
+        {
+          "name": "protocolsio-integration",
+          "description": "Integration with protocols.io API for managing scientific protocols. This skill should be used when working with protocols.io to search, create, update, or publish protocols; manage protocol steps and materials; handle discussions and comments; organize workspaces; upload and manage files; or integrate protocols.io functionality into workflows. Applicable for protocol discovery, collaborative protocol development, experiment tracking, lab protocol management, and scientific documentation.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\lab-automation\\protocolsio-integration\\SKILL.md"
+        },
+        {
+          "name": "pylabrobot",
+          "description": "Vendor-agnostic lab automation framework. Use when controlling multiple equipment types (Hamilton, Tecan, Opentrons, plate readers, pumps) or needing unified programming across different vendors. Best for complex workflows, multi-vendor setups, simulation. For Opentrons-only protocols with official API, opentrons-integration may be simpler.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\lab-automation\\pylabrobot\\SKILL.md"
+        }
+      ]
+    },
+    {
       "name": "liquid-biopsy",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\liquid-biopsy",
       "skillCount": 6,
@@ -2464,7 +2881,7 @@
     {
       "name": "machine-learning",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning",
-      "skillCount": 6,
+      "skillCount": 16,
       "sampleSkills": [
         "bio-machine-learning-atlas-mapping",
         "bio-machine-learning-biomarker-discovery",
@@ -2524,6 +2941,131 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\survival-analysis\\SKILL.md",
           "toolType": "python",
           "primaryTool": "lifelines"
+        },
+        {
+          "name": "exploratory-data-analysis",
+          "description": "Perform comprehensive exploratory data analysis on scientific data files across 200+ file formats. This skill should be used when analyzing any scientific data file to understand its structure, content, quality, and characteristics. Automatically detects file type and generates detailed markdown reports with format-specific analysis, quality metrics, and downstream analysis recommendations. Covers chemistry, bioinformatics, microscopy, spectroscopy, proteomics, metabolomics, and general scientific data formats.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\exploratory-data-analysis\\SKILL.md"
+        },
+        {
+          "name": "hugging-science",
+          "description": "Use when the user is doing AI/ML work in a scientific domain such as biology, chemistry, physics, astronomy, climate, genomics, materials, medicine, ecology, energy, engineering, math, drug discovery, protein design, weather modeling, theorem proving, single-cell, or PDE solving. Hugging Science is a curated catalog of scientific datasets, models, blog posts, and interactive Spaces. This skill helps discover and use resources via `datasets`, `transformers`, the HF Inference API, `gradio_client`, and methodology citations.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\hugging-science\\SKILL.md"
+        },
+        {
+          "name": "pymc",
+          "description": "Bayesian modeling with PyMC. Build hierarchical models, MCMC (NUTS), variational inference, LOO/WAIC comparison, posterior checks, for probabilistic programming and inference.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\pymc\\SKILL.md"
+        },
+        {
+          "name": "pymoo",
+          "description": "Multi-objective optimization framework. NSGA-II, NSGA-III, MOEA/D, Pareto fronts, constraint handling, benchmarks (ZDT, DTLZ), for engineering design and optimization problems.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\pymoo\\SKILL.md"
+        },
+        {
+          "name": "scikit-learn",
+          "description": "Machine learning in Python with scikit-learn. Use when working with supervised learning (classification, regression), unsupervised learning (clustering, dimensionality reduction), model evaluation, hyperparameter tuning, preprocessing, or building ML pipelines. Provides comprehensive reference documentation for algorithms, preprocessing techniques, pipelines, and best practices.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\scikit-learn\\SKILL.md"
+        },
+        {
+          "name": "scikit-survival",
+          "description": "Comprehensive toolkit for survival analysis and time-to-event modeling in Python using scikit-survival. Use this skill when working with censored survival data, performing time-to-event analysis, fitting Cox models, Random Survival Forests, Gradient Boosting models, or Survival SVMs, evaluating survival predictions with concordance index or Brier score, handling competing risks, or implementing any survival analysis workflow with the scikit-survival library.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\scikit-survival\\SKILL.md"
+        },
+        {
+          "name": "shap",
+          "description": "Model interpretability and explainability using SHAP (SHapley Additive exPlanations). Use this skill when explaining machine learning model predictions, computing feature importance, generating SHAP plots (waterfall, beeswarm, bar, scatter, force, heatmap), debugging models, analyzing model bias or fairness, comparing models, or implementing explainable AI. Works with tree-based models (XGBoost, LightGBM, Random Forest), deep learning (TensorFlow, PyTorch), linear models, and any black-box model.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\shap\\SKILL.md"
+        },
+        {
+          "name": "statistical-analysis",
+          "description": "Guided statistical analysis with test selection and reporting. Use when you need help choosing appropriate tests for your data, assumption checking, power analysis, and APA-formatted results. Best for academic research reporting, test selection guidance. For implementing specific models programmatically use statsmodels.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\statistical-analysis\\SKILL.md"
+        },
+        {
+          "name": "statsmodels",
+          "description": "Statistical models library for Python. Use when you need specific model classes (OLS, GLM, mixed models, ARIMA) with detailed diagnostics, residuals, and inference. Best for econometrics, time series, rigorous inference with coefficient tables. For guided statistical test selection with APA reporting use statistical-analysis.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\statsmodels\\SKILL.md"
+        },
+        {
+          "name": "umap-learn",
+          "description": "UMAP dimensionality reduction. Fast nonlinear manifold learning for 2D/3D visualization, clustering preprocessing (HDBSCAN), supervised/parametric UMAP, for high-dimensional data.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\machine-learning\\umap-learn\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "mass-spectrometry",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\mass-spectrometry",
+      "skillCount": 2,
+      "sampleSkills": [
+        "matchms",
+        "pyopenms"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "matchms",
+          "description": "Spectral similarity and compound identification for metabolomics. Use for comparing mass spectra, computing similarity scores (cosine, modified cosine), and identifying unknown compounds from spectral libraries. Best for metabolite identification, spectral matching, library searching. For full LC-MS/MS proteomics pipelines use pyopenms.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\mass-spectrometry\\matchms\\SKILL.md"
+        },
+        {
+          "name": "pyopenms",
+          "description": "Complete mass spectrometry analysis platform. Use for proteomics workflows feature detection, peptide identification, protein quantification, and complex LC-MS/MS pipelines. Supports extensive file formats and algorithms. Best for proteomics, comprehensive MS data processing. For simple spectral comparison and metabolite ID use matchms.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\mass-spectrometry\\pyopenms\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "materials-science",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\materials-science",
+      "skillCount": 2,
+      "sampleSkills": [
+        "astropy",
+        "pymatgen"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "astropy",
+          "description": "Core Python library for astronomy and astrophysics workflows that need Astropy APIs, including units/quantities, coordinates, FITS I/O, tables, time systems, WCS, and cosmology. Use when implementing or debugging astronomical data analysis code with Astropy.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\materials-science\\astropy\\SKILL.md"
+        },
+        {
+          "name": "pymatgen",
+          "description": "Materials science toolkit. Crystal structures (CIF, POSCAR), phase diagrams, band structure, DOS, Materials Project integration, format conversion, for computational materials science.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\materials-science\\pymatgen\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "medical-imaging",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\medical-imaging",
+      "skillCount": 3,
+      "sampleSkills": [
+        "histolab",
+        "pathml",
+        "pydicom"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "histolab",
+          "description": "Lightweight WSI tile extraction and preprocessing. Use for basic slide processing, tissue detection, tile extraction, and stain normalization for H&E images. Best for simple pipelines, dataset preparation, and quick tile-based analysis. For advanced spatial proteomics, multiplexed imaging, or deep learning pipelines use pathml.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\medical-imaging\\histolab\\SKILL.md"
+        },
+        {
+          "name": "pathml",
+          "description": "Full-featured computational pathology toolkit. Use for advanced WSI analysis including multiplexed immunofluorescence (CODEX, Vectra), nucleus segmentation, tissue graph construction, and ML model training on pathology data. Supports 160+ slide formats. For simple tile extraction from H&E slides, histolab may be simpler.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\medical-imaging\\pathml\\SKILL.md"
+        },
+        {
+          "name": "pydicom",
+          "description": "Python library for working with DICOM (Digital Imaging and Communications in Medicine) files. Use this skill when reading, writing, or modifying medical imaging data in DICOM format, extracting pixel data from medical images (CT, MRI, X-ray, ultrasound), anonymizing DICOM files, working with DICOM metadata and tags, converting DICOM images to other formats, handling compressed DICOM data, or processing medical imaging datasets. Applies to tasks involving medical image analysis, PACS systems, radiology workflows, and healthcare imaging applications.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\medical-imaging\\pydicom\\SKILL.md"
         }
       ]
     },
@@ -2864,9 +3406,38 @@
       ]
     },
     {
+      "name": "neuroscience",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\neuroscience",
+      "skillCount": 3,
+      "sampleSkills": [
+        "bids",
+        "neurokit2",
+        "neuropixels-analysis"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "bids",
+          "description": ">",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\neuroscience\\bids\\SKILL.md"
+        },
+        {
+          "name": "neurokit2",
+          "description": "Comprehensive biosignal processing toolkit for analyzing physiological data including ECG, EEG, EDA, RSP, PPG, EMG, and EOG signals. Use this skill when processing cardiovascular signals, brain activity, electrodermal responses, respiratory patterns, muscle activity, or eye movements. Applicable for heart rate variability analysis, event-related potentials, complexity measures, autonomic nervous system assessment, psychophysiology research, and multi-modal physiological signal integration.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\neuroscience\\neurokit2\\SKILL.md"
+        },
+        {
+          "name": "neuropixels-analysis",
+          "description": "Analyze Neuropixels extracellular recordings end-to-end with SpikeInterface. Covers loading SpikeGLX/Open Ephys/NWB data, preprocessing, drift/motion correction, Kilosort4 (and CPU) spike sorting, quality metrics, and unit curation (threshold-based, model-based UnitRefine, and AI-assisted visual review). Use when working with Neuropixels 1.0/2.0 recordings, spike sorting, or extracellular electrophysiology analysis.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\neuroscience\\neuropixels-analysis\\SKILL.md"
+        }
+      ]
+    },
+    {
       "name": "pathway-analysis",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\pathway-analysis",
-      "skillCount": 6,
+      "skillCount": 7,
       "sampleSkills": [
         "bio-pathway-enrichment-visualization",
         "bio-pathway-go-enrichment",
@@ -2924,6 +3495,11 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\pathway-analysis\\wikipathways\\SKILL.md",
           "toolType": "r",
           "primaryTool": "clusterProfiler"
+        },
+        {
+          "name": "pathway-enrichment",
+          "description": "Run pathway and gene-set enrichment analysis on gene lists or ranked gene data, then interpret the results. Use whenever the user has a set of genes (differentially expressed genes from PyDESeq2/Scanpy, CRISPR-screen hits, cluster marker genes, proteomics hits) and wants to know which biological pathways, GO terms, or gene sets are over-represented or enriched. Covers over-representation analysis (ORA / Enrichr / Fisher / hypergeometric), ranked Gene Set Enrichment Analysis (GSEA / preranked), single-sample scoring (ssGSEA/GSVA), and functional profiling via gseapy, g:Profiler, Enrichr libraries, MSigDB, GO, KEGG, Reactome, and WikiPathways — plus gene-ID mapping, choosing the right background universe, multiple-testing correction, redundancy reduction, dotplots/enrichment maps, and publication-ready tables. Use this for \"pathway analysis\", \"enrichment analysis\", \"GO enrichment\", \"KEGG/Reactome pathways\", \"GSEA\", \"over-representation\", \"functional annotation\", or \"what pathways are my genes in\".",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\pathway-analysis\\pathway-enrichment\\SKILL.md"
         }
       ]
     },
@@ -2979,7 +3555,7 @@
     {
       "name": "phylogenetics",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\phylogenetics",
-      "skillCount": 8,
+      "skillCount": 10,
       "sampleSkills": [
         "bio-phylo-bayesian-inference",
         "bio-phylo-distance-calculations",
@@ -3056,6 +3632,16 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\phylogenetics\\tree-visualization\\SKILL.md",
           "toolType": "python",
           "primaryTool": "Bio.Phylo"
+        },
+        {
+          "name": "etetoolkit",
+          "description": "Phylogenetic tree toolkit (ETE). Tree manipulation (Newick/NHX), evolutionary event detection, orthology/paralogy, NCBI taxonomy, visualization (PDF/SVG), for phylogenomics.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\phylogenetics\\etetoolkit\\SKILL.md"
+        },
+        {
+          "name": "phylogenetics",
+          "description": "Build and analyze phylogenetic trees using MAFFT (multiple alignment), IQ-TREE 2 (maximum likelihood), and FastTree (fast NJ/ML). Visualize with ETE3 or FigTree. For evolutionary analysis, microbial genomics, viral phylodynamics, protein family analysis, and molecular clock studies.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\phylogenetics\\phylogenetics\\SKILL.md"
         }
       ]
     },
@@ -3167,13 +3753,13 @@
     {
       "name": "proteomics",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\proteomics",
-      "skillCount": 9,
+      "skillCount": 11,
       "sampleSkills": [
+        "adaptyv",
         "bio-proteomics-data-import",
         "bio-proteomics-dia-analysis",
         "bio-proteomics-differential-abundance",
-        "bio-proteomics-peptide-identification",
-        "bio-proteomics-protein-inference"
+        "bio-proteomics-peptide-identification"
       ],
       "toolTypes": [
         "cli",
@@ -3188,6 +3774,11 @@
         "pyOpenMS"
       ],
       "skills": [
+        {
+          "name": "adaptyv",
+          "description": "How to use the Adaptyv Bio Foundry API and Python SDK for protein experiment design, submission, and results retrieval. Use this skill whenever the user mentions Adaptyv, Foundry API, protein binding assays, protein screening experiments, BLI/SPR assays, thermostability assays, or wants to submit protein sequences for experimental characterization. Also trigger when code imports `adaptyv`, `adaptyv_sdk`, or `FoundryClient`, or references `foundry-api-public.adaptyvbio.com`.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\proteomics\\adaptyv\\SKILL.md"
+        },
         {
           "name": "bio-proteomics-data-import",
           "description": "Load and parse mass spectrometry data formats including mzML, mzXML, and quantification tool outputs like MaxQuant proteinGroups.txt. Use when starting a proteomics analysis with raw or processed MS data. Handles contaminant filtering and missing value assessment.",
@@ -3250,18 +3841,59 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\proteomics\\spectral-libraries\\SKILL.md",
           "toolType": "mixed",
           "primaryTool": "encyclopedia"
+        },
+        {
+          "name": "glycoengineering",
+          "description": "Analyze and engineer protein glycosylation. Scan sequences for N-glycosylation sequons (N-X-S/T), predict O-glycosylation hotspots, and access curated glycoengineering tools (NetOGlyc, GlycoShield, GlycoWorkbench). For glycoprotein engineering, therapeutic antibody optimization, and vaccine design.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\proteomics\\glycoengineering\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "quantum-computing",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\quantum-computing",
+      "skillCount": 4,
+      "sampleSkills": [
+        "cirq",
+        "pennylane",
+        "qiskit",
+        "qutip"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "cirq",
+          "description": "Google quantum computing framework. Use when targeting Google Quantum AI hardware, designing noise-aware circuits, or running quantum characterization experiments. Best for Google hardware, noise modeling, and low-level circuit design. For IBM hardware use qiskit; for quantum ML with autodiff use pennylane; for physics simulations use qutip.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\quantum-computing\\cirq\\SKILL.md"
+        },
+        {
+          "name": "pennylane",
+          "description": "Hardware-agnostic quantum ML framework with automatic differentiation. Use when training quantum circuits via gradients, building hybrid quantum-classical models, or needing device portability across IBM/Google/Rigetti/IonQ. Best for variational algorithms (VQE, QAOA), quantum neural networks, and integration with PyTorch or JAX. For hardware-specific optimizations use qiskit (IBM) or cirq (Google); for open quantum systems use qutip.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\quantum-computing\\pennylane\\SKILL.md"
+        },
+        {
+          "name": "qiskit",
+          "description": "IBM quantum computing framework. Use when targeting IBM Quantum hardware, working with Qiskit Runtime for production workloads, or needing IBM optimization tools. Best for IBM hardware execution, quantum error mitigation, and enterprise quantum computing. For Google hardware use cirq; for gradient-based quantum ML use pennylane; for open quantum system simulations use qutip.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\quantum-computing\\qiskit\\SKILL.md"
+        },
+        {
+          "name": "qutip",
+          "description": "Quantum physics simulation library for open quantum systems. Use when studying master equations, Lindblad dynamics, decoherence, quantum optics, or cavity QED. Best for physics research, open system dynamics, and educational simulations. NOT for circuit-based quantum computing—use qiskit, cirq, or pennylane for quantum algorithms and hardware execution.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\quantum-computing\\qutip\\SKILL.md"
         }
       ]
     },
     {
       "name": "read-alignment",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\read-alignment",
-      "skillCount": 4,
+      "skillCount": 5,
       "sampleSkills": [
         "bio-read-alignment-bowtie2-alignment",
         "bio-read-alignment-bwa-alignment",
         "bio-read-alignment-hisat2-alignment",
-        "bio-read-alignment-star-alignment"
+        "bio-read-alignment-star-alignment",
+        "pysam"
       ],
       "toolTypes": [
         "cli"
@@ -3300,6 +3932,11 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\read-alignment\\star-alignment\\SKILL.md",
           "toolType": "cli",
           "primaryTool": "STAR"
+        },
+        {
+          "name": "pysam",
+          "description": "Genomic file toolkit. Read/write SAM/BAM/CRAM alignments, VCF/BCF variants, FASTA/FASTQ sequences, extract regions, calculate coverage, for NGS data processing pipelines.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\read-alignment\\pysam\\SKILL.md"
         }
       ]
     },
@@ -3380,6 +4017,46 @@
       ]
     },
     {
+      "name": "regulatory",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\regulatory",
+      "skillCount": 1,
+      "sampleSkills": [
+        "iso-13485-certification"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "iso-13485-certification",
+          "description": "Comprehensive toolkit for preparing ISO 13485 certification documentation for medical device Quality Management Systems. Use when users need help with ISO 13485 QMS documentation, including (1) conducting gap analysis of existing documentation, (2) creating Quality Manuals, (3) developing required procedures and work instructions, (4) preparing Medical Device Files, (5) understanding ISO 13485 requirements, or (6) identifying missing documentation for medical device certification. Also use when users mention medical device regulations, QMS certification, FDA QMSR, EU MDR, or need help with quality system documentation.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\regulatory\\iso-13485-certification\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "reinforcement-learning",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\reinforcement-learning",
+      "skillCount": 2,
+      "sampleSkills": [
+        "pufferlib",
+        "stable-baselines3"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "pufferlib",
+          "description": "High-performance reinforcement learning framework optimized for speed and scale. Use when you need fast parallel training, vectorized environments, multi-agent systems, or integration with game environments (Atari, Procgen, NetHack). Achieves 2-10x speedups over standard implementations. For quick prototyping or standard algorithm implementations with extensive documentation, use stable-baselines3 instead.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\reinforcement-learning\\pufferlib\\SKILL.md"
+        },
+        {
+          "name": "stable-baselines3",
+          "description": "Production-ready reinforcement learning algorithms (PPO, SAC, DQN, TD3, DDPG, A2C) with scikit-learn-like API. Use for standard RL experiments, quick prototyping, and well-documented algorithm implementations. Best for single-agent RL with Gymnasium environments. For high-performance parallel training, multi-agent systems, or custom vectorized environments, use pufferlib instead.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\reinforcement-learning\\stable-baselines3\\SKILL.md"
+        }
+      ]
+    },
+    {
       "name": "reporting",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\reporting",
       "skillCount": 5,
@@ -3438,6 +4115,77 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\reporting\\rmarkdown-reports\\SKILL.md",
           "toolType": "r",
           "primaryTool": "rmarkdown"
+        }
+      ]
+    },
+    {
+      "name": "research-methodology",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology",
+      "skillCount": 11,
+      "sampleSkills": [
+        "autoskill",
+        "consciousness-council",
+        "dhdna-profiler",
+        "hypogenic",
+        "hypothesis-generation"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "autoskill",
+          "description": "Observe the user's screen via screenpipe, detect repeated research workflows, match them against existing scientific-agent-skills, and draft new skills (or composition recipes that chain existing ones) for the patterns not yet covered. Use when the user asks to analyze their recent work and propose skills based on what they actually do. Requires the screenpipe daemon (https://github.com/screenpipe/screenpipe) running locally on port 3030 — the skill has no other data source and will refuse to run if screenpipe is unreachable. All detection runs locally; only redacted cluster summaries reach the LLM.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\autoskill\\SKILL.md"
+        },
+        {
+          "name": "consciousness-council",
+          "description": "Run a multi-perspective Mind Council deliberation on any question, decision, or creative challenge. Use this skill whenever the user wants diverse viewpoints, needs help making a tough decision, asks for a council/panel/board discussion, wants to explore a problem from multiple angles, requests devil's advocate analysis, or says things like \"what would different experts think about this\", \"help me think through this from all sides\", \"council mode\", \"mind council\", or \"deliberate on this\". Also trigger when the user faces a dilemma, trade-off, or complex choice with no obvious answer.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\consciousness-council\\SKILL.md"
+        },
+        {
+          "name": "dhdna-profiler",
+          "description": "Extract cognitive patterns and thinking fingerprints from any text. Use this skill when the user wants to analyze how someone thinks, understand cognitive style, profile writing or speech patterns, compare thinking styles between people, asks \"what's my thinking style\", \"analyze how this person reasons\", \"cognitive profile\", \"thinking pattern\", \"DHDNA\", \"digital DNA\", or wants to understand the mind behind any text. Also trigger when the user provides text and wants deeper insight into the author's reasoning patterns, decision-making style, or cognitive signature.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\dhdna-profiler\\SKILL.md"
+        },
+        {
+          "name": "hypogenic",
+          "description": "Automated LLM-driven hypothesis generation and testing on tabular datasets. Use when you want to systematically explore hypotheses about patterns in empirical data (e.g., deception detection, content analysis). Combines literature insights with data-driven hypothesis testing. For manual hypothesis formulation use hypothesis-generation; for creative ideation use scientific-brainstorming.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\hypogenic\\SKILL.md"
+        },
+        {
+          "name": "hypothesis-generation",
+          "description": "Structured hypothesis formulation from observations. Use when you have experimental observations or data and need to formulate testable hypotheses with predictions, propose mechanisms, and design experiments to test them. Follows scientific method framework. For open-ended ideation use scientific-brainstorming; for automated LLM-driven hypothesis testing on datasets use hypogenic.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\hypothesis-generation\\SKILL.md"
+        },
+        {
+          "name": "market-research-reports",
+          "description": "Generate comprehensive market research reports (50+ pages) in the style of top consulting firms (McKinsey, BCG, Gartner). Features professional LaTeX formatting, extensive visual generation with scientific-schematics and generate-image, deep integration with research-lookup for data gathering, and multi-framework strategic analysis including Porter Five Forces, PESTLE, SWOT, TAM/SAM/SOM, and BCG Matrix.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\market-research-reports\\SKILL.md"
+        },
+        {
+          "name": "research-grants",
+          "description": "Write competitive research proposals for NSF, NIH, DOE, DARPA, and Taiwan NSTC. Agency-specific formatting, review criteria, budget preparation, broader impacts, significance statements, innovation narratives, and compliance with submission requirements.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\research-grants\\SKILL.md"
+        },
+        {
+          "name": "scholar-evaluation",
+          "description": "Systematically evaluate scholarly work using the ScholarEval framework, providing structured assessment across research quality dimensions including problem formulation, methodology, analysis, and writing with quantitative scoring and actionable feedback.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\scholar-evaluation\\SKILL.md"
+        },
+        {
+          "name": "scientific-brainstorming",
+          "description": "Creative research ideation and exploration. Use for open-ended brainstorming sessions, exploring interdisciplinary connections, challenging assumptions, or identifying research gaps. Best for early-stage research planning when you do not have specific observations yet. For formulating testable hypotheses from data use hypothesis-generation.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\scientific-brainstorming\\SKILL.md"
+        },
+        {
+          "name": "scientific-critical-thinking",
+          "description": "Evaluate scientific claims and evidence quality. Use for assessing experimental design validity, identifying biases and confounders, applying evidence grading frameworks (GRADE, Cochrane Risk of Bias), or teaching critical analysis. Best for understanding evidence quality, identifying flaws. For formal peer review writing use peer-review.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\scientific-critical-thinking\\SKILL.md"
+        },
+        {
+          "name": "what-if-oracle",
+          "description": "Run structured What-If scenario analysis with 4–6 branch possibility exploration (best, likely, worst, wild card, contrarian, second-order). Use when the user asks speculative what-if questions about uncertain futures, strategic forks, contingency planning, or stress-testing a decision before committing.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\research-methodology\\what-if-oracle\\SKILL.md"
         }
       ]
     },
@@ -3642,6 +4390,157 @@
       ]
     },
     {
+      "name": "scientific-communication",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication",
+      "skillCount": 27,
+      "sampleSkills": [
+        "bgpt-paper-search",
+        "citation-management",
+        "docx",
+        "exa-search",
+        "generate-image"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "bgpt-paper-search",
+          "description": "Search scientific papers and retrieve structured experimental data extracted from full-text studies via the BGPT MCP server. Returns 25+ fields per paper including methods, results, sample sizes, quality scores, and conclusions. Use for literature reviews, evidence synthesis, and finding experimental details not available in abstracts alone.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\bgpt-paper-search\\SKILL.md"
+        },
+        {
+          "name": "citation-management",
+          "description": "Comprehensive citation management for academic research. Search Google Scholar and PubMed for papers, extract accurate metadata, validate citations, and generate properly formatted BibTeX entries. This skill should be used when you need to find papers, verify citation information, convert DOIs to BibTeX, or ensure reference accuracy in scientific writing.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\citation-management\\SKILL.md"
+        },
+        {
+          "name": "docx",
+          "description": "Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx files). Triggers include: any mention of 'Word doc', 'word document', '.docx', or requests to produce professional documents with formatting like tables of contents, headings, page numbers, or letterheads. Also use when extracting or reorganizing content from .docx files, inserting or replacing images in documents, performing find-and-replace in Word files, working with tracked changes or comments, or converting content into a polished Word document. If the user asks for a 'report', 'memo', 'letter', 'template', or similar deliverable as a Word or .docx file, use this skill. Do NOT use for PDFs, spreadsheets, Google Docs, or general coding tasks unrelated to document generation.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\docx\\SKILL.md"
+        },
+        {
+          "name": "exa-search",
+          "description": "Web toolkit powered by Exa, tuned for scientific and technical content. Use this skill when the user needs to search the web or fetch/extract URL content. Covers: web search (semantic lookups, research, current info — with optional research-paper category and academic domain filtering) and URL extraction (fetching pages, articles, academic PDFs in batch). Use this skill for web-related tasks when the user wants high-quality search or scholarly filtering via category=research paper. Triggers on requests to search, look up, fetch a page, or extract an article.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\exa-search\\SKILL.md"
+        },
+        {
+          "name": "generate-image",
+          "description": "Generate or edit images using AI models (FLUX, Nano Banana 2). Use for general-purpose image generation including photos, illustrations, artwork, visual assets, concept art, and any image that is not a technical diagram or schematic. For flowcharts, circuits, pathways, and technical diagrams, use the scientific-schematics skill instead.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\generate-image\\SKILL.md"
+        },
+        {
+          "name": "infographics",
+          "description": "Create professional infographics using Nano Banana Pro AI with smart iterative refinement. Uses Gemini 3 Pro for quality review. Integrates research-lookup and web search for accurate data. Supports 10 infographic types, 8 industry styles, and colorblind-safe palettes.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\infographics\\SKILL.md"
+        },
+        {
+          "name": "latex-posters",
+          "description": "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Support for conference presentations, academic posters, and scientific communication. Includes layout design, color schemes, multi-column formats, figure integration, and poster-specific best practices for visual communication.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\latex-posters\\SKILL.md"
+        },
+        {
+          "name": "liteparse",
+          "description": "Local document and PDF parsing with spatial text and bounding boxes. Use for extracting text from PDFs, DOCX, Office files, and images; OCR on scans; layout-preserved JSON for RAG; batch-ingesting paper folders; or page screenshots for multimodal agents — even when the user does not name liteparse. Prefer over MarkItDown when you need bboxes, fast local parsing, or PNG page renders; prefer over the pdf skill for merge/split/forms.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\liteparse\\SKILL.md"
+        },
+        {
+          "name": "literature-review",
+          "description": "Conduct comprehensive, systematic literature reviews using multiple academic databases (PubMed, arXiv, bioRxiv, Semantic Scholar, etc.). This skill should be used when conducting systematic literature reviews, meta-analyses, research synthesis, or comprehensive literature searches across biomedical, scientific, and technical domains. Creates professionally formatted markdown documents and PDFs with verified citations in multiple citation styles (APA, Nature, Vancouver, etc.).",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\literature-review\\SKILL.md"
+        },
+        {
+          "name": "markdown-mermaid-writing",
+          "description": "Comprehensive markdown and Mermaid diagram writing skill. Use when creating any scientific document, report, analysis, or visualization. Establishes text-based diagrams as the default documentation standard with full style guides (markdown + mermaid), 24 diagram type references, and 9 document templates.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\markdown-mermaid-writing\\SKILL.md"
+        },
+        {
+          "name": "markitdown",
+          "description": "Convert files and office documents to Markdown. Supports PDF, DOCX, PPTX, XLSX, images (with OCR), audio (with transcription), HTML, CSV, JSON, XML, ZIP, YouTube URLs, EPubs and more.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\markitdown\\SKILL.md"
+        },
+        {
+          "name": "open-notebook",
+          "description": "Self-hosted, open-source alternative to Google NotebookLM for AI-powered research and document analysis. Use when organizing research materials into notebooks, ingesting diverse content sources (PDFs, videos, audio, web pages, Office documents), generating AI-powered notes and summaries, creating multi-speaker podcasts from research, chatting with documents using context-aware AI, searching across materials with full-text and vector search, or running custom content transformations. Supports 16+ AI providers including OpenAI, Anthropic, Google, Ollama, Groq, and Mistral with complete data privacy through self-hosting.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\open-notebook\\SKILL.md"
+        },
+        {
+          "name": "pacsomatic",
+          "description": "Operator toolkit for nf-core/pacsomatic matched tumor-normal workflows from BAM inputs. Use this skill when the user needs to validate run inputs, generate pacsomatic-compliant samplesheets, prepare reproducible Nextflow launch artifacts, run locally or submit to schedulers (LSF/Slurm/PBS/SGE), and triage execution failures. Triggers on requests to run pacsomatic, prepare launch commands/scripts, perform dry-run checks, or troubleshoot pipeline startup and scheduler submission errors.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\pacsomatic\\SKILL.md"
+        },
+        {
+          "name": "paper-lookup",
+          "description": "Search 10 academic paper databases via REST APIs for research papers, preprints, and scholarly articles. Covers PubMed, PMC (full text), bioRxiv, medRxiv, arXiv, OpenAlex, Crossref, Semantic Scholar, CORE, Unpaywall. Use when searching for papers, citations, DOI/PMID lookups, abstracts, full text, open access, preprints, citation graphs, author search, or any scholarly literature query. Triggers on mentions of any supported database or requests like \"find papers on X\" or \"look up this DOI\".",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\paper-lookup\\SKILL.md"
+        },
+        {
+          "name": "paperzilla",
+          "description": "Chat with your agent about projects, recommendations, and canonical papers in Paperzilla. Use when users ask for recent project recommendations, canonical paper details, markdown-based summaries, recommendation feedback, feed export, or Atom feed URLs.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\paperzilla\\SKILL.md"
+        },
+        {
+          "name": "parallel-web",
+          "description": "All-in-one web toolkit powered by parallel-cli, with a strong emphasis on academic and scientific sources. Use this skill whenever the user needs to search the web, fetch/extract URL content, enrich data with web-sourced fields, or run deep research reports. Covers: web search (fast lookups, research, current info — prioritizing peer-reviewed papers, preprints, and scholarly databases), URL extraction (fetching pages, articles, academic PDFs), bulk data enrichment (adding fields to CSV/lists from the web), and deep research (exhaustive multi-source reports grounded in academic literature). Also handles setup, status checks, and result retrieval. Use this skill for ANY web-related task — even if the user doesn't mention 'parallel' or 'web' explicitly. If they want to look something up, fetch a page, enrich a dataset, investigate a topic, find academic papers, check citations, or review scientific literature, this is the skill to use.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\parallel-web\\SKILL.md"
+        },
+        {
+          "name": "pdf",
+          "description": "Use this skill whenever the user wants to do anything with PDF files. This includes reading or extracting text/tables from PDFs, combining or merging multiple PDFs into one, splitting PDFs apart, rotating pages, adding watermarks, creating new PDFs, filling PDF forms, encrypting/decrypting PDFs, extracting images, and OCR on scanned PDFs to make them searchable. If the user mentions a .pdf file or asks to produce one, use this skill.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\pdf\\SKILL.md"
+        },
+        {
+          "name": "peer-review",
+          "description": "Structured manuscript/grant review with checklist-based evaluation. Use when writing formal peer reviews with specific criteria methodology assessment, statistical validity, reporting standards compliance (CONSORT/STROBE), and constructive feedback. Best for actual review writing, manuscript revision. For evaluating claims/evidence quality use scientific-critical-thinking; for quantitative scoring frameworks use scholar-evaluation.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\peer-review\\SKILL.md"
+        },
+        {
+          "name": "pptx",
+          "description": "Use this skill any time a .pptx file is involved in any way — as input, output, or both. This includes: creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from any .pptx file (even if the extracted content will be used elsewhere, like in an email or summary); editing, modifying, or updating existing presentations; combining or splitting slide files; working with templates, layouts, speaker notes, or comments. Trigger whenever the user mentions \\\"deck,\\\" \\\"slides,\\\" \\\"presentation,\\\" or references a .pptx filename, regardless of what they plan to do with the content afterward. If a .pptx file needs to be opened, created, or touched, use this skill.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\pptx\\SKILL.md"
+        },
+        {
+          "name": "pptx-posters",
+          "description": "Create research posters using HTML/CSS that can be exported to PDF or PPTX. Use this skill ONLY when the user explicitly requests PowerPoint/PPTX poster format. For standard research posters, use latex-posters instead. This skill provides modern web-based poster design with responsive layouts and easy visual integration.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\pptx-posters\\SKILL.md"
+        },
+        {
+          "name": "pyzotero",
+          "description": "Interact with Zotero reference management libraries using the pyzotero Python client. Retrieve, create, update, and delete items, collections, tags, and attachments via the Zotero Web API v3. Use this skill when working with Zotero libraries programmatically, managing bibliographic references, exporting citations, searching library contents, uploading PDF attachments, or building research automation workflows that integrate with Zotero.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\pyzotero\\SKILL.md"
+        },
+        {
+          "name": "research-lookup",
+          "description": "Look up current research information using parallel-cli search (primary, fast web search), the Parallel Chat API (deep research), or Perplexity sonar-pro-search (academic paper searches). Automatically routes queries to the best backend. Use for finding papers, gathering research data, and verifying scientific information. Note: query text is transmitted to api.parallel.ai (PARALLEL_API_KEY) and, for academic searches, to openrouter.ai (OPENROUTER_API_KEY).",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\research-lookup\\SKILL.md"
+        },
+        {
+          "name": "scientific-schematics",
+          "description": "Create publication-quality scientific diagrams using Nano Banana 2 AI with smart iterative refinement. Uses Gemini 3.1 Pro Preview for quality review. Only regenerates if quality is below threshold for your document type. Specialized in neural network architectures, system diagrams, flowcharts, biological pathways, and complex scientific visualizations.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\scientific-schematics\\SKILL.md"
+        },
+        {
+          "name": "scientific-slides",
+          "description": "Build slide decks and presentations for research talks. Use this for making PowerPoint slides, conference presentations, seminar talks, research presentations, thesis defense slides, or any scientific talk. Provides slide structure, design templates, timing guidance, and visual validation. Works with PowerPoint and LaTeX Beamer.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\scientific-slides\\SKILL.md"
+        },
+        {
+          "name": "scientific-writing",
+          "description": "Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraphs (never bullet points). Use two-stage process with (1) section outlines with key points using research-lookup then (2) convert to flowing prose. IMRAD structure, citations (APA/AMA/Vancouver), figures/tables, reporting guidelines (CONSORT/STROBE/PRISMA), for research papers and journal submissions.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\scientific-writing\\SKILL.md"
+        },
+        {
+          "name": "venue-templates",
+          "description": "Access comprehensive LaTeX templates, formatting requirements, and submission guidelines for major scientific publication venues (Nature, Science, PLOS, IEEE, ACM), academic conferences (NeurIPS, ICML, CVPR, CHI), research posters, and grant proposals (NSF, NIH, DOE, DARPA). This skill should be used when preparing manuscripts for journal submission, conference papers, research posters, or grant proposals and need venue-specific formatting requirements and templates.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\venue-templates\\SKILL.md"
+        },
+        {
+          "name": "xlsx",
+          "description": "Create, edit, analyze, or convert Excel spreadsheets (.xlsx, .xlsm) where the workbook file is the primary deliverable. Use for formulas, formatting, financial models, multi-sheet workbooks, and tabular cleanup exported to Excel. Also applies to .csv/.tsv when the user wants spreadsheet output. Do NOT use for Word documents, HTML reports, standalone Python scripts, database pipelines, or Google Sheets API work.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\scientific-communication\\xlsx\\SKILL.md"
+        }
+      ]
+    },
+    {
       "name": "sequence-io",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\sequence-io",
       "skillCount": 9,
@@ -3728,7 +4627,7 @@
     {
       "name": "sequence-manipulation",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\sequence-manipulation",
-      "skillCount": 7,
+      "skillCount": 9,
       "sampleSkills": [
         "bio-codon-usage",
         "bio-motif-search",
@@ -3794,19 +4693,58 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\sequence-manipulation\\transcription-translation\\SKILL.md",
           "toolType": "python",
           "primaryTool": "Bio.Seq"
+        },
+        {
+          "name": "biopython",
+          "description": "Comprehensive molecular biology toolkit. Use for sequence manipulation, file parsing (FASTA/GenBank/PDB), phylogenetics, and programmatic NCBI/PubMed access (Bio.Entrez). Best for batch processing, custom bioinformatics pipelines, BLAST automation. For quick lookups use gget; for multi-service integration use bioservices.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\sequence-manipulation\\biopython\\SKILL.md"
+        },
+        {
+          "name": "scikit-bio",
+          "description": "Biological data toolkit. Sequence analysis, alignments, phylogenetic trees, diversity metrics (alpha/beta, UniFrac), ordination (PCoA), PERMANOVA, FASTA/Newick I/O, for microbiome analysis.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\sequence-manipulation\\scikit-bio\\SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "simulation",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\simulation",
+      "skillCount": 3,
+      "sampleSkills": [
+        "fluidsim",
+        "matlab",
+        "simpy"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "fluidsim",
+          "description": "Framework for computational fluid dynamics simulations using Python. Use when running fluid dynamics simulations including Navier-Stokes equations (2D/3D), shallow water equations, stratified flows, or when analyzing turbulence, vortex dynamics, or geophysical flows. Provides pseudospectral methods with FFT, HPC support, and comprehensive output analysis.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\simulation\\fluidsim\\SKILL.md"
+        },
+        {
+          "name": "matlab",
+          "description": "MATLAB and GNU Octave numerical computing for matrix operations, data analysis, visualization, and scientific computing. Use when writing MATLAB/Octave scripts for linear algebra, signal processing, image processing, differential equations, optimization, statistics, or creating scientific visualizations. Also use when the user needs help with MATLAB syntax, functions, or wants to convert between MATLAB and Python code. Scripts can be executed with MATLAB or the open-source GNU Octave interpreter.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\simulation\\matlab\\SKILL.md"
+        },
+        {
+          "name": "simpy",
+          "description": "Process-based discrete-event simulation framework in Python. Use this skill when building simulations of systems with processes, queues, resources, and time-based events such as manufacturing systems, service operations, network traffic, logistics, or any system where entities interact with shared resources over time.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\simulation\\simpy\\SKILL.md"
         }
       ]
     },
     {
       "name": "single-cell",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\single-cell",
-      "skillCount": 14,
+      "skillCount": 18,
       "sampleSkills": [
+        "anndata",
         "bio-single-cell-batch-integration",
         "bio-single-cell-cell-annotation",
         "bio-single-cell-cell-communication",
-        "bio-single-cell-clustering",
-        "bio-single-cell-data-io"
+        "bio-single-cell-clustering"
       ],
       "toolTypes": [
         "mixed",
@@ -3826,6 +4764,11 @@
         "Signac"
       ],
       "skills": [
+        {
+          "name": "anndata",
+          "description": "Data structure for annotated matrices in single-cell analysis. Use when working with .h5ad files or integrating with the scverse ecosystem. This is the data format skill—for analysis workflows use scanpy; for probabilistic models use scvi-tools; for population-scale queries use cellxgene-census.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\single-cell\\anndata\\SKILL.md"
+        },
         {
           "name": "bio-single-cell-batch-integration",
           "description": "Integrate multiple scRNA-seq samples/batches using Harmony, scVI, Seurat anchors, and fastMNN. Remove technical variation while preserving biological differences. Use when integrating multiple scRNA-seq batches or datasets.",
@@ -3923,6 +4866,21 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\single-cell\\trajectory-inference\\SKILL.md",
           "toolType": "mixed",
           "primaryTool": "Monocle3"
+        },
+        {
+          "name": "cellxgene-census",
+          "description": "Query the CELLxGENE Census (61M+ cells) programmatically. Use when you need expression data across tissues, diseases, or cell types from the largest curated single-cell atlas. Best for population-scale queries, reference atlas comparisons. For analyzing your own data use scanpy or scvi-tools.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\single-cell\\cellxgene-census\\SKILL.md"
+        },
+        {
+          "name": "scanpy",
+          "description": "Standard single-cell RNA-seq analysis pipeline. Use for QC, normalization, dimensionality reduction (PCA/UMAP/t-SNE), clustering, differential expression, visualization, and converting R-friendly single-cell formats such as Seurat or SingleCellExperiment RDS files into h5ad for Scanpy. Best for exploratory scRNA-seq analysis with established workflows. For deep learning models use scvi-tools; for data format questions use anndata.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\single-cell\\scanpy\\SKILL.md"
+        },
+        {
+          "name": "scvelo",
+          "description": "RNA velocity analysis with scVelo. Estimate cell state transitions from unspliced/spliced mRNA dynamics, infer trajectory directions, compute latent time, and identify driver genes in single-cell RNA-seq data. Complements Scanpy/scVI-tools for trajectory inference.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\single-cell\\scvelo\\SKILL.md"
         }
       ]
     },
@@ -4090,7 +5048,7 @@
     {
       "name": "structural-biology",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\structural-biology",
-      "skillCount": 12,
+      "skillCount": 13,
       "sampleSkills": [
         "alphafold-database-fetch-and-analyze",
         "bio-pdb-geometric-analysis",
@@ -4155,6 +5113,11 @@
           "primaryTool": "ESMFold"
         },
         {
+          "name": "esm",
+          "description": "Comprehensive toolkit for EvolutionaryScale protein language models including ESM3 (generative multimodal design across sequence, structure, and function) and ESM C (efficient embeddings). Use for protein sequence/structure/function tasks, inverse folding, embeddings, variant design, and ESMFold2 structure prediction via Biohub. Supports local open weights (Python 3.12, esm on PyPI) and cloud Forge/Biohub APIs with ESM_API_KEY authentication.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\structural-biology\\esm\\SKILL.md"
+        },
+        {
           "name": "foldseek-structural-search",
           "description": ">",
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\structural-biology\\foldseek\\SKILL.md"
@@ -4182,9 +5145,26 @@
       ]
     },
     {
+      "name": "symbolic-math",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\symbolic-math",
+      "skillCount": 1,
+      "sampleSkills": [
+        "sympy"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "sympy",
+          "description": "Use when you need exact symbolic math in Python — algebra, calculus, equation solving, symbolic linear algebra, or code generation via lambdify/LaTeX. Prefer NumPy or SciPy when floating-point approximations are sufficient.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\symbolic-math\\sympy\\SKILL.md"
+        }
+      ]
+    },
+    {
       "name": "systems-biology",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\systems-biology",
-      "skillCount": 5,
+      "skillCount": 6,
       "sampleSkills": [
         "bio-systems-biology-context-specific-models",
         "bio-systems-biology-flux-balance-analysis",
@@ -4236,6 +5216,11 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\systems-biology\\model-curation\\SKILL.md",
           "toolType": "python",
           "primaryTool": "memote"
+        },
+        {
+          "name": "cobrapy",
+          "description": "Constraint-based metabolic modeling (COBRA). FBA, FVA, gene knockouts, flux sampling, SBML models, for systems biology and metabolic engineering analysis.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\systems-biology\\cobrapy\\SKILL.md"
         }
       ]
     },
@@ -4361,9 +5346,32 @@
       ]
     },
     {
+      "name": "time-series",
+      "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\time-series",
+      "skillCount": 2,
+      "sampleSkills": [
+        "aeon",
+        "timesfm-forecasting"
+      ],
+      "toolTypes": [],
+      "primaryTools": [],
+      "skills": [
+        {
+          "name": "aeon",
+          "description": "This skill should be used for time series machine learning tasks including classification, regression, clustering, forecasting, anomaly detection, segmentation, and similarity search. Use when working with temporal data, sequential patterns, or time-indexed observations requiring specialized algorithms beyond standard ML approaches. Particularly suited for univariate and multivariate time series analysis with scikit-learn compatible APIs.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\time-series\\aeon\\SKILL.md"
+        },
+        {
+          "name": "timesfm-forecasting",
+          "description": "Zero-shot time series forecasting with Google's TimesFM foundation model. Use for any univariate time series (sales, sensors, energy, vitals, weather) without training a custom model. Supports CSV/DataFrame/array inputs with point forecasts and prediction intervals. Includes a preflight system checker script to verify RAM/GPU before first use.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\time-series\\timesfm-forecasting\\SKILL.md"
+        }
+      ]
+    },
+    {
       "name": "variant-calling",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\variant-calling",
-      "skillCount": 13,
+      "skillCount": 14,
       "sampleSkills": [
         "bio-consensus-sequences",
         "bio-gatk-variant-calling",
@@ -4475,18 +5483,24 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\variant-calling\\vcf-statistics\\SKILL.md",
           "toolType": "cli",
           "primaryTool": "bcftools"
+        },
+        {
+          "name": "tiledbvcf",
+          "description": "Efficient storage and retrieval of genomic variant data using TileDB. Scalable VCF/BCF ingestion, incremental sample addition, compressed storage, parallel queries, and export capabilities for population genomics.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\variant-calling\\tiledbvcf\\SKILL.md"
         }
       ]
     },
     {
       "name": "workflow-management",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\workflow-management",
-      "skillCount": 4,
+      "skillCount": 5,
       "sampleSkills": [
         "bio-workflow-management-cwl-workflows",
         "bio-workflow-management-nextflow-pipelines",
         "bio-workflow-management-snakemake-workflows",
-        "bio-workflow-management-wdl-workflows"
+        "bio-workflow-management-wdl-workflows",
+        "nextflow"
       ],
       "toolTypes": [
         "cli",
@@ -4526,13 +5540,18 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\workflow-management\\wdl-workflows\\SKILL.md",
           "toolType": "cli",
           "primaryTool": "cromwell"
+        },
+        {
+          "name": "nextflow",
+          "description": "Build, run, and debug Nextflow data pipelines and nf-core workflows end to end. Use whenever the user mentions Nextflow, nf-core, .nf files, nextflow.config, DSL2, processes/channels/operators, samplesheets, or wants to run a community pipeline (e.g. nf-core/rnaseq, nf-core/sarek), write or test a module/subworkflow with nf-test, configure executors/containers (Docker, Singularity/Apptainer, Conda, Wave), scale a workflow to HPC/SLURM or cloud (AWS Batch, Google Batch, Azure, Kubernetes), or debug a failed/-resume run. Make sure to use this skill for any reproducible scientific/bioinformatics workflow work even if the user does not say the word \"Nextflow\", and for authoring nf-core-compliant pipelines, modules, configs, and linting.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\workflow-management\\nextflow\\SKILL.md"
         }
       ]
     },
     {
       "name": "workflows",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\workflows",
-      "skillCount": 41,
+      "skillCount": 42,
       "sampleSkills": [
         "bio-liquid-biopsy-pipeline",
         "bio-splicing-pipeline",
@@ -4874,6 +5893,11 @@
           "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\workflows\\timecourse-pipeline\\SKILL.md",
           "toolType": "mixed",
           "primaryTool": "Mfuzz"
+        },
+        {
+          "name": "bulk-rnaseq",
+          "description": "End-to-end bulk RNA-seq orchestrator — takes raw FASTQ reads through QC and trimming (FastQC, fastp/Trim Galore), alignment and quantification (STAR, Salmon, featureCounts), assembles a gene-level counts matrix, then hands off to differential expression (pydeseq2), pathway/GSEA enrichment (pathway-enrichment), and publication figures (scientific-visualization). Use whenever the user has bulk RNA-seq reads or quant output and wants a complete, reproducible differential-expression workflow — e.g. \"analyze my RNA-seq\", \"FASTQ to DESeq2\", \"run nf-core/rnaseq\", \"STAR/Salmon quantification\", \"build a counts matrix for DESeq2\", or \"go from reads to differentially expressed genes and enriched pathways\". Routes between an nf-core/rnaseq (Nextflow) path and a standalone STAR/Salmon path, and covers experimental design, strandedness, and QC gates. For single-cell RNA-seq use the scanpy skill instead.",
+          "filePath": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\workflows\\bulk-rnaseq\\SKILL.md"
         }
       ]
     }
