@@ -1,6 +1,6 @@
 ---
 name: academic-writing
-description: Academic writing workflow with literature management, citation validation, LaTeX/MD pipelines, local citation vector database, and Chinese academic formatting (GB/T 7714-2015)
+description: Academic writing workflow with literature management, citation validation, LaTeX/MD pipelines, local citation vector database, multi-format citations (APA/IEEE/Chicago/MLA/Vancouver/GB-T-7714), and complete research-to-publication pipeline
 category: academic
 exposure: standard
 ---
@@ -8,6 +8,17 @@ exposure: standard
 # Academic Writing Skill
 
 Comprehensive academic writing support for ExtendAI Lab. Covers the full pipeline: literature management → PDF parsing → citation database → writing → output generation.
+
+## Mode Selection
+
+**Academic Mode** (default for paper writing):
+- Full academic rigor with citation validation, integrity checks, multi-stage review
+- Use when: writing papers, literature reviews, research proposals
+
+**Engineering Mode** (for software docs, READMEs, technical reports):
+- Streamlined writing without excessive academic overhead
+- Use when: writing documentation, technical specs, blog posts, README files
+- Activate with: "engineering mode" or "technical writing"
 
 ## Architecture Overview
 
@@ -46,6 +57,7 @@ Comprehensive academic writing support for ExtendAI Lab. Covers the full pipelin
 4. **HTML Only for Preview** — HTML 仅用于预览，**禁止** HTML→DOCX 管线
 5. **PDF 解析标准化** — 统一走 doc-parser 脚本，不依赖模型自身解析能力
 6. **本地引用数据库** — Chroma + BGE 向量库，实现文段→论文溯源
+7. **Mode-Aware** — 自动检测学术/工程模式，避免过度学术化
 
 ## 学术诚信规则（强制执行）
 
@@ -89,6 +101,52 @@ Comprehensive academic writing support for ExtendAI Lab. Covers the full pipelin
 | `research-writing-skill` | `resources/academicSkills/writing/research-writing-skill/` | `skill("research-writing-skill")` | 论文写作、修改、润色、审稿回复 |
 | `office-academic-skill` | `resources/academicSkills/office/office-academic-skill/` | `skill("office-academic-skill")` | 学术 Word/PPT 生成与编辑 |
 | `scientific-toolkit-skill` | `resources/academicSkills/computing/scientific-toolkit-skill/` | `skill("scientific-toolkit-skill")` | 科研计算、MATLAB/Python、数据分析 |
+
+## Citation Formats
+
+| Format | Use Case | Example (Journal Article) |
+|--------|----------|---------------------------|
+| **GB/T 7714-2015** | 国内学位论文、中文期刊 | 张三, 李四. 人工智能研究综述[J]. 计算机学报, 2024, 47(1): 1-20. |
+| **APA 7th** | 社会科学、心理学、教育学 | Smith, J., & Johnson, A. (2024). AI research review. *Journal of Computing*, 47(1), 1-20. |
+| **IEEE** | 工程、计算机科学 | J. Smith and A. Johnson, "AI research review," *J. Comput.*, vol. 47, no. 1, pp. 1-20, 2024. |
+| **Chicago** | 人文科学、历史学 | Smith, John, and Alice Johnson. "AI Research Review." *Journal of Computing* 47, no. 1 (2024): 1-20. |
+| **MLA** | 文学、语言学 | Smith, John, and Alice Johnson. "AI Research Review." *Journal of Computing*, vol. 47, no. 1, 2024, pp. 1-20. |
+| **Vancouver** | 医学、生物医学 | Smith J, Johnson A. AI research review. J Comput. 2024;47(1):1-20. |
+
+### Format Selection Guide
+
+| Target | Recommended Format |
+|--------|-------------------|
+| 国内学位论文 | GB/T 7714-2015 |
+| 中文核心期刊 | GB/T 7714-2015 |
+| SCI 期刊（理工科） | IEEE 或 APA 7th |
+| SCI 期刊（社会科学） | APA 7th |
+| SSCI/A&HCI | APA 7th 或 Chicago |
+| 会议论文（IEEE） | IEEE |
+| 会议论文（ACM） | APA 7th |
+| 医学期刊 | Vancouver |
+
+## Paper Structures
+
+| Structure | Use Case | Sections |
+|-----------|----------|----------|
+| **IMRaD** | 实验研究、实证研究 | Introduction, Methods, Results, and Discussion |
+| **Literature Review** | 综述论文 | Introduction, Search Strategy, Thematic Analysis, Discussion, Conclusion |
+| **Theoretical Analysis** | 理论研究 | Introduction, Framework, Analysis, Discussion, Conclusion |
+| **Case Study** | 案例研究 | Introduction, Case Description, Analysis, Discussion, Conclusion |
+| **Policy Brief** | 政策研究 | Executive Summary, Background, Analysis, Recommendations |
+| **Conference Paper** | 会议论文 | Introduction, Related Work, Method, Evaluation, Conclusion |
+
+### Structure Selection Guide
+
+| Research Type | Recommended Structure |
+|---------------|----------------------|
+| 实验研究 | IMRaD |
+| 综述论文 | Literature Review |
+| 理论研究 | Theoretical Analysis |
+| 案例研究 | Case Study |
+| 政策研究 | Policy Brief |
+| 会议投稿 | Conference Paper |
 
 ## Tool Checking
 
@@ -173,3 +231,80 @@ F:\swxxx\scripts\build_docx_ref_codes.py
 - `academic_build_html_preview()` — 集成到 dashboard 的 HTML 预览
 - OCR 兜底管线（ocrmypdf + tesseract）
 - 更多 CSL 引文样式
+
+## Research Pipeline (Academic Mode)
+
+When in Academic Mode, follow this 6-stage pipeline:
+
+### Stage 1: RESEARCH
+- Literature search and collection
+- Source verification (check DOI, author, journal)
+- Annotated bibliography creation
+- Research question refinement
+
+### Stage 2: WRITE
+- Outline creation based on paper structure
+- Draft writing with citation placeholders
+- Citation compliance check
+- Bilingual abstract (if needed)
+
+### Stage 3: REVIEW
+- Self-review against checklist
+- Citation verification (all DOIs exist?)
+- Logical consistency check
+- Methodology review
+
+### Stage 4: REVISE
+- Address review comments
+- Update citations
+- Improve clarity and flow
+- Format compliance
+
+### Stage 5: FINALIZE
+- Select output format (MD/DOCX/LaTeX/PDF)
+- Apply citation format
+- Generate bibliography
+- Final quality check
+
+### Stage 6: SUMMARY
+- Document the writing process
+- Track collaboration quality
+- Archive materials
+
+## Integrity Verification
+
+### Pre-Writing Checklist
+- [ ] Research question is clear and specific
+- [ ] Literature search is comprehensive
+- [ ] Sources are verified (DOI exists, journal is legitimate)
+- [ ] No fabricated data or citations
+
+### Post-Writing Checklist
+- [ ] All citations have valid DOIs or are marked "待验证"
+- [ ] No plagiarized content
+- [ ] Claims are supported by evidence
+- [ ] Limitations are acknowledged
+- [ ] AI assistance is disclosed (if required)
+
+### Red Flags to Watch
+- Suspiciously perfect results
+- Citations that don't exist
+- Claims without evidence
+- Vague or unsubstantiated claims
+- Copy-pasted content without attribution
+
+## Mode-Specific Behavior
+
+### Academic Mode (default for papers)
+- Full integrity verification
+- Citation validation required
+- Multi-stage review process
+- Detailed bibliography
+
+### Engineering Mode (for technical docs)
+- Streamlined process
+- Focus on clarity and accuracy
+- Minimal academic overhead
+- Practical examples preferred
+
+To activate Engineering Mode: "Use engineering mode for this document" or "This is a technical document, not a paper"
