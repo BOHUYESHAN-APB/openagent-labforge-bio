@@ -60,6 +60,12 @@ graph TB
 - **617** bioinformatics skills, **88** categories
 - **14** slash commands, **10** tools
 
+### Release Policy
+
+> **We only recommend using the latest release.** Old versions are not maintained and may contain bugs, security issues, or incompatible configurations.
+
+After each major version bump (e.g., 1.x → 2.x), we delete all releases from the previous major version series. For example, when v2.0.0 is released, all v1.x.x releases will be removed. This ensures users always run a supported, tested version. If you need a specific older version, fork the repository at the desired tag before the cleanup.
+
 ### Recommended Companion Tools
 
 | Tool | Purpose | Install |
