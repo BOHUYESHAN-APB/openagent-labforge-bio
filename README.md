@@ -60,6 +60,14 @@ graph TB
 - **442** bioinformatics skills, **64** categories
 - **14** slash commands, **10** tools
 
+### Recommended Companion Tools
+
+| Tool | Purpose | Install |
+|------|---------|---------|
+| [**OfficeCLI**](https://github.com/iOfficeAI/OfficeCLI) | AI-native Word/Excel/PowerPoint CLI — create, read, modify `.docx`/`.xlsx`/`.pptx` without Office | `curl -fsSL https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.sh \| bash` (macOS/Linux) or `irm https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.ps1 \| iex` (Windows) |
+
+**Why OfficeCLI?** Our academic skills handle paper writing pipelines, but OfficeCLI provides **standardized, safe** Office document operations for any use case — reports, presentations, data sheets, templates. It's a single binary, zero dependencies, and the AI can auto-detect and suggest installation when needed.
+
 ### Disclaimer / 免责声明
 
 **We cannot guarantee the accuracy of AI-generated content.** 

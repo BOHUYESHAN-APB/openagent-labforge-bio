@@ -60,6 +60,14 @@ graph TB
 - **442** 个生物信息学技能，**64** 个类别
 - **14** 个斜杠命令，**10** 个自定义工具
 
+### 推荐配套工具
+
+| 工具 | 用途 | 安装方式 |
+|------|------|---------|
+| [**OfficeCLI**](https://github.com/iOfficeAI/OfficeCLI) | AI 原生 Word/Excel/PowerPoint CLI — 创建、读取、修改 `.docx`/`.xlsx`/`.pptx`，无需安装 Office | `curl -fsSL https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.sh \| bash`（macOS/Linux）或 `irm https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.ps1 \| iex`（Windows） |
+
+**为什么推荐 OfficeCLI？** 我们的学术技能处理论文写作管线，但 OfficeCLI 提供**标准化、安全的** Office 文档操作，适用于任何场景——报告、演示文稿、数据表、模板。单一可执行文件，零依赖，AI 可自动检测并建议安装。
+
 ### 免责声明
 
 **我们无法保证 AI 生成内容的准确性。**

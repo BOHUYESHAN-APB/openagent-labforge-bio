@@ -69,9 +69,33 @@ officecli view report.docx issues --json
 | CI/CD document generation | OfficeCLI | Zero dependencies, single binary |
 | Template-based batch reports | OfficeCLI `merge` | `{{key}}` placeholder replacement |
 
-### Detection
+### Detection & Auto-Install
 
-Use `academic_check_tools({ tools: ["officecli"] })` to check if OfficeCLI is installed.
+When this skill is loaded, check if OfficeCLI is available:
+
+```bash
+officecli --version
+```
+
+**If not installed**, suggest installation to the user:
+
+> OfficeCLI is a recommended tool for high-quality Word/Excel/PowerPoint operations. It's a single binary with zero dependencies. Would you like me to install it globally?
+
+**If user agrees**, install globally:
+
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.sh | bash
+
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.ps1 | iex
+```
+
+**When to suggest OfficeCLI:**
+- User wants high-quality document output
+- User has iterated multiple times with existing skills but quality is not satisfactory
+- User asks for Word/PPT/Excel creation or editing
+- User wants template-based batch document generation
 
 ## Language And Evidence
 
