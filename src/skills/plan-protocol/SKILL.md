@@ -259,3 +259,100 @@ Before calling `plan_save`, verify:
 - [ ] **Single CURRENT:** Is exactly one task marked `← CURRENT`?
 - [ ] **Valid markers:** Do all phases use valid status markers?
 - [ ] **Hierarchical IDs:** Are tasks numbered correctly (1.1, 1.2, 2.1)?
+
+---
+
+## Task Granularity Standard
+
+**Each task should be completable in 2-5 minutes.**
+
+### Why This Matters
+
+- Small tasks are easier to verify
+- Small tasks reduce context switching
+- Small tasks make progress visible
+- Small tasks enable better error recovery
+
+### How to Break Down Tasks
+
+**Bad (too vague):**
+```
+- [ ] 2.1 Implement authentication
+```
+
+**Good (specific and actionable):**
+```
+- [ ] 2.1 Create src/auth/middleware.ts with validateToken() function
+- [ ] 2.2 Add JWT verification logic to validateToken()
+- [ ] 2.3 Write test for expired token rejection
+- [ ] 2.4 Write test for invalid token format
+- [ ] 2.5 Add middleware to router chain in src/app.ts
+```
+
+### Task Breakdown Checklist
+
+Each task should specify:
+- **What file** to create or modify
+- **What function/component** to add
+- **What behavior** to implement
+- **How to verify** it works (test or manual check)
+
+### Example: Feature Implementation
+
+**Feature:** Add rate limiting to API
+
+**Bad:**
+```
+- [ ] 3.1 Add rate limiting
+```
+
+**Good:**
+```
+- [ ] 3.1 Create src/middleware/rate-limiter.ts with sliding window algorithm
+- [ ] 3.2 Add RateLimiter class with isAllowed(ip) method
+- [ ] 3.3 Write test: verify 429 after 100 requests in 1 minute
+- [ ] 3.4 Write test: verify X-RateLimit-Remaining header
+- [ ] 3.5 Add rate-limiter middleware to src/app.ts router
+- [ ] 3.6 Write integration test: verify rate limiting works end-to-end
+```
+
+### Task Breakdown Anti-Patterns
+
+| Anti-Pattern | Problem |
+|--------------|---------|
+| "Implement feature X" | Too vague, unclear when done |
+| "Fix the bug" | No verification step |
+| "Update the code" | No specific file or function |
+| "Add tests" | No specific test cases |
+
+---
+
+## Two Execution Modes
+
+### Mode A: Self-Contained (Main Agent)
+
+When the main agent (orchestrator/atlas) creates and executes its own plan:
+
+1. Create plan using this protocol
+2. Execute tasks sequentially
+3. Mark tasks `[x]` as completed
+4. Use `verification-before-completion` skill
+
+### Mode B: Delegated (Plan Agent → Work Agent)
+
+When using specialized agents:
+
+1. **Plan Agent (prometheus)** creates the plan
+2. **Work Agent (atlas)** executes via `/ol-start-work`
+3. Plan file is the cross-session source of truth
+4. Work agent updates checkboxes as tasks complete
+
+### Which Mode to Use
+
+| Scenario | Mode |
+|----------|------|
+| Simple feature, single session | A |
+| Complex feature, multiple sessions | B |
+| User explicitly asks for plan agent | B |
+| Quick implementation | A |
+| Need specialized planning | B |

@@ -109,6 +109,9 @@ import {
   createWebfetchTool,
   loadAgentInstructionsTool,
 } from './tools';
+import { createSaveChangeTool } from './tools/save-change';
+import { createSaveExploreTool } from './tools/save-explore';
+import { createSaveScratchTool } from './tools/save-scratch';
 import { createSubtaskState } from './tools/subtask/state';
 import { detectBioTaskTool } from './tools/detect-bio-task.js';
 import {
@@ -868,6 +871,9 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       ...councilTools,
       media_inventory: createMediaInventoryTool(ctx),
       save_plan: createSavePlanTool(ctx.directory),
+      save_change: createSaveChangeTool(ctx.directory),
+      save_explore: createSaveExploreTool(ctx.directory),
+      save_scratch: createSaveScratchTool(ctx.directory),
       webfetch,
       ...todoContinuationHook.tool,
       ast_grep_search,

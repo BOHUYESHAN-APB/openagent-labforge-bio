@@ -27,13 +27,14 @@ Skills in directories listed in `configSkills.paths` are **fully exposed** — t
 
 **Use for:** Skills that users may actively trigger via `/skill-name` (complete workflows).
 
-**Currently registered (20 skills):**
+**Currently registered (24 skills):**
 
 | Skill | Description |
 |-------|-------------|
 | `academic-writing` | Academic writing workflow with literature management, citation validation, multi-format citations |
 | `agent-browser` | Browser automation via agent-browser CLI |
 | `ai-slop-remover` | Removes AI-generated code smells |
+| `brainstorming` | Socratic design dialogue - explores intent before implementation |
 | `cnki-citation` | CNKI export parsing |
 | `code-philosophy` | Internal logic and data flow philosophy |
 | `code-review` | Comprehensive code review methodology |
@@ -48,9 +49,12 @@ Skills in directories listed in `configSkills.paths` are **fully exposed** — t
 | `plan-review` | Plan review criteria |
 | `playwright` | Browser automation via Playwright MCP |
 | `playwright-cli` | Browser automation via playwright-cli |
+| `receiving-code-review` | Technical rigor when handling review feedback |
 | `review-work` | Work review guidelines |
 | `simplify` | Behavior-preserving code simplification |
+| `systematic-debugging` | 4-phase root cause analysis |
 | `team-mode` | Parallel multi-agent coordination |
+| `test-driven-development` | RED-GREEN-REFACTOR cycle |
 
 ### Method 2: Tool-Based Loading (`load_skill_template` / `load_bio_skills`)
 

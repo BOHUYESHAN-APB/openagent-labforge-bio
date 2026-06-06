@@ -52,12 +52,36 @@ Then execute the review as @reviewer — using the reviewer's methodology, check
    - "I could also..." — should have done it if possible
    - Partial implementations with "for now" or "as a starting point"
 4. **Work Quality** — Are there obvious bugs, half-done implementations, or TODO comments?
+5. **Evidence-Based Completion** (CRITICAL) — For each claim of completion:
+   - "Tests pass" → MUST show actual test output
+   - "Build succeeds" → MUST show build output
+   - "Feature works" → MUST show verification steps
+   - "No errors" → MUST show diagnostic output
+
+## Evidence Requirements
+
+**NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE**
+
+| Claim | Required Evidence |
+|-------|-------------------|
+| Tests pass | Test command output: 0 failures |
+| Build succeeds | Build command output: exit 0 |
+| Feature works | Demonstration or test output |
+| No errors | Diagnostic/linter output |
+| Bug fixed | Regression test output |
+
+**Red Flags — STOP if you see:**
+- "Should work now" without evidence
+- "I'm confident" without verification
+- "Tests pass" without showing output
+- "Build succeeds" without showing output
+- Using "should", "probably", "seems to"
 
 ## Verdict
 
 After review, output ONE of:
 
-**[APPROVE]** — Work is complete, requirements met, no lazy patterns found. Call auto_continue(enabled=false) to stop.
+**[APPROVE]** — Work is complete, requirements met, no lazy patterns found, all claims verified with evidence. Call auto_continue(enabled=false) to stop.
 
 **[REJECT: <reason>]** — Work has issues. If rejected:
 - List each issue as a new todo
@@ -74,6 +98,7 @@ After review, output ONE of:
 - NEVER disable auto-continue manually — the system handles this automatically after approval
 - DO NOT revert git commits — create corrective todos instead
 - DO NOT claim completion without running diagnostics
+- DO NOT accept "should work" as completion — demand evidence
 - If you output [REJECT], create todos and let auto-continue resume the original agent to execute fixes]`;
 
 const AUTO_CONTINUE_USER_NOTIFICATION_PREFIX = '⎔ Auto-continue';

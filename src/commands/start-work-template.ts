@@ -38,6 +38,30 @@ Only top-level structured checkboxes count for boulder progress:
 
 Nested checkboxes are acceptance criteria or evidence items; do not count them as top-level progress.
 
+## MULTIPLE PLANS HANDLING
+
+When multiple incomplete plans are found, use the question tool to ask the user which plan to execute. This prevents agent switching issues.
+
+**CRITICAL: Use question tool, not direct text output.**
+
+Example:
+\`\`\`
+question(questions=[{
+  question: "Multiple incomplete plans found. Which one would you like to execute?",
+  header: "Select Plan",
+  options: [
+    { label: "Plan A", description: "Progress: 3/10 tasks - Modified: 2026-06-06" },
+    { label: "Plan B", description: "Progress: 0/5 tasks - Modified: 2026-06-05" },
+    { label: "Start new plan", description: "Create a new plan with planner agent" }
+  ]
+}])
+\`\`\`
+
+**Why question tool?**
+- User response goes through the tool, not as a new chat message
+- This prevents the UI agent from switching back to the original agent
+- The work agent maintains control throughout the session
+
 ## REVIEW AND COUNCIL
 
 - Run the final review wave before claiming completion.
@@ -60,4 +84,5 @@ When working in a worktree and ALL plan tasks are complete:
 - Do not stop just because one wave is complete if plan checkboxes remain unchecked.
 - Do not mark a plan checkbox [x] until the task is verified.
 - Do not claim completion without evidence.
-- If the visible UI agent did not switch to executor, tell the user to switch it manually, but continue following this injected execution context.`;
+- If the visible UI agent did not switch to executor, tell the user to switch it manually, but continue following this injected execution context.
+- When asking user for input (plan selection, decisions, etc.), ALWAYS use the question tool to prevent agent switching.`;

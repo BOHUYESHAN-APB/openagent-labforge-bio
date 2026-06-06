@@ -72,3 +72,85 @@ Team Mode enables parallel multi-agent coordination. OFF by default. Enable via 
 - Max 4 parallel workers
 - Max 32KB per message
 - Max 256KB unread inbox
+
+---
+
+## Two-Stage Review (Subagent-Driven Development)
+
+When executing implementation plans with independent tasks, use this pattern:
+
+### The Pattern
+
+For each task:
+1. **Implementer** — Executes the task, writes code, runs tests
+2. **Spec Reviewer** — Verifies code matches the specification
+3. **Quality Reviewer** — Checks code quality, style, best practices
+
+### Stage 1: Spec Compliance Review
+
+After implementer completes a task, dispatch a spec reviewer:
+
+```
+task(subagent_type="oracle", prompt="Review this implementation for spec compliance:
+- Does it match the requirements?
+- Are all acceptance criteria met?
+- Are there any missing features?
+Return: PASS/FAIL with specific issues.")
+```
+
+### Stage 2: Code Quality Review
+
+If spec review passes, dispatch a quality reviewer:
+
+```
+task(subagent_type="oracle", prompt="Review this code for quality:
+- Code style and readability
+- Error handling
+- Performance considerations
+- Security concerns
+Return: PASS/FAIL with specific issues.")
+```
+
+### Execution Flow
+
+```
+Task assigned to implementer
+    ↓
+Implementer completes task
+    ↓
+Spec reviewer dispatched
+    ↓
+PASS? → Quality reviewer dispatched
+FAIL? → Implementer fixes issues, re-review
+    ↓
+PASS? → Task marked complete
+FAIL? → Implementer fixes issues, re-review
+```
+
+### Benefits
+
+- **Isolated context** — Each reviewer gets fresh context
+- **Focused review** — Spec and quality reviewed separately
+- **Fast iteration** — Issues caught early
+- **High quality** — Two independent checks per task
+
+### When to Use
+
+| Scenario | Use Two-Stage Review? |
+|----------|----------------------|
+| Complex feature with multiple tasks | Yes |
+| Simple single-task change | No (use auto-review) |
+| High-risk changes (security, data) | Yes |
+| Quick fixes | No |
+| User explicitly asks for thorough review | Yes |
+
+---
+
+## Integration with Our Workflow
+
+- **Plan execution:** Use `plan-protocol` for task breakdown
+- **Task implementation:** Use `test-driven-development`
+- **Spec review:** Use oracle agent
+- **Quality review:** Use oracle agent
+- **Final review:** Use `auto-review` (todo-continuation)
+- **Debugging:** Use `systematic-debugging` if issues found
