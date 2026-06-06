@@ -315,3 +315,16 @@ Key requirements:
 ## License
 
 MIT License - see LICENSE file for details.
+
+## Third-Party Sources
+
+This bioSkills collection includes skills from the following open-source projects. All third-party skills retain their original licenses — integration does **not** relicense the upstream work.
+
+| Source | License | Skills | Description |
+|--------|---------|--------|-------------|
+| [google-deepmind/science-skills](https://github.com/google-deepmind/science-skills) | Apache-2.0 | 37 | AlphaFold, Ensembl, ClinVar, UniProt, PDB, literature search |
+| [K-Dense-AI/scientific-agent-skills](https://github.com/K-Dense-AI/scientific-agent-skills) | MIT | 143 | BioPython, Astropy, DeepChem, clinical databases, molecular dynamics |
+
+**Note:** These skills are more science-oriented, covering databases, molecular biology, and experimental analysis. However, they also ensure scientific rigor in software development workflows.
+
+Full provenance details available in `THIRD_PARTY_NOTICES.md`.
