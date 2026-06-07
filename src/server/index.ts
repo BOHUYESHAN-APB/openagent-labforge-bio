@@ -51,10 +51,9 @@ import {
 } from './pages';
 
 // ── Constants ─────────────────────────────────────────
-// Use port 0 to let the OS assign an available port dynamically.
-// This prevents port conflicts when multiple OpenCode windows run
-// simultaneously. The actual port is logged after server starts.
-const PORT = 0;
+// Use fixed port 25569 for predictable dashboard access.
+// If port is occupied, Bun.serve will throw an error.
+const PORT = 25569;
 const HOST = '127.0.0.1';
 const OPENCODE_LOG_DIR = resolve(homedir(), '.local', 'share', 'opencode');
 const PLUGIN_LOG_DIR = resolve(OPENCODE_LOG_DIR, 'extendai-lab');
