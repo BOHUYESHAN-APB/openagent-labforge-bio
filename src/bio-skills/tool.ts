@@ -101,9 +101,13 @@ Examples:
         ].join('\n');
       }
 
+      const loaded = sessionManager.getLoadedSkills(sessionID);
+
+      // UI-friendly summary (shows in tool call header)
+      const uiSummary = `Loaded ${totalLoaded} bio skills: ${loaded.slice(0, 5).map(s => s.name).join(', ')}${loaded.length > 5 ? '...' : ''}`;
+
       return [
-        `Successfully loaded ${totalLoaded} bio skills from ${validCategories.length} categories.`,
-        `Total loaded categories in this session: ${loadedCategories.length}`,
+        uiSummary,
         `Categories: ${loadedCategories.join(', ')}`,
       ].join('\n');
     },

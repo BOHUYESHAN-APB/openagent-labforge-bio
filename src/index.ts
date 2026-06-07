@@ -139,6 +139,27 @@ import { collapseSystemInPlace } from './utils/system-collapse';
 
 const packageRoot = getPackageRoot(import.meta.url);
 
+/**
+ * Resolve the path to the bioSkills repository.
+ *
+ * IMPORTANT: This function resolves paths to BUNDLED resources, NOT the source repository.
+ * - In production (npm install): resolves to node_modules/oh-my-opencode/resources/bioSkills
+ * - In development (local build): resolves to {repo-root}/resources/bioSkills
+ *
+ * Path resolution order:
+ * 1. User-configured path (config.bioSkills.repoPath)
+ * 2. npm package resources: getPackageResourceDir(packageRoot, 'bioSkills')
+ * 3. npm package Future/clone: join(packageRoot, 'Future', 'clone', 'bioSkills')
+ * 4. Workspace resources: join(workspaceRoot, 'resources', 'bioSkills')
+ * 5. Workspace Future/clone: join(workspaceRoot, 'Future', 'clone', 'bioSkills')
+ *
+ * DO NOT hardcode paths to the source repository (e.g., "D:/-Users-/Documents/GitHub/...").
+ * That path only works in development, not for users who installed via npm.
+ *
+ * @param configuredPath - User-configured path from config.bioSkills.repoPath
+ * @param workspaceRoot - The current workspace root directory
+ * @returns The resolved path to the bioSkills directory
+ */
 function resolveBioSkillsRepoPath(
   configuredPath: string | undefined,
   workspaceRoot: string,

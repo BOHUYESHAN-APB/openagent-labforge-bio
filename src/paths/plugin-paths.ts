@@ -7,10 +7,38 @@ function getDefaultDataHome(): string {
   return join(homedir(), '.local', 'share');
 }
 
+/**
+ * Get the package root directory.
+ *
+ * IMPORTANT: This function returns the npm package root, NOT the source repository.
+ * - In production (npm install): returns node_modules/oh-my-opencode/
+ * - In development (local build): returns the repository root
+ *
+ * DO NOT hardcode paths to the source repository. Always use this function
+ * to get the correct package root for accessing bundled resources.
+ *
+ * @param moduleUrl - The import.meta.url of the calling module
+ * @returns The absolute path to the package root directory
+ */
 export function getPackageRoot(moduleUrl: string = import.meta.url): string {
   return dirname(dirname(fileURLToPath(moduleUrl)));
 }
 
+/**
+ * Get a resource directory within the package.
+ *
+ * IMPORTANT: This returns a path INSIDE the npm package, NOT the source repository.
+ * - In production: node_modules/oh-my-opencode/resources/{segments}
+ * - In development: {repo-root}/resources/{segments}
+ *
+ * Use this function to access bundled resources like bioSkills, academicSkills, etc.
+ * DO NOT hardcode paths like "D:/-Users-/Documents/GitHub/..." - that's the source repo,
+ * not the installed package.
+ *
+ * @param packageRoot - The package root from getPackageRoot()
+ * @param segments - Path segments to append after 'resources/'
+ * @returns The absolute path to the resource directory
+ */
 export function getPackageResourceDir(
   packageRoot: string,
   ...segments: string[]
