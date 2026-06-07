@@ -20,7 +20,9 @@ Examples:
 - load_skill_template(categories=["html-deck"]) — load presentation templates
 - load_skill_template(categories=["html-templates"]) — load HTML page templates
 - load_skill_template(categories=["academic-tools"]) — load academic tools (CNKI parser, citation matching, academic pipeline, LaTeX, DOCX, etc.)
-- load_skill_template(categories=["html-deck", "html-templates"]) — load both`,
+- load_skill_template(categories=["html-deck", "html-templates"]) — load both
+
+IMPORTANT: Do NOT use the built-in 'skill' tool for these. Use load_skill_template instead.`,
     args: {
       categories: z
         .array(z.string())

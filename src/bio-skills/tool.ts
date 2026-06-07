@@ -12,7 +12,7 @@ export function createLoadBioSkillsTool(
     description:
       `Load bio skills from specific categories. Use this when you need specialized bioinformatics workflows or tools.
 
-Key categories (64 total, see bio_skills_catalog in system prompt for full list):
+Key categories (88 total):
 - rna-seq: RNA sequencing analysis
 - variant-calling: Variant detection and annotation
 - single-cell: Single-cell analysis
@@ -20,10 +20,28 @@ Key categories (64 total, see bio_skills_catalog in system prompt for full list)
 - phylogenetics: Phylogenetic analysis
 - genome-assembly: Genome assembly workflows
 - proteomics: Mass spectrometry proteomics
+- chip-seq: ChIP-seq analysis
+- atac-seq: ATAC-seq analysis
+- differential-expression: DE analysis
+- pathway-analysis: Pathway enrichment
+- metagenomics: Metagenomics analysis
+- spatial-transcriptomics: Spatial analysis
+- machine-learning: ML for biology
+- structural-biology: Protein structure
+- clinical-databases: Clinical data access
+- database-access: 100+ scientific databases
+- drug-discovery: Molecular docking, ADMET
+- quantum-computing: Cirq, Qiskit, PennyLane
+- data-processing: Dask, Polars, Vaex
+- scientific-communication: Writing, review, posters
+- research-methodology: Brainstorming, hypothesis
+
+See bio_skills_catalog in system prompt for full list.
 
 Examples:
 - load_bio_skills(categories=["rna-seq"]) — load RNA-seq skills
-- load_bio_skills(categories=["variant-calling", "alignment"]) — load multiple categories`,
+- load_bio_skills(categories=["variant-calling", "alignment"]) — load multiple categories
+- load_bio_skills(categories=["database-access"]) — load 100+ database skills`,
     args: {
       categories: z
         .array(z.string())
