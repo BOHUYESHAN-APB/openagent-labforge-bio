@@ -16,7 +16,11 @@ The change folder structure:
 - tasks.md — Implementation checklist (- [ ] format)
 - status.json — Status tracking
 
-CRITICAL: Use this tool to save changes. Do NOT output change content in the conversation.`,
+CRITICAL WORKFLOW:
+1. FIRST: Discuss with user to understand the change
+2. THEN: Present the proposal/design/tasks to user for review
+3. ONLY AFTER user approves: Call this tool to save
+4. Do NOT save without user confirmation`,
     args: {
       name: z
         .string()

@@ -16,7 +16,7 @@ This is for "let me note this down quickly" moments:
 - An idea comes up that should be explored later
 - A constraint or decision that should be remembered
 
-CRITICAL: Use this tool to save quick notes. Do NOT output the note in the conversation. Just save it and continue with current work.`,
+This tool does NOT require user confirmation — it's for quick notes that don't interrupt workflow.`,
     args: {
       note: z
         .string()

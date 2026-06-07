@@ -14,7 +14,11 @@ The explore folder structure:
 - notes.md — Research notes, findings, observations
 - context.json — Metadata (session ID, creation time, tags)
 
-CRITICAL: Use this tool to save exploration notes. Do NOT output notes in the conversation.`,
+CRITICAL WORKFLOW:
+1. FIRST: Discuss findings with user
+2. THEN: Present the notes to user for review
+3. ONLY AFTER user approves: Call this tool to save
+4. Do NOT save without user confirmation`,
     args: {
       topic: z
         .string()
