@@ -1857,6 +1857,19 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           (agentName && allowedAgents.includes(agentName));
 
         if (isAllowed) {
+          // Add tool usage guide before catalog
+          output.system.push(`<skills_tool_guide>
+## Important: Tool Selection for Skills
+
+OpenCode has a built-in 'skill' tool for Method 1 skills (in src/skills/).
+For Method 2 skills (bioinformatics, HTML templates, academic tools), you MUST use the specialized tools:
+
+- **load_bio_skills** — for bioinformatics skills (617 skills, 88 categories)
+- **load_skill_template** — for HTML templates, academic tools, presentations
+
+Do NOT use the built-in 'skill' tool for these categories. The built-in 'skill' tool only works for Method 1 skills like code-review, karpathy-guidelines, etc.
+</skills_tool_guide>`);
+
           // Always show catalog
           const catalog = formatCatalogForPrompt(bioSkillsManager.getCatalog());
           if (catalog) {
