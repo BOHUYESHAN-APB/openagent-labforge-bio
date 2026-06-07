@@ -253,12 +253,34 @@ Add authentication
 
 Before calling `plan_save`, verify:
 
+- [ ] **User Confirmation:** Has the user approved this plan?
+- [ ] **Discussion Complete:** Have you discussed all key points with the user?
 - [ ] **Frontmatter:** Has status, phase, and updated date?
 - [ ] **Goal:** Is there a clear, one-sentence goal?
 - [ ] **Citations:** Are all research-based decisions cited with `ref:id`?
 - [ ] **Single CURRENT:** Is exactly one task marked `← CURRENT`?
 - [ ] **Valid markers:** Do all phases use valid status markers?
 - [ ] **Hierarchical IDs:** Are tasks numbered correctly (1.1, 1.2, 2.1)?
+
+### User Confirmation Process
+
+**REQUIRED before saving any plan:**
+
+1. **Present the plan** — Show the full plan content to the user
+2. **Ask for approval** — "Does this plan look good? Should I save it?"
+3. **Wait for response** — Do NOT save until user says yes
+4. **Save only after approval** — Call `plan_save` only after user confirms
+
+**Example:**
+```
+Here's the plan I created:
+
+[Plan content]
+
+Should I save this plan? (yes/no)
+```
+
+If user says no, ask what to change and repeat the process.
 
 ---
 

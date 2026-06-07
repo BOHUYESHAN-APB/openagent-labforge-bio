@@ -7,9 +7,15 @@ export function createSavePlanTool(workspaceRoot: string): ToolDefinition {
   return tool({
     description: `Save a planner-created markdown plan to .opencode/extendai-lab/plans/ and return the real saved path.
 
-CRITICAL: You MUST use this tool to save the plan. Do NOT output the plan content in the conversation. Do NOT ask the user where to save it. The path is fixed: .opencode/extendai-lab/plans/
+CRITICAL WORKFLOW:
+1. FIRST: Discuss with user to understand requirements
+2. THEN: Present the plan content to user for review
+3. ONLY AFTER user approves: Call this tool to save
+4. Do NOT save without user confirmation
 
-Use this when the planner/prometheus agent has enough information to create an executable plan. Do not claim a plan was saved unless this tool returns success.`,
+Do NOT output the plan content in the conversation after saving. The path is fixed: .opencode/extendai-lab/plans/
+
+Use this when the planner/prometheus agent has enough information to create an executable plan AND the user has approved it. Do not claim a plan was saved unless this tool returns success.`,
     args: {
       name: z
         .string()
