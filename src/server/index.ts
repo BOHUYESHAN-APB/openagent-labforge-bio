@@ -404,6 +404,129 @@ async function handleRequest(req: Request): Promise<Response> {
     //   return new Response(renderPapersLibrary(papers, t), { headers: { 'Content-Type': 'text/html; charset=utf-8' } } as any);
     // }
 
+    // ── Team Agent API ──────────────────────────────────
+    if (p === '/api/teams') {
+      const teamsDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'teams');
+      try {
+        const teams = readdirSync(teamsDir, { withFileTypes: true })
+          .filter(e => e.isDirectory())
+          .map(e => {
+            const statusFile = join(teamsDir, e.name, 'status.json');
+            try {
+              const status = JSON.parse(readFileSync(statusFile, 'utf8'));
+              return { name: e.name, ...status };
+            } catch {
+              return { name: e.name, status: 'unknown' };
+            }
+          });
+        return Response.json({ teams });
+      } catch {
+        return Response.json({ teams: [] });
+      }
+    }
+
+    if (p.startsWith('/api/teams/') && p.includes('/tasks')) {
+      const teamName = p.split('/')[3];
+      const tasksFile = join(workspaceRoot, '.opencode', 'extendai-lab', 'teams', teamName, 'tasks.json');
+      try {
+        const tasks = JSON.parse(readFileSync(tasksFile, 'utf8'));
+        return Response.json({ team: teamName, tasks });
+      } catch {
+        return Response.json({ team: teamName, tasks: [] });
+      }
+    }
+
+    if (p.startsWith('/api/teams/') && p.includes('/messages')) {
+      const teamName = p.split('/')[3];
+      const messagesFile = join(workspaceRoot, '.opencode', 'extendai-lab', 'teams', teamName, 'messages.json');
+      try {
+        const messages = JSON.parse(readFileSync(messagesFile, 'utf8'));
+        return Response.json({ team: teamName, messages });
+      } catch {
+        return Response.json({ team: teamName, messages: [] });
+      }
+    }
+
+    // ── Session Status API ──────────────────────────────
+    if (p === '/api/sessions') {
+      const boulderFile = join(workspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
+      const plansDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'plans');
+      try {
+        let boulder = {};
+        if (existsSync(boulderFile)) {
+          boulder = JSON.parse(readFileSync(boulderFile, 'utf8'));
+        }
+        const plans = existsSync(plansDir)
+          ? readdirSync(plansDir)
+              .filter(f => f.endsWith('.md'))
+              .map(f => {
+                const content = readFileSync(join(plansDir, f), 'utf8');
+                const total = (content.match(/- \[ \]/g) || []).length;
+                const completed = (content.match(/- \[x\]/g) || []).length;
+                return { name: f, total, completed };
+              })
+          : [];
+        return Response.json({ boulder, plans });
+      } catch {
+        return Response.json({ boulder: {}, plans: [] });
+      }
+    }
+
+    if (p === '/api/sessions/active') {
+      const boulderFile = join(workspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
+      try {
+        if (existsSync(boulderFile)) {
+          const boulder = JSON.parse(readFileSync(boulderFile, 'utf8'));
+          return Response.json({ active: true, ...boulder });
+        }
+        return Response.json({ active: false });
+      } catch {
+        return Response.json({ active: false });
+      }
+    }
+
+    // ── Changes API ─────────────────────────────────────
+    if (p === '/api/changes') {
+      const changesDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'changes');
+      try {
+        const changes = readdirSync(changesDir, { withFileTypes: true })
+          .filter(e => e.isDirectory())
+          .map(e => {
+            const statusFile = join(changesDir, e.name, 'status.json');
+            try {
+              const status = JSON.parse(readFileSync(statusFile, 'utf8'));
+              return { name: e.name, ...status };
+            } catch {
+              return { name: e.name, status: 'unknown' };
+            }
+          });
+        return Response.json({ changes });
+      } catch {
+        return Response.json({ changes: [] });
+      }
+    }
+
+    // ── Explore API ─────────────────────────────────────
+    if (p === '/api/explore') {
+      const exploreDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'explore');
+      try {
+        const explorations = readdirSync(exploreDir, { withFileTypes: true })
+          .filter(e => e.isDirectory())
+          .map(e => {
+            const contextFile = join(exploreDir, e.name, 'context.json');
+            try {
+              const context = JSON.parse(readFileSync(contextFile, 'utf8'));
+              return { name: e.name, ...context };
+            } catch {
+              return { name: e.name };
+            }
+          });
+        return Response.json({ explorations });
+      } catch {
+        return Response.json({ explorations: [] });
+      }
+    }
+
     return err(404, 'Not found');
   } catch (e) {
     return err(500, String(e));

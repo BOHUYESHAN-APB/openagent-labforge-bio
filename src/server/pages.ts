@@ -203,8 +203,16 @@ export function renderDashboard(
       <a href="/config/project" class="card-link"><span class="ico">⚙</span><h3>Project Config</h3><p>Edit project settings</p></a>
       <a href="/config/global" class="card-link"><span class="ico">🔧</span><h3>Global Config</h3><p>Edit global plugin settings</p></a>
       <a href="/plans" class="card-link"><span class="ico">📋</span><h3>Plans</h3><p>Saved execution plans</p></a>
+      <a href="/sessions" class="card-link"><span class="ico">🔄</span><h3>Sessions</h3><p>Active sessions & boulder state</p></a>
+      <a href="/teams" class="card-link"><span class="ico">👥</span><h3>Teams</h3><p>Team agent status & tasks</p></a>
+      <a href="/changes" class="card-link"><span class="ico">🔀</span><h3>Changes</h3><p>Change proposals & tracking</p></a>
+      <a href="/explore" class="card-link"><span class="ico">🔍</span><h3>Explore</h3><p>Exploration notes & research</p></a>
     </div>
     ${recentSection}
+    <script>
+      // Auto-refresh dashboard every 30 seconds
+      setTimeout(() => location.reload(), 30000);
+    </script>
   `,
     theme,
   );
@@ -512,4 +520,19 @@ img{max-width:100%;border-radius:4px}
 .md h3{font-size:15px;margin-top:16px}
 .md p{margin:8px 0}
 .code-block{background:var(--bg2);padding:16px;border-radius:4px;border:1px solid var(--border);overflow-x:auto;white-space:pre-wrap;font:13px monospace}
+.session-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:12px}
+.session-card h3{margin:0 0 8px 0;color:var(--fg)}
+.session-card .status{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600}
+.session-card .status.active{background:#1a332a;color:var(--ok)}
+.session-card .status.paused{background:#332a1a;color:var(--warn)}
+.session-card .status.complete{background:#1a2a33;color:var(--link)}
+.progress-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin:8px 0}
+.progress-bar .fill{height:100%;background:var(--link);transition:width 0.3s}
+.team-member{display:inline-block;padding:4px 10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;margin:4px;font-size:12px}
+.task-item{padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.task-item:last-child{border-bottom:none}
+.task-item .status{float:right;font-weight:600}
+.task-item .status.pending{color:var(--sub)}
+.task-item .status.in_progress{color:var(--warn)}
+.task-item .status.completed{color:var(--ok)}
 `;
