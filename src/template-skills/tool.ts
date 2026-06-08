@@ -82,14 +82,11 @@ IMPORTANT: Do NOT use the built-in 'skill' tool for these. Use load_skill_templa
         .map((s) => `  - ${s.name}: ${s.description}`)
         .join('\n');
 
-      // UI-friendly summary (shows in tool call header)
-      const uiSummary = `Loaded ${loaded.length} skills: ${loaded.slice(0, 5).map(s => s.name).join(', ')}${loaded.length > 5 ? '...' : ''}`;
-
       return [
-        uiSummary,
+        `Successfully loaded ${loaded.length} skills from ${validCategories.length} categories.`,
         `Categories: ${loadedCategories.join(', ')}`,
         '',
-        'Full skill list:',
+        'Loaded skills:',
         skillList,
         '',
         'Use the read tool to load specific SKILL.md files for detailed instructions.',

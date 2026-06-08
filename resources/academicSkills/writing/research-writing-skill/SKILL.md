@@ -49,6 +49,23 @@ Use this skill for research writing and revision when the output is prose, LaTeX
 - 对待所有问题都要反复推敲，优先保证准确性
 - 保持结构化输出，条理清晰
 
+## Formatting Standards（字体格式规范）
+
+当输出为DOCX时，必须遵守以下字体规范：
+
+| 元素 | 中文字体 | 英文/数字字体 | 默认字号 |
+|------|----------|---------------|----------|
+| 正文 | 宋体 SimSun | Times New Roman | 14pt（小四号） |
+| 一级标题 | 黑体 SimHei | Times New Roman | 15pt |
+| 二级标题 | 黑体 SimHei | Times New Roman | 14pt |
+| 图表标题 | 宋体 SimSun | Times New Roman | 12pt |
+| 参考文献 | 宋体 SimSun | Times New Roman | 12pt |
+
+**其他格式要求：**
+- 行距：1.5倍
+- 首行缩进：0.74cm（2字符）
+- 如用户指定其他字号（如小五号12pt），按用户要求调整
+
 ## Manuscript Workflow
 
 For a new section or paper draft:

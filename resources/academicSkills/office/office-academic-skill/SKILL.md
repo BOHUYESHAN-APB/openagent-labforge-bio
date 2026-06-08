@@ -154,7 +154,13 @@ Use `references/report-structure.md` for the default report structure and eviden
 For `.docx` creation or editing:
 
 - Prefer structured headings, summary tables, figure/table placeholders, and source labels.
-- Use reliable Chinese fonts such as Microsoft YaHei or SimSun; use Times New Roman, Calibri, or Arial for English and numbers.
+- **字体规范（必须遵守）**：
+  - 中文字体：宋体（SimSun）用于正文，黑体（SimHei）用于标题
+  - 英文/数字字体：Times New Roman
+  - 默认字号：正文14pt（小四号），标题可适当增大
+  - 行距：1.5倍
+  - 首行缩进：0.74cm（2字符）
+  - 如用户指定其他字号（如小五号12pt），按用户要求调整
 - For existing academic/legal/business Word documents, make a new version or use tracked-change style edits rather than overwriting the original.
 - For advanced DOCX operations, use `references/office-docx/ooxml.md`, `references/office-docx/docx-js.md`, and the scripts under `references/office-docx/`.
 
