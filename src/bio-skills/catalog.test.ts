@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import {
   buildBioSkillsCatalog,
   formatCatalogForPrompt,
+  formatLoadedSkillsForPrompt,
   readGeneratedBioSkillsCatalog,
   scanBioSkillsCatalog,
 } from './index';
@@ -111,6 +112,23 @@ describe('bio skills catalog metadata', () => {
     expect(catalogText).toContain(
       'samples: bio-experimental-design-research-question-framing, bio-experimental-design-hypothesis-structuring',
     );
+  });
+
+  it('renders loaded skills with exact file paths', () => {
+    const loadedText = formatLoadedSkillsForPrompt([
+      {
+        name: 'bio-pathway-gsea',
+        description: 'Perform GSEA-based pathway enrichment',
+        category: 'pathway-analysis',
+        filePath: '/tmp/pathway-analysis/gsea/SKILL.md',
+        content: '# skill',
+        toolType: 'r',
+        primaryTool: 'GSEA',
+      },
+    ]);
+
+    expect(loadedText).toContain('File path: /tmp/pathway-analysis/gsea/SKILL.md');
+    expect(loadedText).toContain('Use the read tool to load specific skill instructions');
   });
 
   it('builds and reads a machine-readable catalog file', () => {

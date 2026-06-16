@@ -20,6 +20,13 @@ import type { SubtaskState } from './state';
 export type OpencodeClient = PluginInput['client'];
 const SUBTASK_TIMEOUT_MS = 5 * 60 * 1000;
 const SUBTASK_SUMMARY_TAG_REGEX = /<\/?subtask_summary>/g;
+const ALLOWED_SUBTASK_CALLERS = new Set([
+  'orchestrator',
+  'bio-orchestrator',
+  'deep-worker',
+  'prometheus',
+  'atlas',
+]);
 
 function normalizeSubtaskSummary(text: string): string {
   return text.replace(SUBTASK_SUMMARY_TAG_REGEX, '').trim();
@@ -68,6 +75,10 @@ export function createSubtaskTool(
     },
     async execute(args, context) {
       const runInBackground = args.background === true;
+      const callingAgent =
+        context && typeof context === 'object' && 'agent' in context
+          ? ((context as { agent?: string }).agent ?? undefined)
+          : undefined;
       const directory =
         context &&
         typeof context === 'object' &&
@@ -81,6 +92,9 @@ export function createSubtaskTool(
           : 'unknown';
       if (state.isSubtaskSession(sessionID)) {
         return 'Nested subtask is disabled: this session is already a subtask worker. Finish this worker and return its summary to the parent session instead.';
+      }
+      if (callingAgent && !ALLOWED_SUBTASK_CALLERS.has(callingAgent)) {
+        return `Subtask tool is restricted to primary orchestrator agents. Current agent: ${callingAgent}`;
       }
       if (
         sessionID !== 'unknown' &&
@@ -164,6 +178,7 @@ Do not spawn another subtask.`;
             query: { directory },
             path: { id: childSessionID },
             body: {
+              agent: 'orchestrator',
               parts: [
                 {
                   type: 'text',
@@ -194,6 +209,7 @@ Do not spawn another subtask.`;
             query: { directory },
             path: { id: childSessionID },
             body: {
+              agent: 'orchestrator',
               parts: [
                 {
                   type: 'text',

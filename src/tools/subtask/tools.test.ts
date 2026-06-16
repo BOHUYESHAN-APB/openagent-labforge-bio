@@ -97,7 +97,6 @@ describe('subtask tool', () => {
       );
       expect(sessionMessages).toHaveBeenCalledWith({
         path: { id: 'ses_new' },
-        query: { directory },
       });
       expect(sessionAbort).toHaveBeenCalledWith({
         path: { id: 'ses_new' },
@@ -239,6 +238,37 @@ describe('subtask tool', () => {
       } as any);
 
       expect(nestedResult).toContain('Nested subtask is disabled');
+    } finally {
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  test('blocks subtask calls from non-orchestrator agents', async () => {
+    const directory = makeTempDir();
+    try {
+      const state = createSubtaskState();
+      const tool = createSubtaskTool(
+        {
+          directory,
+          client: {
+            session: {
+              abort: mock(async () => ({})),
+              create: mock(async () => ({ data: { id: 'ses_new' } })),
+              messages: mock(async () => ({ data: [] })),
+              prompt: mock(async () => ({})),
+            },
+          },
+        } as any,
+        state,
+        new SubagentDepthTracker(),
+      );
+
+      const result = await tool.execute(
+        { prompt: 'Nested run' },
+        { sessionID: 'ses_child', agent: 'oracle' } as any,
+      );
+
+      expect(result).toContain('restricted to primary orchestrator agents');
     } finally {
       fs.rmSync(directory, { recursive: true, force: true });
     }

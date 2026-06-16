@@ -41,13 +41,38 @@ See bio_skills_catalog in system prompt for full list.
 Examples:
 - load_bio_skills(categories=["rna-quantification"]) — load RNA-seq skills
 - load_bio_skills(categories=["variant-calling", "alignment"]) — load multiple categories
-- load_bio_skills(categories=["database-access"]) — load 100+ database skills`,
+- load_bio_skills(categories=["database-access"]) — load broad database skills catalog
+- load_bio_skills(categories=["pathway-analysis"], query="GSEA", limit=5) — load only the most relevant pathway skills
+- load_bio_skills(categories=["experimental-design"], query="power analysis") — narrow within a broad category
+
+Default behavior is now bounded. Prefer query and limit for broad categories instead of loading every skill in that category.`,
     args: {
       categories: z
         .array(z.string())
         .min(1)
         .describe(
           'Category names to load (e.g., ["rna-seq", "variant-calling"])',
+        ),
+      query: z
+        .string()
+        .optional()
+        .describe(
+          'Optional free-text query to narrow skills within the selected categories (e.g., "power analysis", "GSEA", "STAR alignment")',
+        ),
+      limit: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .optional()
+        .describe(
+          'Maximum number of matching skills to load across each category. Default: 12.',
+        ),
+      skills: z
+        .array(z.string())
+        .optional()
+        .describe(
+          'Optional exact skill names to load when you already know the desired skill names.',
         ),
     },
     async execute(args, toolContext) {
@@ -60,6 +85,17 @@ Examples:
       }
 
       const categories = args.categories as string[];
+      const query =
+        typeof args.query === 'string' && args.query.trim().length > 0
+          ? args.query.trim()
+          : undefined;
+      const limit =
+        typeof args.limit === 'number' ? Math.trunc(args.limit) : undefined;
+      const skillNames = Array.isArray(args.skills)
+        ? (args.skills as string[])
+            .map((value) => value.trim())
+            .filter(Boolean)
+        : undefined;
       const sessionID = (toolContext as { sessionID: string }).sessionID;
 
       // Validate categories exist
@@ -77,17 +113,26 @@ Examples:
         return `Error: Invalid categories: ${invalid.join(', ')}. Use categories from the catalog in system prompt.`;
       }
 
-      // Load all valid categories
-      let totalLoaded = 0;
-      const success = sessionManager.loadCategory(sessionID, validCategories);
-      if (success) {
-        const loaded = sessionManager.getLoadedSkills(sessionID);
-        totalLoaded = loaded.length;
-      }
+      const results = sessionManager.loadCategory(
+        sessionID,
+        validCategories.map((name) => ({
+          name,
+          ...(query ? { query } : {}),
+          ...(limit !== undefined ? { limit } : {}),
+          ...(skillNames && skillNames.length > 0 ? { skills: skillNames } : {}),
+        })),
+      );
+      const loaded = sessionManager.getLoadedSkills(sessionID);
+      const totalLoaded = loaded.length;
 
       const loadedCategories = sessionManager.getLoadedCategories(sessionID);
 
-      if (totalLoaded === 0) {
+      const matchedCount = results.reduce(
+        (sum, result) => sum + result.selectedSkills.length,
+        0,
+      );
+
+      if (matchedCount === 0) {
         const diagnostics = validCategories.map((categoryName) => {
           const category = catalogByName.get(categoryName);
           if (!category)
@@ -101,9 +146,31 @@ Examples:
         ].join('\n');
       }
 
+      const skillLines = results.flatMap((result) =>
+        result.selectedSkills.map(
+          (skill) =>
+            `- ${skill.name} (${result.name}) — ${skill.description} — ${skill.filePath}`,
+        ),
+      );
+
+      const categoryLines = results.map((result) => {
+        const querySuffix = result.query ? `, query="${result.query}"` : '';
+        const limitSuffix = result.limit ? `, limit=${result.limit}` : '';
+        return `- ${result.name}: selected ${result.selectedSkills.length}/${result.totalAvailable}, added ${result.addedCount}, session total ${result.totalLoaded}${querySuffix}${limitSuffix}`;
+      });
+
       return [
-        `Loaded ${totalLoaded} bio skills from ${validCategories.length} categories.`,
+        `Loaded ${matchedCount} matching bio skills from ${validCategories.length} categories.`,
         `Categories: ${loadedCategories.join(', ')}`,
+        ...(query ? [`Query: ${query}`] : []),
+        '',
+        'Category results:',
+        ...categoryLines,
+        '',
+        'Loaded skill files:',
+        ...skillLines,
+        '',
+        'Use the read tool to open the exact SKILL.md file paths you need before executing.',
       ].join('\n');
     },
   });

@@ -71,6 +71,7 @@ export function formatLoadedSkillsForPrompt(
     lines.push(`## ${skill.name}`);
     lines.push(`Category: ${skill.category}`);
     lines.push(`Description: ${skill.description}`);
+    lines.push(`File path: ${skill.filePath}`);
     if (skill.toolType) {
       lines.push(`Tool type: ${skill.toolType}`);
     }

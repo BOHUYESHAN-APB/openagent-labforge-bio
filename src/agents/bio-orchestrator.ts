@@ -51,7 +51,7 @@ Do NOT start serious bio analysis without loading relevant skills first.
 
 ### Routing Protocol (directory-first):
 1. First: load_bio_skills(categories=["<domain>"]) — load the matching domain
-2. Then: READ the specific skill files using the read tool (paths shown in system prompt)
+2. Then: READ the specific skill files using the read tool (paths shown in tool output and later in system prompt)
 3. Follow the loaded skill instructions for specific workflows
 4. Never front-load all categories — load only what the task needs
 
@@ -74,7 +74,7 @@ Do NOT start serious bio analysis without loading relevant skills first.
 When receiving a bio task, your FIRST action should be:
 1. Identify whether the task is primarily about biological analysis, experiment design, hypothesis testing, study strategy, or translational interpretation
 2. Call load_bio_skills(categories=["<domain>"])
-3. Read the loaded skill file paths from the system prompt
+3. Read the loaded skill file paths from the tool output (or the system prompt on later turns)
 4. Use the read tool to load the specific SKILL.md content
 5. Then proceed with biological strategy and analysis planning
 
@@ -105,7 +105,7 @@ If initial skill doesn't cover the task:
 When receiving a task:
 1. Identify the biological domain and the real bottleneck (biology, experiment design, chemistry overlap, statistics, literature, or implementation)
 2. **FIRST**: Load relevant bio skills using load_bio_skills tool
-3. **READ** the specific skill file paths shown in system prompt (use read tool)
+3. **READ** the specific skill file paths shown in tool output or system prompt (use read tool)
 4. Follow the loaded skill instructions for the specific workflow
 5. Gather context about biological question, input data, study design, constraints, and expected evidence
 

@@ -276,6 +276,7 @@ interface ContinuationState {
   autoEnableSuppressedSessionIds: Set<string>;
   autoEnableSuppressedGlobally: boolean;
   lastPressureCheckpointKeyBySession: Map<string, string>;
+  transientFailureCountBySession: Map<string, number>;
 }
 
 // ── State persistence (OMO ralph-loop pattern) ────────────────────
@@ -389,6 +390,9 @@ function loadContinuationState(
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+const TRANSIENT_FAILURE_RETRY_LIMIT = 3;
+const TRANSIENT_FAILURE_BACKOFF_MS = 1500;
 
 function scheduleStateSave(
   workspaceRoot: string,
@@ -632,6 +636,7 @@ export function createTodoContinuationHook(
     autoEnableSuppressedSessionIds: new Set(),
     autoEnableSuppressedGlobally: false,
     lastPressureCheckpointKeyBySession: new Map(),
+    transientFailureCountBySession: new Map(),
   };
 
   // Load persisted state from disk (OMO ralph-loop pattern for crash recovery)
@@ -992,6 +997,41 @@ export function createTodoContinuationHook(
     disableContinuationForSession(sessionID, `auto pause: ${reason}`);
   }
 
+  function clearTransientFailure(sessionID: string): void {
+    state.transientFailureCountBySession.delete(sessionID);
+  }
+
+  async function handleTransientFetchFailure(
+    sessionID: string,
+    reason: 'todo-fetch-failed' | 'message-fetch-failed',
+    details: string,
+  ): Promise<void> {
+    const nextCount =
+      (state.transientFailureCountBySession.get(sessionID) ?? 0) + 1;
+    state.transientFailureCountBySession.set(sessionID, nextCount);
+
+    if (nextCount < TRANSIENT_FAILURE_RETRY_LIMIT) {
+      const backoffMs = TRANSIENT_FAILURE_BACKOFF_MS * nextCount;
+      state.suppressUntil = Math.max(
+        state.suppressUntil,
+        Date.now() + backoffMs,
+      );
+      log(
+        `[${HOOK_NAME}] Transient fetch failure: ${reason} — retrying later`,
+        {
+          sessionID,
+          attempt: nextCount,
+          retryLimit: TRANSIENT_FAILURE_RETRY_LIMIT,
+          backoffMs,
+          details,
+        },
+      );
+      return;
+    }
+
+    await pauseAutoMode(sessionID, reason, details);
+  }
+
   function registerOrchestratorSession(sessionID: string): void {
     state.orchestratorSessionIds.add(sessionID);
   }
@@ -1215,15 +1255,17 @@ export function createTodoContinuationHook(
           hasIncompleteTodos,
           total: todos.length,
         });
+        clearTransientFailure(sessionID);
       } catch (error) {
+        const details = error instanceof Error ? error.message : String(error);
         log(`[${HOOK_NAME}] Warning: failed to fetch todos`, {
           sessionID,
-          error: error instanceof Error ? error.message : String(error),
+          error: details,
         });
-        await pauseAutoMode(
+        await handleTransientFetchFailure(
           sessionID,
           'todo-fetch-failed',
-          error instanceof Error ? error.message : String(error),
+          details,
         );
         return;
       }
@@ -1390,15 +1432,17 @@ export function createTodoContinuationHook(
           sessionID,
           lastAssistantIsQuestion,
         });
+        clearTransientFailure(sessionID);
       } catch (error) {
+        const details = error instanceof Error ? error.message : String(error);
         log(`[${HOOK_NAME}] Warning: failed to fetch messages`, {
           sessionID,
-          error: error instanceof Error ? error.message : String(error),
+          error: details,
         });
-        await pauseAutoMode(
+        await handleTransientFetchFailure(
           sessionID,
           'message-fetch-failed',
-          error instanceof Error ? error.message : String(error),
+          details,
         );
         return;
       }

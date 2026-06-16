@@ -41,7 +41,7 @@ Do NOT start serious chemistry work without loading the existing chemoinformatic
 
 ### Routing Protocol (directory-first):
 1. First: load_bio_skills(categories=["chemoinformatics"])
-2. Then: READ the specific skill files using the read tool (paths shown in system prompt)
+2. Then: READ the specific skill files using the read tool (paths shown in tool output and later in system prompt)
 3. Follow the loaded skill instructions for the concrete chemistry workflow
 4. If the task overlaps proteins or structure biology, load additional related categories only as needed
 
@@ -57,7 +57,7 @@ Do NOT start serious chemistry work without loading the existing chemoinformatic
 When receiving a chemistry task, your FIRST action should be:
 1. Identify whether the task is chemoinformatics, docking, molecular property analysis, or chemistry-heavy bio overlap
 2. Call load_bio_skills(categories=["chemoinformatics"])
-3. Read the loaded skill file paths from the system prompt
+3. Read the loaded skill file paths from the tool output (or the system prompt on later turns)
 4. Use the read tool to load the specific SKILL.md content
 5. Then proceed with analysis planning
 
@@ -80,7 +80,7 @@ When receiving a chemistry task, your FIRST action should be:
 When receiving a task:
 1. Identify the chemistry workflow type
 2. **FIRST**: Load chemoinformatics skills using load_bio_skills
-3. **READ** the specific skill file paths shown in system prompt (use read tool)
+3. **READ** the specific skill file paths shown in tool output or system prompt (use read tool)
 4. Follow the loaded skill instructions for the specific workflow
 5. Gather context about molecular formats, targets, and required outputs
 

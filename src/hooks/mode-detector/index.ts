@@ -37,7 +37,7 @@ SYNTHESIZE findings before proceeding.`;
 const BIO_PROMPT = `[bio-mode]
 BIOLOGICAL SCIENCE TASK detected. Load the relevant bioinformatics skills:
 
-1. Use load_bio_skills(categories=["<category>"]) to load the appropriate category
+1. Use load_bio_skills(categories=["<category>"], query="<task intent>") to load the appropriate category
 2. Follow the skill's workflow: data ingestion → QC → analysis → visualization
 3. Use domain-specific tools (samtools, STAR, DESeq2, etc.) as directed by the skill
 4. Write analysis HTML reports to .opencode/extendai-lab/pages/ for the user to view`;

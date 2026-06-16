@@ -22,12 +22,20 @@ describe('createTodoContinuationHook', () => {
         parts?: Array<{ type?: string; text?: string }>;
       }>;
     };
+    todoImpl?: () => Promise<unknown>;
+    messagesImpl?: () => Promise<unknown>;
   }) {
     return {
       client: {
         session: {
-          todo: mock(async () => overrides?.todoResult ?? { data: [] }),
-          messages: mock(async () => overrides?.messagesResult ?? { data: [] }),
+          todo: mock(
+            overrides?.todoImpl ??
+              (async () => overrides?.todoResult ?? { data: [] }),
+          ),
+          messages: mock(
+            overrides?.messagesImpl ??
+              (async () => overrides?.messagesResult ?? { data: [] }),
+          ),
           prompt: mock(async () => ({})),
         },
       },
@@ -1359,6 +1367,104 @@ describe('createTodoContinuationHook', () => {
       });
       await delay(30);
       expect(ctx.client.session.prompt).not.toHaveBeenCalled();
+    });
+
+    test('transient todo fetch failures retry before pausing auto mode', async () => {
+      const onAutoPause = mock(async () => {});
+      let attempts = 0;
+      const ctx = createMockContext({
+        todoImpl: async () => {
+          attempts += 1;
+          throw new Error(`todo failed ${attempts}`);
+        },
+      });
+      const hook = createTodoContinuationHook(ctx, {
+        cooldownMs: 20,
+        onAutoPause,
+      });
+
+      await hook.tool.auto_continue.execute({ enabled: true });
+
+      await hook.handleEvent({
+        event: {
+          type: 'session.idle',
+          properties: { sessionID: 'session-retry' },
+        },
+      });
+
+      expect(onAutoPause).not.toHaveBeenCalled();
+
+      await hook.handleEvent({
+        event: {
+          type: 'session.idle',
+          properties: { sessionID: 'session-retry' },
+        },
+      });
+
+      expect(onAutoPause).not.toHaveBeenCalled();
+
+      await hook.handleEvent({
+        event: {
+          type: 'session.idle',
+          properties: { sessionID: 'session-retry' },
+        },
+      });
+
+      expect(onAutoPause).toHaveBeenCalledWith({
+        sessionID: 'session-retry',
+        reason: 'todo-fetch-failed',
+        details: 'todo failed 3',
+      });
+    });
+
+    test('transient todo fetch failure can recover on later retry', async () => {
+      let attempts = 0;
+      const ctx = createMockContext({
+        todoImpl: async () => {
+          attempts += 1;
+          if (attempts === 1) {
+            throw new Error('temporary todo failure');
+          }
+
+          return {
+            data: [
+              { id: '1', content: 'todo1', status: 'pending', priority: 'high' },
+            ],
+          };
+        },
+        messagesResult: {
+          data: [
+            {
+              info: { role: 'assistant' },
+              parts: [{ type: 'text', text: 'Working...' }],
+            },
+          ],
+        },
+      });
+      const hook = createTodoContinuationHook(ctx, { cooldownMs: 20 });
+
+      await hook.tool.auto_continue.execute({ enabled: true });
+
+      await hook.handleEvent({
+        event: {
+          type: 'session.idle',
+          properties: { sessionID: 'session-recover' },
+        },
+      });
+      expect(hasContinuation(ctx.client.session.prompt)).toBe(false);
+
+      // Clear suppress window manually for deterministic retry in test.
+      await delay(1600);
+
+      await hook.handleEvent({
+        event: {
+          type: 'session.idle',
+          properties: { sessionID: 'session-recover' },
+        },
+      });
+
+      await delay(40);
+      expect(hasContinuation(ctx.client.session.prompt)).toBe(true);
     });
 
     test('abort suppress window → skip', async () => {
