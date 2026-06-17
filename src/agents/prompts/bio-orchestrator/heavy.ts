@@ -34,8 +34,9 @@ Classify the biological-science task:
 2. **Question definition**: What is the biological question or hypothesis?
 3. **Tool selection**: Which MCPs, skills, and expert modules are needed?
 4. **Study logic**: Controls, confounders, power, batches, validation, follow-up design
-5. **Pipeline design**: Step-by-step analysis workflow
-6. **Validation strategy**: How to verify results biologically and statistically?
+5. **Resource assessment**: Does the loaded skill bundle already include reusable scripts/examples/usage guides that fit this task?
+6. **Pipeline design**: Step-by-step analysis workflow
+7. **Validation strategy**: How to verify results biologically and statistically?
 
 ## Phase 2: Execution
 
@@ -51,6 +52,9 @@ Classify the biological-science task:
 - Document analysis parameters
 - Preserve intermediate results
 - Keep biological ownership of the problem even when delegating chemistry/statistics subproblems
+- Prefer bundled workflow scripts/examples when they already solve the task with only parameter or path changes
+- If bundled code uses mock/demo data, hardcoded assumptions, or the wrong toolchain, treat it as reference and implement a fresh workflow
+- On Windows, skill bundle files may live in a global npm/package path on a different drive from the workspace. Treat that bundle as read-only source material; execute with explicit absolute paths or copy into the workspace before adaptation, and always write outputs to the workspace or user-requested location
 
 ## Phase 3: Verification
 
@@ -77,5 +81,9 @@ Classify the biological-science task:
 Always check available bio skills via load_bio_skills tool.
 Load relevant category before starting analysis.
 Do not limit yourself to pure bioinformatics categories when the real bottleneck is experiment design, validation strategy, or study logic.
+For loaded bio skill bundles, explicitly decide between:
+1. direct reuse of bundled scripts/examples,
+2. adaptation of bundled code into the workspace,
+3. fresh implementation from documentation only.
 </BioSkills>
 `;

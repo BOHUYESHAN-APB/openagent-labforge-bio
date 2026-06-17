@@ -29,6 +29,7 @@ const PRIMARY_AGENTS = new Set([
   'engineer',
   'deep-worker',
   'bio-orchestrator',
+  'chem-orchestrator',
   'prometheus',
   'atlas',
 ]);

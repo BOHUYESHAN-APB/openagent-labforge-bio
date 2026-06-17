@@ -78,6 +78,15 @@ export function formatLoadedSkillsForPrompt(
     if (skill.primaryTool) {
       lines.push(`Primary tool: ${skill.primaryTool}`);
     }
+    if (skill.resources.length > 0) {
+      lines.push('Reusable resources:');
+      for (const resource of skill.resources.slice(0, 8)) {
+        const language = resource.language ? ` (${resource.language})` : '';
+        lines.push(
+          `- [${resource.kind}|${resource.reuseMode}] ${resource.filePath}${language}`,
+        );
+      }
+    }
     lines.push('');
   }
 

@@ -383,9 +383,9 @@ describe('createAgents', () => {
     expect(names).not.toContain('designer');
   });
 
-  test('creates exactly 9 agents by default (5 primary + councillor + 3 ultra-minimal subagents)', () => {
+  test('creates exactly 10 agents by default (6 primary + councillor + 3 ultra-minimal subagents)', () => {
     const agents = createAgents();
-    expect(agents.length).toBe(9);
+    expect(agents.length).toBe(10);
   });
 });
 
@@ -1026,13 +1026,13 @@ describe('disabled_agents', () => {
 
   test('agent count decreases when agents are disabled', () => {
     const agents = createAgents();
-    expect(agents.length).toBe(9); // 5 primary + councillor + 3 ultra-minimal subagents
+    expect(agents.length).toBe(10); // 6 primary + councillor + 3 ultra-minimal subagents
 
     const disabledConfig: PluginConfig = {
       disabled_agents: ['observer', 'designer'],
     };
     const disabledAgents = createAgents(disabledConfig);
-    expect(disabledAgents.length).toBe(9); // observer/designer already disabled by ultra-minimal policy
+    expect(disabledAgents.length).toBe(10); // observer/designer already disabled by ultra-minimal policy
   });
 
   test('getDisabledAgents respects protection rules', () => {
@@ -1076,7 +1076,7 @@ describe('disabled_agents', () => {
       disabled_agents: [],
     };
     const agents = createAgents(config);
-    expect(agents.length).toBe(9); // observer still excluded by ultra-minimal policy
+    expect(agents.length).toBe(10); // observer still excluded by ultra-minimal policy
     expect(agents.map((a) => a.name)).not.toContain('observer');
   });
 
@@ -1086,7 +1086,7 @@ describe('disabled_agents', () => {
       subagentPolicy: { mode: 'minimal' },
     };
     const agents = createAgents(config);
-    expect(agents.length).toBe(11); // 5 primary + councillor + 5 minimal subagents
+    expect(agents.length).toBe(12); // 6 primary + councillor + 5 minimal subagents
     expect(agents.map((a) => a.name)).toContain('observer');
   });
 });

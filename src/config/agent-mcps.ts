@@ -14,6 +14,7 @@ export const DEFAULT_AGENT_MCPS: Record<AgentName, string[]> = {
   prometheus: [],
   atlas: [],
   'bio-orchestrator': ['*', '!context7'],
+  'chem-orchestrator': ['*', '!context7'],
   // Existing subagents
   designer: [],
   oracle: [],

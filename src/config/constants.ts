@@ -6,6 +6,7 @@ export const AGENT_ALIASES: Record<string, string> = {
   planner: 'prometheus',
   executor: 'atlas',
   'bio-analyst': 'bio-orchestrator',
+  'chem-analyst': 'chem-orchestrator',
   'requirements-analyst': 'metis',
   'plan-reviewer': 'momus',
 };
@@ -36,6 +37,7 @@ export const PRIMARY_AGENT_NAMES = [
   'prometheus',
   'atlas',
   'bio-orchestrator',
+  'chem-orchestrator',
 ] as const;
 
 export const ALL_AGENT_NAMES = [
@@ -67,6 +69,7 @@ export const ORCHESTRATABLE_AGENTS = [
   'observer',
   'council',
   'bio-orchestrator',
+  'chem-orchestrator',
   // New subagents
   'metis',
   'momus',
@@ -83,6 +86,7 @@ export const PROTECTED_AGENTS = new Set([
   'prometheus',
   'atlas',
   'bio-orchestrator',
+  'chem-orchestrator',
 ]);
 
 /**
@@ -101,6 +105,7 @@ export const SUBAGENT_DELEGATION_RULES: Record<AgentName, readonly string[]> = {
   prometheus: [], // Planner cannot spawn subagents
   atlas: ['explorer', 'librarian', 'oracle', 'fixer', 'bio-orchestrator'],
   'bio-orchestrator': ORCHESTRATABLE_AGENTS,
+  'chem-orchestrator': ORCHESTRATABLE_AGENTS,
   fixer: [],
   designer: [],
   explorer: [],
@@ -126,6 +131,7 @@ export const DEFAULT_MODELS: Record<AgentName, string | undefined> = {
   prometheus: undefined,
   atlas: undefined,
   'bio-orchestrator': undefined,
+  'chem-orchestrator': undefined,
   // Subagents — all inherit from main agent by default
   oracle: undefined,
   librarian: undefined,

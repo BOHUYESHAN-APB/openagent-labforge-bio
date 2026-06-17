@@ -147,10 +147,22 @@ Default behavior is now bounded. Prefer query and limit for broad categories ins
       }
 
       const skillLines = results.flatMap((result) =>
-        result.selectedSkills.map(
-          (skill) =>
-            `- ${skill.name} (${result.name}) — ${skill.description} — ${skill.filePath}`,
-        ),
+        result.selectedSkills.flatMap((skill) => {
+          const resourceSuffix =
+            skill.resources.length > 0
+              ? ` — resources: ${skill.resources
+                  .slice(0, 4)
+                  .map(
+                    (resource) =>
+                      `${resource.kind}/${resource.reuseMode}:${resource.filePath}`,
+                  )
+                  .join(', ')}`
+              : '';
+
+          return [
+            `- ${skill.name} (${result.name}) — ${skill.description} — ${skill.filePath}${resourceSuffix}`,
+          ];
+        }),
       );
 
       const categoryLines = results.map((result) => {
@@ -170,7 +182,17 @@ Default behavior is now bounded. Prefer query and limit for broad categories ins
         'Loaded skill files:',
         ...skillLines,
         '',
-        'Use the read tool to open the exact SKILL.md file paths you need before executing.',
+        'Path strategy:',
+        '- Treat SKILL.md and bundled resources as installed package files; they may live outside the current workspace, especially on Windows.',
+        '- Read or copy from those absolute paths as needed, but do not overwrite the installed bundle.',
+        '- Write generated outputs into the workspace or a user-requested destination path.',
+        '',
+        'Reuse policy:',
+        '- resource mode=direct: prefer using it first and only substitute inputs/outputs/paths.',
+        '- resource mode=adapt: use it as a template/reference and adjust code before running.',
+        '- resource mode=reference: read it for guidance; do not treat it as runnable workflow code.',
+        '',
+        'Prefer reusing scripts/examples when they already fit the task. If resources are not a good fit, read the SKILL.md and write fresh code.',
       ].join('\n');
     },
   });

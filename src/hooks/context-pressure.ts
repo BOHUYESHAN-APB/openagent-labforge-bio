@@ -55,7 +55,7 @@ export function createContextPressureHook(
   let providerRefreshPromise: Promise<void> | null = null;
 
   function setProfileForAgent(sessionID: string, agent?: string): void {
-    if (agent === 'bio-orchestrator') {
+    if (agent === 'bio-orchestrator' || agent === 'chem-orchestrator') {
       monitor.setProfile(sessionID, profiles.bio);
       return;
     }

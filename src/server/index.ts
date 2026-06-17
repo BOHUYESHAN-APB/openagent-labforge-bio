@@ -18,6 +18,7 @@ import {
   readFile,
   writeFile,
 } from 'node:fs/promises';
+import { Database } from 'bun:sqlite';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { Server as McpServer } from '@modelcontextprotocol/sdk/server/index.js';
@@ -56,6 +57,7 @@ const PORT = 25569;
 const HOST = '127.0.0.1';
 const OPENCODE_LOG_DIR = resolve(homedir(), '.local', 'share', 'opencode');
 const PLUGIN_LOG_DIR = resolve(OPENCODE_LOG_DIR, 'extendai-lab');
+const OPENCODE_DB_PATH = resolve(OPENCODE_LOG_DIR, 'opencode.db');
 
 let workspaceRoot = process.cwd();
 // Determine plugin root from the dist path at module load time (before main)
@@ -69,6 +71,66 @@ const _getPluginRoot = () => {
 const pluginRoot: string = _getPluginRoot();
 let currentTheme = 'dark';
 let logFilePath = '';
+
+type WorkspaceRecord = {
+  id: string;
+  directory: string;
+};
+
+function normalizeWorkspaceDirectory(directory: string): string {
+  return resolve(directory).replace(/\\/g, '/').toLowerCase();
+}
+
+function loadWorkspaceRecords(): WorkspaceRecord[] {
+  const records = new Map<string, WorkspaceRecord>();
+
+  const addDirectory = (directory: string | null | undefined) => {
+    if (!directory) return;
+    const resolved = resolve(directory);
+    if (!existsSync(resolved)) return;
+    const id = normalizeWorkspaceDirectory(resolved);
+    if (!records.has(id)) {
+      records.set(id, { id, directory: resolved });
+    }
+  };
+
+  addDirectory(workspaceRoot);
+
+  if (existsSync(OPENCODE_DB_PATH)) {
+    try {
+      const db = new Database(OPENCODE_DB_PATH, { readonly: true });
+      const rows = db
+        .query('select directory from project_directory where directory is not null')
+        .all() as Array<{ directory: string | null }>;
+      for (const row of rows) {
+        addDirectory(row.directory);
+      }
+      db.close();
+    } catch {
+      // Best effort only.
+    }
+  }
+
+  return Array.from(records.values()).sort((left, right) =>
+    left.directory.localeCompare(right.directory),
+  );
+}
+
+function resolveWorkspaceFromRequest(url: URL): string {
+  const requested = url.searchParams.get('workspace');
+  if (!requested) {
+    return workspaceRoot;
+  }
+
+  const normalized = normalizeWorkspaceDirectory(requested);
+  const match = loadWorkspaceRecords().find((workspace) => workspace.id === normalized);
+  if (match) {
+    return match.directory;
+  }
+
+  const direct = resolve(requested);
+  return existsSync(direct) ? direct : workspaceRoot;
+}
 
 // ── Logging ───────────────────────────────────────────
 function initLogger() {
@@ -160,7 +222,7 @@ function getDocDirs(root: string): string[] {
   );
 }
 
-async function listDir(dir: string) {
+async function listDir(dir: string, root = workspaceRoot) {
   try {
     const entries = await readdir(dir, { withFileTypes: true });
     return entries
@@ -169,7 +231,7 @@ async function listDir(dir: string) {
         name: e.name,
         type: e.isDirectory() ? ('dir' as const) : ('file' as const),
         path: join(dir, e.name)
-          .replace(workspaceRoot, '')
+          .replace(root, '')
           .replace(/^[/\\]/, ''),
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -190,6 +252,7 @@ async function handleRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const p = url.pathname;
   const t = currentTheme;
+  const requestWorkspaceRoot = resolveWorkspaceFromRequest(url);
 
   try {
     if (p === '/api/theme') {
@@ -215,7 +278,7 @@ async function handleRequest(req: Request): Promise<Response> {
     if (p === '/docs/file') {
       const fpath = (url.searchParams.get('path') ?? '').replace(/\\/g, '/');
       if (!fpath) return err(400, 'Missing path');
-      const fullPath = join(workspaceRoot, ...fpath.split('/'));
+      const fullPath = join(requestWorkspaceRoot, ...fpath.split('/'));
       if (!existsSync(fullPath)) return err(404, 'Not found: ' + fpath);
       if (statSync(fullPath).isDirectory()) {
         const entries = readdirSync(fullPath, { withFileTypes: true });
@@ -240,7 +303,7 @@ async function handleRequest(req: Request): Promise<Response> {
     if (p === '/plans/file') {
       const fpath = (url.searchParams.get('path') ?? '').replace(/\\/g, '/');
       if (!fpath) return err(400, 'Missing path');
-      const fullPath = join(workspaceRoot, ...fpath.split('/'));
+      const fullPath = join(requestWorkspaceRoot, ...fpath.split('/'));
       if (!existsSync(fullPath) || statSync(fullPath).isDirectory())
         return err(404, 'Not found');
       return new Response(
@@ -252,7 +315,7 @@ async function handleRequest(req: Request): Promise<Response> {
     if (p === '/api/config/read') {
       const cp =
         (url.searchParams.get('scope') ?? 'project') === 'project'
-          ? join(workspaceRoot, '.opencode', 'extendai-lab.json')
+          ? join(requestWorkspaceRoot, '.opencode', 'extendai-lab.json')
           : resolve(
               process.env.APPDATA ?? homedir(),
               '.config',
@@ -273,7 +336,7 @@ async function handleRequest(req: Request): Promise<Response> {
       };
       const cp =
         body.scope === 'project'
-          ? join(workspaceRoot, '.opencode', 'extendai-lab.json')
+          ? join(requestWorkspaceRoot, '.opencode', 'extendai-lab.json')
           : resolve(
               process.env.APPDATA ?? homedir(),
               '.config',
@@ -300,19 +363,19 @@ async function handleRequest(req: Request): Promise<Response> {
       return new Response(
         renderDashboard(t, {
           skills: skills.length,
-          workspace: workspaceRoot,
+          workspace: requestWorkspaceRoot,
           port: PORT,
         }),
         { headers: { 'Content-Type': 'text/html; charset=utf-8' } } as any,
       );
     }
     if (p === '/view')
-      return new Response(renderHtmlViewer(t), {
+      return new Response(renderHtmlViewer(t, loadWorkspaceRecords(), requestWorkspaceRoot), {
         headers: { 'Content-Type': 'text/html; charset=utf-8' },
       } as any);
     if (p === '/api/html-pages') {
       const pagesDir = join(
-        workspaceRoot,
+        requestWorkspaceRoot,
         '.opencode',
         'extendai-lab',
         'pages',
@@ -331,11 +394,11 @@ async function handleRequest(req: Request): Promise<Response> {
         headers: { 'Content-Type': 'text/html; charset=utf-8' },
       } as any);
     if (p === '/docs') {
-      const dirs = getDocDirs(workspaceRoot);
+      const dirs = getDocDirs(requestWorkspaceRoot);
       const docs = await Promise.all(
         dirs.map(async (d) => ({
           dirName: d,
-          files: await listDir(join(workspaceRoot, d)),
+          files: await listDir(join(requestWorkspaceRoot, d), requestWorkspaceRoot),
         })),
       );
       return new Response(
@@ -348,7 +411,7 @@ async function handleRequest(req: Request): Promise<Response> {
     }
     if (p === '/plans') {
       const plans = await listDir(
-        join(workspaceRoot, '.opencode', 'extendai-lab', 'plans'),
+        join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'plans'),
       );
       return new Response(renderPlans(plans, t), {
         headers: { 'Content-Type': 'text/html; charset=utf-8' },
@@ -369,8 +432,8 @@ async function handleRequest(req: Request): Promise<Response> {
       }
     }
     if (p === '/sessions') {
-      const boulderFile = join(workspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
-      const plansDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'plans');
+      const boulderFile = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
+      const plansDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'plans');
       let boulder = {};
       if (existsSync(boulderFile)) {
         try { boulder = JSON.parse(readFileSync(boulderFile, 'utf8')); } catch {}
@@ -388,7 +451,7 @@ async function handleRequest(req: Request): Promise<Response> {
       } as any);
     }
     if (p === '/changes') {
-      const changesDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'changes');
+      const changesDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'changes');
       let changes: any[] = [];
       try {
         changes = readdirSync(changesDir, { withFileTypes: true })
@@ -408,7 +471,7 @@ async function handleRequest(req: Request): Promise<Response> {
       } as any);
     }
     if (p === '/explore') {
-      const exploreDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'explore');
+      const exploreDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'explore');
       let explorations: any[] = [];
       try {
         explorations = readdirSync(exploreDir, { withFileTypes: true })

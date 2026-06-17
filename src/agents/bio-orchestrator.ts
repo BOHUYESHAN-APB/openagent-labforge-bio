@@ -52,8 +52,10 @@ Do NOT start serious bio analysis without loading relevant skills first.
 ### Routing Protocol (directory-first):
 1. First: load_bio_skills(categories=["<domain>"]) — load the matching domain
 2. Then: READ the specific skill files using the read tool (paths shown in tool output and later in system prompt)
-3. Follow the loaded skill instructions for specific workflows
-4. Never front-load all categories — load only what the task needs
+3. Check whether the loaded skill ships reusable scripts/examples
+4. If a provided script already fits with only input/output parameter changes, reuse it instead of rewriting from scratch
+5. If the shipped code is only illustrative or mismatched, read the SKILL.md and implement the needed code yourself
+6. Never front-load all categories — load only what the task needs
 
 ### High-frequency bio routes:
 - rna-seq → RNA sequencing (STAR, DESeq2, featureCounts)
@@ -74,9 +76,10 @@ Do NOT start serious bio analysis without loading relevant skills first.
 When receiving a bio task, your FIRST action should be:
 1. Identify whether the task is primarily about biological analysis, experiment design, hypothesis testing, study strategy, or translational interpretation
 2. Call load_bio_skills(categories=["<domain>"])
-3. Read the loaded skill file paths from the tool output (or the system prompt on later turns)
-4. Use the read tool to load the specific SKILL.md content
-5. Then proceed with biological strategy and analysis planning
+3. Read the loaded skill file paths and reusable resource paths from the tool output (or the system prompt on later turns)
+4. Reuse shipped scripts/examples when they are already runnable with parameter/input/output substitutions
+5. Use the read tool to load the specific SKILL.md content when the packaged resources are insufficient
+6. Then proceed with biological strategy and analysis planning
 
 ### Escalation:
 If initial skill doesn't cover the task:

@@ -35,15 +35,15 @@ Next command: /ol-start-work {name}
 
 <Task_Classification>
 
-**CRITICAL FIRST STEP: Classify the task domain**
+**CLASSIFY ONLY WHEN THE TASK MIGHT BE BIOLOGICAL**
 
-Before planning, call the \`detect_bio_task\` tool to determine if this is:
-- Bioinformatics/computational biology task (genomics, proteomics, phylogenetics, etc.)
-- Software engineering task (web apps, APIs, data processing, etc.)
+If the task is clearly ordinary software engineering, proceed directly with engineering planning.
 
-The tool will return domain-specific planning context. Use this context throughout your planning process.
+Call the \`detect_bio_task\` tool only when the request is ambiguous, bio-adjacent, or plausibly bioinformatics/computational biology (genomics, proteomics, phylogenetics, wet-lab study design, omics workflows, etc.).
 
-If bioinformatics task detected, also consider calling \`load_bio_skills\` to load relevant domain skills.
+When used, the tool returns domain-specific planning context. Use that context throughout the plan.
+
+If bioinformatics is confirmed, also consider calling \`load_bio_skills\` to load relevant domain skills.
 
 </Task_Classification>
 
@@ -62,9 +62,10 @@ If bioinformatics task detected, also consider calling \`load_bio_skills\` to lo
 <Workflow>
 
 ## Phase 0: Domain Classification
-1. Call \`detect_bio_task\` with task description
-2. Review domain-specific context returned
-3. Load bio skills if needed (\`load_bio_skills\`)
+1. Decide whether the task is clearly engineering or might actually be biological/bioinformatics
+2. Call \`detect_bio_task\` only for ambiguous or bio-adjacent work
+3. Review domain-specific context returned when classification is used
+4. Load bio skills if needed (\`load_bio_skills\`)
 
 ## Phase 1: Interview Mode
 When given a task:

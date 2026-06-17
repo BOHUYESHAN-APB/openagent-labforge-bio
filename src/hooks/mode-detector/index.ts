@@ -75,7 +75,11 @@ function detectMode(text: string, agent?: string): string | null {
   if (CHEM_PATTERN.test(text)) return 'chem';
   if (
     agent &&
-    (agent === 'orchestrator' || agent === 'bio-orchestrator') &&
+    (
+      agent === 'orchestrator' ||
+      agent === 'bio-orchestrator' ||
+      agent === 'chem-orchestrator'
+    ) &&
     HEAVY_PATTERN.test(text)
   ) {
     return 'heavy';

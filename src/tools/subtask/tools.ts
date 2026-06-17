@@ -23,6 +23,7 @@ const SUBTASK_SUMMARY_TAG_REGEX = /<\/?subtask_summary>/g;
 const ALLOWED_SUBTASK_CALLERS = new Set([
   'orchestrator',
   'bio-orchestrator',
+  'chem-orchestrator',
   'deep-worker',
   'prometheus',
   'atlas',

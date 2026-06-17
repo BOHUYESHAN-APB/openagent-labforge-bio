@@ -8,6 +8,8 @@ import {
   ATLAS_TURBO_PROMPT,
   BIO_ORCHESTRATOR_HEAVY_PROMPT,
   BIO_ORCHESTRATOR_TURBO_PROMPT,
+  CHEM_ORCHESTRATOR_HEAVY_PROMPT,
+  CHEM_ORCHESTRATOR_TURBO_PROMPT,
   DEEP_WORKER_HEAVY_PROMPT,
   DEEP_WORKER_TURBO_PROMPT,
   ORCHESTRATOR_HEAVY_PROMPT,
@@ -629,7 +631,12 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     const promptModeConfig = config.promptMode ?? {
       defaultMode: 'light' as const,
       allowModeSwitch: true,
-      applyToAgents: ['orchestrator', 'bio-orchestrator', 'deep-worker'],
+      applyToAgents: [
+        'orchestrator',
+        'bio-orchestrator',
+        'chem-orchestrator',
+        'deep-worker',
+      ],
     };
     promptModeManager = new PromptModeManager(promptModeConfig);
     modeCommandHandler = createModeCommandHandler(promptModeManager);
@@ -1859,6 +1866,10 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
             'bio-orchestrator': {
               heavy: BIO_ORCHESTRATOR_HEAVY_PROMPT,
               turbo: BIO_ORCHESTRATOR_TURBO_PROMPT,
+            },
+            'chem-orchestrator': {
+              heavy: CHEM_ORCHESTRATOR_HEAVY_PROMPT,
+              turbo: CHEM_ORCHESTRATOR_TURBO_PROMPT,
             },
             'deep-worker': {
               heavy: DEEP_WORKER_HEAVY_PROMPT,

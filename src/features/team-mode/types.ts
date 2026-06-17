@@ -180,7 +180,7 @@ export const RuntimeStateSchema = z.object({
 })
 
 // Agent eligibility registry - Updated for our agent names
-// Primary agents: orchestrator, deep-worker, prometheus, atlas, bio-orchestrator
+// Primary agents: orchestrator, deep-worker, prometheus, atlas, bio-orchestrator, chem-orchestrator
 // Subagents: explorer, librarian, oracle, designer, fixer, observer, council, councillor, metis, momus, multimodal-looker, reviewer
 export const AGENT_ELIGIBILITY_REGISTRY: Readonly<Record<string, {
   verdict: "eligible" | "conditional" | "hard-reject"
@@ -190,6 +190,7 @@ export const AGENT_ELIGIBILITY_REGISTRY: Readonly<Record<string, {
   orchestrator: { verdict: "eligible" },
   atlas: { verdict: "eligible" },
   "bio-orchestrator": { verdict: "eligible" },
+  "chem-orchestrator": { verdict: "eligible" },
   
   // Primary agents - conditional
   "deep-worker": {

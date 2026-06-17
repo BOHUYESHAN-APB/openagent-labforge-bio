@@ -161,6 +161,9 @@ describe('resolveRuntimeAgentName', () => {
     expect(resolveRuntimeAgentName(undefined, 'bio-analyst')).toBe(
       'bio-orchestrator',
     );
+    expect(resolveRuntimeAgentName(undefined, 'chem-analyst')).toBe(
+      'chem-orchestrator',
+    );
     expect(resolveRuntimeAgentName(undefined, 'requirements-analyst')).toBe(
       'metis',
     );
@@ -219,6 +222,14 @@ describe('rewriteDisplayNameMentions', () => {
       ),
     ).toBe(
       'route bio work to @bio-orchestrator, chemistry overlap work to chemoinformatics skills, and reviews to @momus',
+    );
+    expect(
+      rewriteDisplayNameMentions(
+        undefined,
+        'ask @chem-analyst to handle the ligand work and @bio-analyst to interpret the biology',
+      ),
+    ).toBe(
+      'ask @chem-orchestrator to handle the ligand work and @bio-orchestrator to interpret the biology',
     );
   });
 

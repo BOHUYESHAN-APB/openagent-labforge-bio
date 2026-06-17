@@ -2,10 +2,10 @@
  * Bio task detection tool - let the model decide if a task is bioinformatics-related
  *
  * Instead of complex pattern matching, we expose a tool that:
- * 1. Model reads user's planning request
- * 2. Model calls detect_bio_task tool to classify
- * 3. Tool returns bio-specific prompt augmentation if bio task detected
- * 4. Model uses augmented context for planning
+ * 1. Model reads the user's planning request
+ * 2. Model calls detect_bio_task only when the task may actually be bio-related
+ * 3. Tool returns bio-specific or engineering planning augmentation
+ * 4. Model uses augmented context when that extra classification is helpful
  */
 
 import type { ToolDefinition } from '@opencode-ai/plugin';
@@ -104,7 +104,8 @@ You are working on a software engineering task. Consider:
 
 export const detectBioTaskTool: ToolDefinition = tool({
   description: `Classify if the current task is bioinformatics/computational biology related or software engineering.
-Call this tool when starting to plan a task to get domain-specific context.
+Call this tool when starting to plan a task ONLY if the request is ambiguous, bio-adjacent, or plausibly biological and you want domain-specific context.
+Do NOT call it for routine, clearly non-bio software engineering work.
 
 Returns augmented planning context based on task classification.`,
   args: {

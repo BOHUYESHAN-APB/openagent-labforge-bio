@@ -255,6 +255,7 @@ const PRIMARY_AGENT_NAMES = new Set([
   'orchestrator',
   'atlas',
   'bio-orchestrator',
+  'chem-orchestrator',
 ]);
 
 interface ContinuationState {

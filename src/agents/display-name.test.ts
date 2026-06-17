@@ -205,6 +205,10 @@ describe('displayName', () => {
     expect(sdkConfigs['bio-analyst']).toBeDefined();
     expect(sdkConfigs['bio-analyst'].mode).toBe('primary');
     expect(sdkConfigs['bio-orchestrator'].hidden).toBe(true);
+
+    expect(sdkConfigs['chem-analyst']).toBeDefined();
+    expect(sdkConfigs['chem-analyst'].mode).toBe('primary');
+    expect(sdkConfigs['chem-orchestrator'].hidden).toBe(true);
   });
 
   test('can reorder visible primary agents without changing internal defaults', () => {
@@ -214,6 +218,16 @@ describe('displayName', () => {
 
     const agents = createAgents(config);
     expect(agents[0]?.name).toBe('bio-orchestrator');
+    expect(agents[1]?.name).toBe('orchestrator');
+  });
+
+  test('can reorder visible primary agents to chemistry without changing internal defaults', () => {
+    const config: PluginConfig = {
+      preferredVisibleAgent: 'chem-analyst',
+    };
+
+    const agents = createAgents(config);
+    expect(agents[0]?.name).toBe('chem-orchestrator');
     expect(agents[1]?.name).toBe('orchestrator');
   });
 

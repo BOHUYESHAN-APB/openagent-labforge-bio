@@ -3,6 +3,11 @@
  */
 export { escapeHtml };
 
+export interface WorkspaceOption {
+  id: string;
+  directory: string;
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -42,7 +47,7 @@ const CONFIG_FIELDS: FieldDef[] = [
     label: 'Preferred Visible Agent',
     type: 'select',
     section: 'General',
-    options: ['engineer', 'planner', 'executor', 'bio-analyst'],
+    options: ['engineer', 'planner', 'executor', 'bio-analyst', 'chem-analyst'],
   },
   {
     key: 'autoUpdate',
@@ -374,20 +379,47 @@ export function renderConfigEditor(
 }
 
 // ── AI HTML Viewer ───────────────────────────────────
-export function renderHtmlViewer(theme: string): string {
+export function renderHtmlViewer(
+  theme: string,
+  workspaces: WorkspaceOption[] = [],
+  activeWorkspace?: string,
+): string {
+  const workspaceSelector =
+    workspaces.length > 0
+      ? `<label class="cfg-row" style="max-width:100%;margin:10px 0 16px"><span>Workspace</span><select id="workspace-select">${workspaces
+          .map(
+            (workspace) =>
+              `<option value="${escapeAttr(workspace.directory)}"${workspace.directory === activeWorkspace ? ' selected' : ''}>${escapeHtml(workspace.directory)}</option>`,
+          )
+          .join('')}</select></label>`
+      : '';
   return base(
     'HTML Viewer',
     `
     <h2>AI-Generated HTML Viewer</h2>
     <p class="sub">HTML files are in <code>.opencode/extendai-lab/pages/</code> — open them directly in your browser.</p>
+    <p class="sub">Each repository/workspace is resolved independently. Switch workspace below if the list does not match the repository you want.</p>
+    ${workspaceSelector}
     <div id="pages-list"><p class="sub">Loading...</p></div>
     <script>
-      fetch('/api/html-pages').then(r=>r.json()).then(pages=>{
+      const current = new URLSearchParams(location.search).get('workspace');
+      const query = current ? ('?workspace=' + encodeURIComponent(current)) : '';
+      const select = document.getElementById('workspace-select');
+      if (select) {
+        select.addEventListener('change', (event) => {
+          const next = new URL(location.href);
+          const value = event.target.value;
+          if (value) next.searchParams.set('workspace', value);
+          else next.searchParams.delete('workspace');
+          location.href = next.toString();
+        });
+      }
+      fetch('/api/html-pages' + query).then(r=>r.json()).then(pages=>{
         const el=document.getElementById('pages-list');
         if(!pages.length){el.innerHTML='<p class="sub">No HTML pages yet. Ask the AI to create one.</p>';return}
         el.innerHTML='<div class="grid-3">'+pages.map(p=>{
-          const fileUrl = 'file:///' + p.replace(/\\\\/g, '/');
-          return '<a href="'+fileUrl+'" target="_blank" class="card-link"><h4>'+p.split('/').pop().split('\\\\').pop()+'</h4><p class="sub">'+p+'</p></a>';
+          const fileUrl = 'file:///' + p.replace(/\\/g, '/');
+          return '<a href="'+fileUrl+'" target="_blank" class="card-link"><h4>'+p.split('/').pop().split('\\').pop()+'</h4><p class="sub">'+p+'</p></a>';
         }).join('')+'</div>';
       });
     </script>
@@ -446,7 +478,7 @@ function md2html(md: string): string {
 
 // ── Base layout ──────────────────────────────────────
 function base(title: string, body: string, theme: string): string {
-  return `<!DOCTYPE html><html lang="zh-CN" data-theme="${theme}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} · extendai-lab</title><style>${CSS}</style></head><body><nav><a href="/" class="brand">⚡ extendai-lab</a><div class="nav-links"><a href="/skills">Skills</a><a href="/docs">Docs</a><a href="/view">HTML</a><a href="/plans">Plans</a><a href="/config/project">Config</a></div><button class="btn-theme" onclick="toggleTheme()">${theme === 'dark' ? '☀' : '☾'}</button></nav><main>${body}</main><script>function toggleTheme(){const h=document.documentElement;const t=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=t;fetch('/api/theme?theme='+t);location.reload()}</script></body></html>`;
+  return `<!DOCTYPE html><html lang="zh-CN" data-theme="${theme}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} · extendai-lab</title><style>${CSS}</style></head><body><nav><a href="/" class="brand">⚡ extendai-lab</a><div class="nav-links"><a href="/skills">Skills</a><a href="/docs">Docs</a><a href="/view">HTML</a><a href="/plans">Plans</a><a href="/config/project">Config</a></div><button class="btn-theme" onclick="toggleTheme()">${theme === 'dark' ? '☀' : '☾'}</button></nav><main>${body}</main><script>function toggleTheme(){const h=document.documentElement;const t=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=t;fetch('/api/theme?theme='+t);location.reload()}const ws=new URLSearchParams(location.search).get('workspace');if(ws){document.querySelectorAll('a[href^="/"]').forEach(a=>{const href=a.getAttribute('href');if(!href)return;const u=new URL(href,location.origin);if(!u.searchParams.has('workspace'))u.searchParams.set('workspace',ws);a.setAttribute('href',u.pathname+u.search+u.hash)})}</script></body></html>`;
 }
 
 // ── CSS ──────────────────────────────────────────────

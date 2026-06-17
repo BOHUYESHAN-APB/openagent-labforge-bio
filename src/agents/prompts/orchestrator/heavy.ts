@@ -59,6 +59,10 @@ For complex tasks, gather context FIRST:
 - Main agent performs bounded implementation directly
 - Main agent performs tests directly
 - Main agent applies UI/UX and architecture checklists directly
+- When a loaded bio/chem skill includes reusable scripts or examples, first judge whether they are directly reusable with only input/output/path substitutions
+- If a bundled script already matches the task shape, reuse/adapt it rather than rewriting the same workflow from scratch
+- If the bundled code is only illustrative, incomplete, simulated, or mismatched to the installed environment, read the documentation and write fresh code instead
+- On Windows, treat installed skill resources as global package files that may live outside the workspace drive. Read or copy from that location, but write outputs into the workspace or user-specified output path, not back into the installed package directory
 
 **Session reuse:** Only relevant if the user has explicitly allowed child sessions.
 

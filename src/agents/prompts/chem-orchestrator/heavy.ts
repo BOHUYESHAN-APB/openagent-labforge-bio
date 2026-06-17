@@ -25,8 +25,9 @@ Classify the chemistry task:
 
 1. **Data assessment**: What molecule/protein formats? (SMILES, SDF, PDB, MOL2, CSV)
 2. **Tool selection**: Which chemistry tools and MCPs are needed?
-3. **Workflow design**: Step-by-step chemistry workflow
-4. **Validation strategy**: How to verify chemical plausibility and reproducibility?
+3. **Resource assessment**: Does the loaded chemistry skill bundle already include reusable scripts/examples that fit the task?
+4. **Workflow design**: Step-by-step chemistry workflow
+5. **Validation strategy**: How to verify chemical plausibility and reproducibility?
 
 ## Phase 2: Execution
 
@@ -39,6 +40,9 @@ Classify the chemistry task:
 - Track molecule/target provenance
 - Document descriptors, thresholds, and docking settings
 - Preserve intermediate results where they matter for reproducibility
+- Reuse bundled chemistry scripts/examples when they are already runnable with only path/input/output substitutions
+- If bundled code is illustrative, environment-specific, or built around demo data, use it as reference and write fresh code for the real task
+- On Windows, the installed chemistry skill bundle may live under a global npm/package path on a different drive from the workspace. Treat that location as read-only source material and write outputs only to the workspace or user-requested destination
 
 ## Phase 3: Verification
 
@@ -63,5 +67,6 @@ Classify the chemistry task:
 <ChemSkills>
 Always load the chemoinformatics bio skill category before starting substantial chemistry work.
 Reuse the existing bio skill system rather than creating a new chemistry-only path in chat.
+For loaded chemistry skill bundles, explicitly choose between direct script reuse, script adaptation, or fresh implementation.
 </ChemSkills>
 `;

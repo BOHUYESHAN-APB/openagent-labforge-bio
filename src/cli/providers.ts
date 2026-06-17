@@ -46,6 +46,10 @@ export const MODEL_MAPPINGS: Record<string, Record<string, AgentModelEntry>> = {
       model: 'opencode-go/deepseek-v4-pro',
       variant: 'max',
     },
+    'chem-orchestrator': {
+      model: 'opencode-go/deepseek-v4-pro',
+      variant: 'max',
+    },
     // 审查位 — 花钱在刀刃上
     oracle: { model: 'opencode-go/deepseek-v4-pro', variant: 'high' },
     reviewer: { model: 'opencode-go/deepseek-v4-pro', variant: 'high' },
@@ -71,6 +75,7 @@ export const MODEL_MAPPINGS: Record<string, Record<string, AgentModelEntry>> = {
     orchestrator: { model: 'openai/gpt-5.4', variant: 'high' },
     'deep-worker': { model: 'openai/gpt-5.4', variant: 'high' },
     'bio-orchestrator': { model: 'openai/gpt-5.4', variant: 'high' },
+    'chem-orchestrator': { model: 'openai/gpt-5.4', variant: 'high' },
     // 审查位 — 5.5（token 消耗少但质量关键）
     oracle: { model: 'openai/gpt-5.5', variant: 'xhigh' },
     reviewer: { model: 'openai/gpt-5.5', variant: 'xhigh' },
@@ -95,6 +100,7 @@ export const MODEL_MAPPINGS: Record<string, Record<string, AgentModelEntry>> = {
     orchestrator: { model: 'openai/gpt-5.4', variant: 'high' },
     'deep-worker': { model: 'openai/gpt-5.4', variant: 'high' },
     'bio-orchestrator': { model: 'openai/gpt-5.4', variant: 'high' },
+    'chem-orchestrator': { model: 'openai/gpt-5.4', variant: 'high' },
     // 审查位 — GPT-5.5（token 少但关键）
     oracle: { model: 'openai/gpt-5.5', variant: 'xhigh' },
     reviewer: { model: 'openai/gpt-5.5', variant: 'xhigh' },
@@ -119,6 +125,10 @@ export const MODEL_MAPPINGS: Record<string, Record<string, AgentModelEntry>> = {
     orchestrator: { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
     'deep-worker': { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
     'bio-orchestrator': {
+      model: 'opencode-go/deepseek-v4-pro',
+      variant: 'max',
+    },
+    'chem-orchestrator': {
       model: 'opencode-go/deepseek-v4-pro',
       variant: 'max',
     },
@@ -147,6 +157,10 @@ export const MODEL_MAPPINGS: Record<string, Record<string, AgentModelEntry>> = {
     orchestrator: { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
     'deep-worker': { model: 'opencode-go/deepseek-v4-pro', variant: 'max' },
     'bio-orchestrator': {
+      model: 'opencode-go/deepseek-v4-pro',
+      variant: 'max',
+    },
+    'chem-orchestrator': {
       model: 'opencode-go/deepseek-v4-pro',
       variant: 'max',
     },

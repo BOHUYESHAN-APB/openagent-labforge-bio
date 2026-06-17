@@ -124,10 +124,21 @@ describe('bio skills catalog metadata', () => {
         content: '# skill',
         toolType: 'r',
         primaryTool: 'GSEA',
+        resources: [
+          {
+            kind: 'example',
+            filePath: '/tmp/pathway-analysis/gsea/examples/run_gsea.R',
+            relativePath: 'examples/run_gsea.R',
+            language: 'r',
+            reuseMode: 'adapt',
+          },
+        ],
       },
     ]);
 
     expect(loadedText).toContain('File path: /tmp/pathway-analysis/gsea/SKILL.md');
+    expect(loadedText).toContain('Reusable resources:');
+    expect(loadedText).toContain('[example|adapt] /tmp/pathway-analysis/gsea/examples/run_gsea.R (r)');
     expect(loadedText).toContain('Use the read tool to load specific skill instructions');
   });
 

@@ -19,6 +19,7 @@ import { getAgentMcpList } from '../config/agent-mcps';
 // New primary agents
 import { createAtlasAgent } from './atlas';
 import { createBioOrchestratorAgent } from './bio-orchestrator';
+import { createChemOrchestratorAgent } from './chem-orchestrator';
 // Existing agents
 import { createCouncilAgent } from './council';
 import { createCouncillorAgent } from './councillor';
@@ -77,6 +78,8 @@ function reorderPrimaryAgentFactories(
           ? 'atlas'
           : preferredVisibleAgent === 'bio-analyst'
             ? 'bio-orchestrator'
+            : preferredVisibleAgent === 'chem-analyst'
+              ? 'chem-orchestrator'
             : undefined;
 
   if (!preferredInternalName) return entries;
@@ -218,6 +221,7 @@ const AGENT_PERMISSION_LEVELS: Record<string, PermissionLevel> = {
   prometheus: 'PLANNING',
   atlas: 'FULL',
   'bio-orchestrator': 'FULL',
+  'chem-orchestrator': 'FULL',
   council: 'COUNCIL',
   // Subagents
   explorer: 'READ_ONLY',
@@ -343,6 +347,7 @@ const PRIMARY_AGENT_FACTORIES: Record<
   prometheus: (m, p, a) => createPrometheusAgent(m, p, a),
   atlas: (m, p, a) => createAtlasAgent(m, p, a),
   'bio-orchestrator': createBioOrchestratorAgent,
+  'chem-orchestrator': createChemOrchestratorAgent,
 };
 
 // Public API
