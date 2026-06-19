@@ -8,6 +8,16 @@ export interface WorkspaceOption {
   directory: string;
 }
 
+export interface HtmlPageEntry {
+  name: string;
+  relativePath: string;
+}
+
+export interface HtmlWorkspaceGroup {
+  workspace: WorkspaceOption;
+  pages: HtmlPageEntry[];
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -80,13 +90,6 @@ const CONFIG_FIELDS: FieldDef[] = [
     section: 'Auto-Continue',
     default: false,
   },
-  {
-    key: 'todoContinuation.cooldownMs',
-    label: 'Cooldown (ms)',
-    type: 'number',
-    section: 'Auto-Continue',
-    default: 3000,
-  },
   // Compression
   {
     key: 'compression.enabled',
@@ -103,14 +106,6 @@ const CONFIG_FIELDS: FieldDef[] = [
     section: 'Bio Skills',
     default: true,
   },
-  // Interview
-  {
-    key: 'interview.maxQuestions',
-    label: 'Max Interview Questions',
-    type: 'number',
-    section: 'Interview',
-    default: 2,
-  },
   // Multiplexer
   {
     key: 'multiplexer.provider',
@@ -119,13 +114,6 @@ const CONFIG_FIELDS: FieldDef[] = [
     section: 'Multiplexer',
     options: ['tmux', 'zellij', 'disabled'],
     default: 'disabled',
-  },
-  {
-    key: 'multiplexer.main_pane_size',
-    label: 'Main Pane Size (%)',
-    type: 'number',
-    section: 'Multiplexer',
-    default: 60,
   },
   // Others
   {
@@ -183,7 +171,6 @@ function renderConfigFields(config: Record<string, unknown>): string {
 export function renderDashboard(
   theme: string,
   info?: {
-    skills?: number;
     workspace?: string;
     port?: number;
   },
@@ -193,21 +180,17 @@ export function renderDashboard(
     `
     <div class="hero">
       <h1>extendai-lab</h1>
-      <p>Agent orchestration · DeepSeek optimized · Document & design skills</p>
-      ${info ? `<p class="sub mono">${info.workspace || ''} · Port ${info.port || 25569} · ${info.skills || 0} skills</p>` : ''}
+      <p>Local artifact hub for AI-generated HTML, plans, and workspace controls</p>
+      ${info ? `<p class="sub mono">${info.workspace || ''} · Port ${info.port || 25569}</p>` : ''}
     </div>
     <div class="grid-3">
-      <a href="/view" class="card-link"><span class="ico">🌐</span><h3>HTML Viewer</h3><p>AI-generated HTML content for users</p></a>
-      <a href="/docs" class="card-link"><span class="ico">📄</span><h3>Docs</h3><p>Browse workspace documentation</p></a>
-      <a href="/skills" class="card-link"><span class="ico">🎨</span><h3>Skills</h3><p>${info?.skills || 0} document & design skills</p></a>
+      <a href="/view" class="card-link"><span class="ico">🌐</span><h3>HTML Hub</h3><p>Centralized workspace HTML artifacts for quick viewing</p></a>
+      <a href="/plans" class="card-link"><span class="ico">📋</span><h3>Plans</h3><p>Open saved plans without jumping back into the repo tree</p></a>
+      <a href="/docs" class="card-link"><span class="ico">📄</span><h3>Docs</h3><p>Browse workspace documentation when it exists</p></a>
       <a href="/config/project" class="card-link"><span class="ico">⚙</span><h3>Project Config</h3><p>Edit project settings</p></a>
       <a href="/config/global" class="card-link"><span class="ico">🔧</span><h3>Global Config</h3><p>Edit global plugin settings</p></a>
-      <a href="/plans" class="card-link"><span class="ico">📋</span><h3>Plans</h3><p>Saved execution plans</p></a>
-      <a href="/sessions" class="card-link"><span class="ico">🔄</span><h3>Sessions</h3><p>Active sessions & boulder state</p></a>
-      <a href="/teams" class="card-link"><span class="ico">👥</span><h3>Teams</h3><p>Team agent status & tasks</p></a>
-      <a href="/changes" class="card-link"><span class="ico">🔀</span><h3>Changes</h3><p>Change proposals & tracking</p></a>
-      <a href="/explore" class="card-link"><span class="ico">🔍</span><h3>Explore</h3><p>Exploration notes & research</p></a>
     </div>
+    <p class="sub" style="margin-top:18px">Internal or low-frequency pages such as skills, sessions, teams, changes, and explore remain available by direct URL, but are intentionally not promoted on the homepage.</p>
   `,
     theme,
   );
@@ -362,6 +345,7 @@ export function renderConfigEditor(
     `
     <h2>Config Editor · ${scope}</h2>
     <p class="sub mono">${configPath}</p>
+    <p class="sub">This page intentionally shows a curated set of high-frequency settings. For uncommon options, edit the JSON file directly.</p>
     <form id="cf" onsubmit="saveConfig(event,'${scope}')">
       ${renderConfigFields(config)}
       <button type="submit" class="btn-save">Save (restart required)</button>
@@ -381,48 +365,47 @@ export function renderConfigEditor(
 // ── AI HTML Viewer ───────────────────────────────────
 export function renderHtmlViewer(
   theme: string,
-  workspaces: WorkspaceOption[] = [],
+  groups: HtmlWorkspaceGroup[] = [],
   activeWorkspace?: string,
 ): string {
-  const workspaceSelector =
-    workspaces.length > 0
-      ? `<label class="cfg-row" style="max-width:100%;margin:10px 0 16px"><span>Workspace</span><select id="workspace-select">${workspaces
-          .map(
-            (workspace) =>
-              `<option value="${escapeAttr(workspace.directory)}"${workspace.directory === activeWorkspace ? ' selected' : ''}>${escapeHtml(workspace.directory)}</option>`,
-          )
-          .join('')}</select></label>`
-      : '';
+  return renderHtmlHubGroups(groups, theme, activeWorkspace);
+}
+
+export function renderHtmlHubGroups(
+  groups: HtmlWorkspaceGroup[],
+  theme: string,
+  activeWorkspace?: string,
+): string {
+  const body = groups.length
+    ? groups
+        .map(
+          ({ workspace, pages }) => `
+            <details class="workspace-group" ${workspace.directory === activeWorkspace ? 'open' : ''}>
+              <summary>${escapeHtml(workspace.directory)}${workspace.directory === activeWorkspace ? ' · current' : ''} · ${pages.length} page(s)</summary>
+              <div class="grid-3" style="margin-top:12px">
+                ${pages
+                  .map(
+                    (page) => `
+                      <a href="/api/html-open?workspace=${encodeURIComponent(workspace.directory)}&path=${encodeURIComponent(page.relativePath)}" class="card-link" target="_blank">
+                        <h4>${escapeHtml(page.name)}</h4>
+                        <p class="sub">${escapeHtml(page.relativePath)}</p>
+                      </a>
+                    `,
+                  )
+                  .join('')}
+              </div>
+            </details>
+          `,
+        )
+        .join('')
+    : '<p class="sub">No HTML artifacts found in known workspaces.</p>';
+
   return base(
-    'HTML Viewer',
+    'HTML Hub',
     `
-    <h2>AI-Generated HTML Viewer</h2>
-    <p class="sub">HTML files are in <code>.opencode/extendai-lab/pages/</code> — open them directly in your browser.</p>
-    <p class="sub">Each repository/workspace is resolved independently. Switch workspace below if the list does not match the repository you want.</p>
-    ${workspaceSelector}
-    <div id="pages-list"><p class="sub">Loading...</p></div>
-    <script>
-      const current = new URLSearchParams(location.search).get('workspace');
-      const query = current ? ('?workspace=' + encodeURIComponent(current)) : '';
-      const select = document.getElementById('workspace-select');
-      if (select) {
-        select.addEventListener('change', (event) => {
-          const next = new URL(location.href);
-          const value = event.target.value;
-          if (value) next.searchParams.set('workspace', value);
-          else next.searchParams.delete('workspace');
-          location.href = next.toString();
-        });
-      }
-      fetch('/api/html-pages' + query).then(r=>r.json()).then(pages=>{
-        const el=document.getElementById('pages-list');
-        if(!pages.length){el.innerHTML='<p class="sub">No HTML pages yet. Ask the AI to create one.</p>';return}
-        el.innerHTML='<div class="grid-3">'+pages.map(p=>{
-          const fileUrl = 'file:///' + p.replace(/\\/g, '/');
-          return '<a href="'+fileUrl+'" target="_blank" class="card-link"><h4>'+p.split('/').pop().split('\\').pop()+'</h4><p class="sub">'+p+'</p></a>';
-        }).join('')+'</div>';
-      });
-    </script>
+    <h2>HTML Hub</h2>
+    <p class="sub">Only workspaces with actual HTML artifacts are shown here. Pages open through this local server, so they render consistently without separate deployment or file:// jumps.</p>
+    ${body}
   `,
     theme,
   );
@@ -478,7 +461,7 @@ function md2html(md: string): string {
 
 // ── Base layout ──────────────────────────────────────
 function base(title: string, body: string, theme: string): string {
-  return `<!DOCTYPE html><html lang="zh-CN" data-theme="${theme}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} · extendai-lab</title><style>${CSS}</style></head><body><nav><a href="/" class="brand">⚡ extendai-lab</a><div class="nav-links"><a href="/skills">Skills</a><a href="/docs">Docs</a><a href="/view">HTML</a><a href="/plans">Plans</a><a href="/config/project">Config</a></div><button class="btn-theme" onclick="toggleTheme()">${theme === 'dark' ? '☀' : '☾'}</button></nav><main>${body}</main><script>function toggleTheme(){const h=document.documentElement;const t=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=t;fetch('/api/theme?theme='+t);location.reload()}const ws=new URLSearchParams(location.search).get('workspace');if(ws){document.querySelectorAll('a[href^="/"]').forEach(a=>{const href=a.getAttribute('href');if(!href)return;const u=new URL(href,location.origin);if(!u.searchParams.has('workspace'))u.searchParams.set('workspace',ws);a.setAttribute('href',u.pathname+u.search+u.hash)})}</script></body></html>`;
+  return `<!DOCTYPE html><html lang="zh-CN" data-theme="${theme}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} · extendai-lab</title><style>${CSS}</style></head><body><nav><a href="/" class="brand">⚡ extendai-lab</a><div class="nav-links"><a href="/view">HTML</a><a href="/plans">Plans</a><a href="/docs">Docs</a><a href="/config/project">Config</a></div><button class="btn-theme" onclick="toggleTheme()">${theme === 'dark' ? '☀' : '☾'}</button></nav><main>${body}</main><script>function toggleTheme(){const h=document.documentElement;const t=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=t;fetch('/api/theme?theme='+t);location.reload()}const ws=new URLSearchParams(location.search).get('workspace');if(ws){document.querySelectorAll('a[href^="/"]').forEach(a=>{const href=a.getAttribute('href');if(!href)return;const u=new URL(href,location.origin);if(!u.searchParams.has('workspace'))u.searchParams.set('workspace',ws);a.setAttribute('href',u.pathname+u.search+u.hash)})}</script></body></html>`;
 }
 
 // ── CSS ──────────────────────────────────────────────

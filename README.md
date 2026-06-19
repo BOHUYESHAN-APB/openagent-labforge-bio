@@ -70,10 +70,10 @@ After each major version bump (e.g., 1.x → 2.x), we delete all releases from t
 
 | Tool | Purpose | Install |
 |------|---------|---------|
-| [**opencode-pty**](https://github.com/opencode-ai/opencode-pty) | **Required** — Persistent terminal for long-running commands (bioinformatics, builds, training). Without this, AI cannot run commands longer than 5 minutes. | `npm install -g opencode-pty` |
+| [**opencode-pty**](https://github.com/opencode-ai/opencode-pty) | **Strongly recommended** — Persistent terminal for long-running commands (bioinformatics, builds, training). When available, the plugin will prefer PTY tools automatically for long-running terminal work. | `npm install -g opencode-pty` |
 | [**OfficeCLI**](https://github.com/iOfficeAI/OfficeCLI) | AI-native Word/Excel/PowerPoint CLI — create, read, modify `.docx`/`.xlsx`/`.pptx` without Office | `curl -fsSL https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.sh \| bash` (macOS/Linux) or `irm https://raw.githubusercontent.com/iOfficeAI/OfficeCLI/main/install.ps1 \| iex` (Windows) |
 
-**Why opencode-pty?** OpenCode's default terminal has a 5-minute timeout and blocks the session. Bioinformatics skills (samtools, STAR, python scripts) and academic skills (xelatex, python-docx) often require longer. With opencode-pty, AI can use `pty_spawn` for persistent background terminals.
+**Why opencode-pty?** OpenCode's default terminal is synchronous and may terminate long-running commands after its timeout. Bioinformatics skills (samtools, STAR, python scripts) and academic skills (xelatex, python-docx) often require longer. When `opencode-pty` is available, this plugin can prefer `pty_spawn` for persistent background terminals automatically.
 
 **Why OfficeCLI?** Our academic skills handle paper writing pipelines, but OfficeCLI provides **standardized, safe** Office document operations for any use case — reports, presentations, data sheets, templates. It's a single binary, zero dependencies, and the AI can auto-detect and suggest installation when needed.
 

@@ -71,12 +71,14 @@ import {
   createContextPressureHook,
   createDelegateTaskRetryHook,
   createFilterAvailableSkillsHook,
+  createBashTimeoutRecoveryHook,
   createFlashEscalationHook,
   createJsonErrorRecoveryHook,
   createMemoryCommandsHook,
   createModeDetectorHook,
   createPhaseReminderHook,
   createPostFileToolNudgeHook,
+  createPtyAvailabilityHook,
   createPrefixStabilityHook,
   createSchemaSanitizeHook,
   createSessionGoalHook,
@@ -474,12 +476,14 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   let prefixStabilityHook: ReturnType<typeof createPrefixStabilityHook>;
   let schemaSanitizeHook: ReturnType<typeof createSchemaSanitizeHook>;
   let flashEscalationHook: ReturnType<typeof createFlashEscalationHook>;
+  let bashTimeoutRecoveryHook: ReturnType<typeof createBashTimeoutRecoveryHook>;
   let foregroundFallback: ForegroundFallbackManager;
   let todoContinuationHook: ReturnType<typeof createTodoContinuationHook>;
   let taskSessionManagerHook: ReturnType<typeof createTaskSessionManagerHook>;
   let modeDetectorHook: ReturnType<typeof createModeDetectorHook>;
   let thinkingLanguageHook: ReturnType<typeof createThinkingLanguageHook>;
   let thinkingFloorHook: ReturnType<typeof createThinkingFloorHook>;
+  let ptyAvailabilityHook: ReturnType<typeof createPtyAvailabilityHook>;
   let interviewManager: ReturnType<typeof createInterviewManager>;
   let presetManager: ReturnType<typeof createPresetManager>;
   let startWorkHook: ReturnType<typeof createStartWorkHook>;
@@ -745,6 +749,8 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
     // Initialize flash escalation: auto-escalate on failure
     flashEscalationHook = createFlashEscalationHook(ctx);
+    bashTimeoutRecoveryHook = createBashTimeoutRecoveryHook(ctx);
+    ptyAvailabilityHook = createPtyAvailabilityHook();
 
     // Initialize foreground fallback manager for runtime model switching
     foregroundFallback = new ForegroundFallbackManager(
@@ -1846,6 +1852,11 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         output,
       );
 
+      await ptyAvailabilityHook['experimental.chat.system.transform'](
+        input,
+        output,
+      );
+
       await contextPressureHook.handleSystemTransform(input, output);
 
       // Inject mode-specific prompt variants for primary agents
@@ -1921,16 +1932,15 @@ Do NOT use the built-in 'skill' tool for these categories. The built-in 'skill' 
 
 ## Terminal Usage (CRITICAL)
 
-OpenCode's default 'bash' tool has a 5-minute timeout and blocks the session.
-For long-running commands (Python scripts, bioinformatics tools, builds), you MUST use pty_spawn:
+OpenCode's default 'bash' tool is synchronous and may terminate long-running commands after its timeout.
+If PTY tools are available in this session, for long-running commands (Python scripts, bioinformatics tools, builds), you MUST use pty_spawn first:
 
-- **pty_spawn** — start persistent background terminal (no timeout)
+- **pty_spawn** — start persistent background terminal (preferred when available)
 - **pty_read** — read output from background terminal
 - **pty_write** — send input to background terminal
 - **pty_kill** — terminate background terminal
 
-If pty_spawn is not available, ask the user to install opencode-pty plugin:
-"Please install opencode-pty for persistent terminal support: npm install -g opencode-pty"
+If PTY tools are not available, fall back to short bounded bash commands, explicit larger timeouts when appropriate, or ask the user to enable PTY support.
 
 ## Mandatory Workflow Rules
 
@@ -2145,6 +2155,11 @@ SKIPPING THESE RULES = TASK FAILURE
         },
       );
 
+      await bashTimeoutRecoveryHook['tool.execute.after'](
+        input as { tool: string },
+        output as { output?: unknown },
+      );
+
       await todoContinuationHook.handleToolExecuteAfter(
         input as {
           tool: string;
@@ -2181,6 +2196,7 @@ SKIPPING THESE RULES = TASK FAILURE
       input: { toolID: string },
       output: { description: string; parameters: unknown },
     ) => {
+      await ptyAvailabilityHook['tool.definition'](input, output);
       await schemaSanitizeHook['tool.definition'](input, output);
     },
 

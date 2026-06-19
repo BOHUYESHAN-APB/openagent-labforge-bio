@@ -17,6 +17,8 @@ export { createMemoryCommandsHook } from './memory-commands';
 export { createModeDetectorHook } from './mode-detector';
 export { createPhaseReminderHook } from './phase-reminder';
 export { createPostFileToolNudgeHook } from './post-file-tool-nudge';
+export { createPtyAvailabilityHook } from './pty-availability';
+export { createBashTimeoutRecoveryHook } from './bash-timeout-recovery';
 export { createPrefixStabilityHook } from './prefix-stability';
 export { createSchemaSanitizeHook } from './schema-sanitize/hook';
 export { createSessionGoalHook } from './session-goal';

@@ -39,7 +39,9 @@ import {
   renderDocFile,
   renderDocs,
   renderError,
+  type HtmlWorkspaceGroup,
   renderHtmlViewer,
+  renderHtmlPage,
   renderPlanFile,
   renderPlans,
   renderSkillDetail,
@@ -49,6 +51,11 @@ import {
   renderChangesPage,
   renderExplorePage,
 } from './pages';
+import {
+  normalizeWorkspaceDirectory,
+  selectPreferredWorkspaceRecords,
+  type WorkspaceRecord,
+} from './workspaces';
 
 // ── Constants ─────────────────────────────────────────
 // Use fixed port 25569 for predictable dashboard access.
@@ -72,48 +79,60 @@ const pluginRoot: string = _getPluginRoot();
 let currentTheme = 'dark';
 let logFilePath = '';
 
-type WorkspaceRecord = {
-  id: string;
-  directory: string;
+type HtmlPageRecord = {
+  name: string;
+  relativePath: string;
 };
 
-function normalizeWorkspaceDirectory(directory: string): string {
-  return resolve(directory).replace(/\\/g, '/').toLowerCase();
-}
-
 function loadWorkspaceRecords(): WorkspaceRecord[] {
-  const records = new Map<string, WorkspaceRecord>();
-
-  const addDirectory = (directory: string | null | undefined) => {
-    if (!directory) return;
-    const resolved = resolve(directory);
-    if (!existsSync(resolved)) return;
-    const id = normalizeWorkspaceDirectory(resolved);
-    if (!records.has(id)) {
-      records.set(id, { id, directory: resolved });
-    }
-  };
-
-  addDirectory(workspaceRoot);
+  const projectDirectories: WorkspaceRecord[] = [];
+  const projectWorktrees: Array<{ id: string; worktree: string }> = [];
 
   if (existsSync(OPENCODE_DB_PATH)) {
     try {
       const db = new Database(OPENCODE_DB_PATH, { readonly: true });
-      const rows = db
-        .query('select directory from project_directory where directory is not null')
-        .all() as Array<{ directory: string | null }>;
-      for (const row of rows) {
-        addDirectory(row.directory);
+      const directoryRows = db
+        .query(
+          'select directory, type, strategy from project_directory where directory is not null',
+        )
+        .all() as Array<{
+          directory: string | null;
+          type: string | null;
+          strategy: string | null;
+        }>;
+      for (const row of directoryRows) {
+        if (!row.directory) continue;
+        const resolved = resolve(row.directory);
+        if (!existsSync(resolved)) continue;
+        projectDirectories.push({
+          id: normalizeWorkspaceDirectory(resolved),
+          directory: resolved,
+          type: row.type,
+          strategy: row.strategy,
+        });
       }
+
+      const worktreeRows = db
+        .query('select id, worktree from project where worktree is not null')
+        .all() as Array<{ id: string; worktree: string | null }>;
+      for (const row of worktreeRows) {
+        if (!row.worktree) continue;
+        const resolved = resolve(row.worktree);
+        if (!existsSync(resolved)) continue;
+        projectWorktrees.push({ id: row.id, worktree: resolved });
+      }
+
       db.close();
     } catch {
       // Best effort only.
     }
   }
 
-  return Array.from(records.values()).sort((left, right) =>
-    left.directory.localeCompare(right.directory),
-  );
+  return selectPreferredWorkspaceRecords({
+    currentWorkspace: workspaceRoot,
+    projectDirectories,
+    projectWorktrees,
+  });
 }
 
 function resolveWorkspaceFromRequest(url: URL): string {
@@ -130,6 +149,33 @@ function resolveWorkspaceFromRequest(url: URL): string {
 
   const direct = resolve(requested);
   return existsSync(direct) ? direct : workspaceRoot;
+}
+
+function getWorkspaceHtmlPages(root: string): HtmlPageRecord[] {
+  const pagesDir = join(root, '.opencode', 'extendai-lab', 'pages');
+  try {
+    return readdirSync(pagesDir)
+      .filter((file) => file.endsWith('.html'))
+      .sort((left, right) => left.localeCompare(right))
+      .map((file) => ({
+        name: file,
+        relativePath: file,
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function getHtmlWorkspaceGroups(): HtmlWorkspaceGroup[] {
+  return loadWorkspaceRecords()
+    .map((workspace) => ({
+      workspace: {
+        id: workspace.id,
+        directory: workspace.directory,
+      },
+      pages: getWorkspaceHtmlPages(workspace.directory),
+    }))
+    .filter((group) => group.pages.length > 0);
 }
 
 // ── Logging ───────────────────────────────────────────
@@ -370,24 +416,28 @@ async function handleRequest(req: Request): Promise<Response> {
       );
     }
     if (p === '/view')
-      return new Response(renderHtmlViewer(t, loadWorkspaceRecords(), requestWorkspaceRoot), {
+      return new Response(renderHtmlViewer(t, getHtmlWorkspaceGroups(), requestWorkspaceRoot), {
         headers: { 'Content-Type': 'text/html; charset=utf-8' },
       } as any);
     if (p === '/api/html-pages') {
-      const pagesDir = join(
+      return Response.json(getWorkspaceHtmlPages(requestWorkspaceRoot));
+    }
+    if (p === '/api/html-open') {
+      const relativePath = (url.searchParams.get('path') ?? '').replace(/\\/g, '/');
+      if (!relativePath) return err(400, 'Missing path');
+      const fullPath = join(
         requestWorkspaceRoot,
         '.opencode',
         'extendai-lab',
         'pages',
+        ...relativePath.split('/'),
       );
-      try {
-        const files = readdirSync(pagesDir).filter((f) => f.endsWith('.html'));
-        // Return full paths for file:// URLs
-        const fullPaths = files.map((f) => join(pagesDir, f));
-        return Response.json(fullPaths);
-      } catch {
-        return Response.json([]);
+      if (!existsSync(fullPath) || statSync(fullPath).isDirectory()) {
+        return err(404, 'HTML page not found');
       }
+      return new Response(renderHtmlPage(relativePath, readFileSync(fullPath, 'utf8'), t), {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      } as any);
     }
     if (p === '/skills')
       return new Response(renderSkillsList(scanAllSkills(), t), {
@@ -526,7 +576,7 @@ async function handleRequest(req: Request): Promise<Response> {
         return Response.json({ teams });
       } catch (error) {
         // Fallback to file-based status
-        const teamsDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'teams');
+        const teamsDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'teams');
         try {
           const teams = readdirSync(teamsDir, { withFileTypes: true })
             .filter(e => e.isDirectory())
@@ -564,7 +614,7 @@ async function handleRequest(req: Request): Promise<Response> {
 
     if (p.startsWith('/api/teams/') && p.includes('/tasks')) {
       const teamName = p.split('/')[3];
-      const tasksFile = join(workspaceRoot, '.opencode', 'extendai-lab', 'teams', teamName, 'tasks.json');
+      const tasksFile = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'teams', teamName, 'tasks.json');
       try {
         const tasks = JSON.parse(readFileSync(tasksFile, 'utf8'));
         return Response.json({ team: teamName, tasks });
@@ -575,7 +625,7 @@ async function handleRequest(req: Request): Promise<Response> {
 
     if (p.startsWith('/api/teams/') && p.includes('/messages')) {
       const teamName = p.split('/')[3];
-      const messagesFile = join(workspaceRoot, '.opencode', 'extendai-lab', 'teams', teamName, 'messages.json');
+      const messagesFile = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'teams', teamName, 'messages.json');
       try {
         const messages = JSON.parse(readFileSync(messagesFile, 'utf8'));
         return Response.json({ team: teamName, messages });
@@ -597,8 +647,8 @@ async function handleRequest(req: Request): Promise<Response> {
 
     // ── Session Status API ──────────────────────────────
     if (p === '/api/sessions') {
-      const boulderFile = join(workspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
-      const plansDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'plans');
+      const boulderFile = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
+      const plansDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'plans');
       try {
         let boulder = {};
         if (existsSync(boulderFile)) {
@@ -621,7 +671,7 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     if (p === '/api/sessions/active') {
-      const boulderFile = join(workspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
+      const boulderFile = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
       try {
         if (existsSync(boulderFile)) {
           const boulder = JSON.parse(readFileSync(boulderFile, 'utf8'));
@@ -635,7 +685,7 @@ async function handleRequest(req: Request): Promise<Response> {
 
     // ── Changes API ─────────────────────────────────────
     if (p === '/api/changes') {
-      const changesDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'changes');
+      const changesDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'changes');
       try {
         const changes = readdirSync(changesDir, { withFileTypes: true })
           .filter(e => e.isDirectory())
@@ -656,7 +706,7 @@ async function handleRequest(req: Request): Promise<Response> {
 
     // ── Explore API ─────────────────────────────────────
     if (p === '/api/explore') {
-      const exploreDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'explore');
+      const exploreDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'explore');
       try {
         const explorations = readdirSync(exploreDir, { withFileTypes: true })
           .filter(e => e.isDirectory())
