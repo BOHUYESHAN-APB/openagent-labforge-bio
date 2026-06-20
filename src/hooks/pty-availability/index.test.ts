@@ -50,6 +50,40 @@ describe('pty availability hook', () => {
     expect(output.description).toContain('Persistent PTY terminal tools are available');
   });
 
+  test('blocks pty-required bash commands when pty is available', async () => {
+    const hook = createPtyAvailabilityHook();
+    const output = {
+      args: {
+        command: 'bun run build',
+      },
+    };
+
+    await hook['tool.definition'](
+      { toolID: 'pty_spawn' },
+      { description: 'spawn', parameters: {} },
+    );
+    await hook['tool.execute.before']({ tool: 'bash' }, output);
+
+    expect(String(output.args?.command)).toContain('This bash command matches the PTY-required class');
+  });
+
+  test('does not block short-sync bash commands when pty is available', async () => {
+    const hook = createPtyAvailabilityHook();
+    const output = {
+      args: {
+        command: 'git status',
+      },
+    };
+
+    await hook['tool.definition'](
+      { toolID: 'pty_spawn' },
+      { description: 'spawn', parameters: {} },
+    );
+    await hook['tool.execute.before']({ tool: 'bash' }, output);
+
+    expect(output.args?.command).toBe('git status');
+  });
+
   test('does not inject duplicate marker text', async () => {
     const hook = createPtyAvailabilityHook();
     const output = { system: [] as string[] };

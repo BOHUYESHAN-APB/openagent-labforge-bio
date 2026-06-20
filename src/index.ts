@@ -1594,6 +1594,11 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         input as { tool: string; sessionID: string; callID: string },
         output as { args: unknown },
       );
+
+      await ptyAvailabilityHook['tool.execute.before'](
+        input as { tool: string },
+        output as { args?: Record<string, unknown> },
+      );
     },
 
     // Direct interception of /ol-auto-continue command — bypasses LLM
