@@ -79,47 +79,53 @@ export function createMcpToggleTool(
   return tool({
     description: `Enable or disable an MCP server for the current session only. Does NOT modify global config — other sessions are unaffected. ONLY for primary orchestrator agents.
 
-CRITICAL — THIS PROJECT IS AN OPEnCODE PLUGIN, NOT A WEB APP:
-- Do NOT create HTML/CSS/JS website files in the project root
-- Do NOT set up dev servers for "the website"
-- Browser MCPs exist ONLY for testing and verification of AI-generated HTML pages
-- HTML pages go to .opencode/extendai-lab/pages/ if needed
+## What This Project Is
 
-RULES:
+This is an **AI agent orchestration plugin for OpenCode**. Its core workflow:
+  AI generates structured content → renders as HTML → human views via built-in viewer
+
+- HTML files in .opencode/extendai-lab/pages/ are **AI presentation artifacts** — they visually express AI's plans, analysis, reports, and ideas so humans can understand them faster
+- These are NOT website pages, NOT web apps, NOT frontend code
+- They are simple text-to-visualization output (like a chart vs. raw numbers)
+- Browser MCPs verify that these presentation pages render correctly
+- HTML templates (75+) are loaded via load_skill_template tool, not created manually
+
+## Rules
+
 - NEVER disable: websearch, context7, grep_app, extendaiLab (core infra)
 - NEVER enable: cua_driver (desktop automation — user must enable manually)
-- Browser MCPs: only for verification/testing — use chrome_devtools_mcp first; browser_puppeteer as fallback
+- Browser MCPs: only for verifying AI-generated presentation pages render correctly
 - Paper search: enable ONLY ONE at a time (semantic_scholar_fastmcp recommended)
 
-Available MCPs (enable when user needs these capabilities):
+## Available MCPs (enable when user needs these capabilities)
 
-Core infrastructure (always enabled):
+### Core infrastructure (always enabled)
 - websearch — Search the web for current information
 - context7 — Context-aware code search
 - grep_app — GitHub code search for real-world examples
-- extendaiLab — Dashboard, checkpoints, skills management
+- extendaiLab — Dashboard, session checkpoints, skills management
 
-Browser automation (for VERIFICATION only — NOT for web development):
-- chrome_devtools_mcp — Chrome DevTools protocol. Take screenshots, verify UI output. Best for most use cases.
+### AI presentation verification (verify AI->HTML pages look correct)
+- chrome_devtools_mcp — Chrome DevTools. Screenshot and verify AI-generated HTML pages in .opencode/extendai-lab/pages/. Best for most cases.
 - browser_puppeteer — Playwright browser. Alternative if chrome_devtools_mcp unavailable.
 
-Academic paper search (for finding papers, citations, references):
-- semantic_scholar_fastmcp — Semantic Scholar API. Search papers, get citations, find references. RECOMMENDED.
+### Academic paper search
+- semantic_scholar_fastmcp — Semantic Scholar API. Recommended.
 - arxiv_mcp — arXiv API. Search and download arXiv preprints.
 - paper_search_mcp — General paper search across multiple sources.
 
-Bioinformatics (for protein/genomics data):
+### Bioinformatics (protein/genomics data)
 - bioNext — Multi-omics data analysis platform.
 - uniprot — UniProt protein database. Query protein sequences, functions, structures.
 
-Web search (alternative to built-in websearch):
+### Web search (alternative to built-in websearch)
 - open_websearch_mcp — Open web search via DuckDuckGo/Bing/Exa/Brave/Baidu.
 
-Knowledge base:
+### Knowledge base
 - deepwiki_mcp — DeepWiki. Query GitHub repository documentation and wikis.
 
-NEVER enable:
-- cua_driver — Desktop automation via CUA. SECURITY RISK. User must enable manually.
+### Security — NEVER enable (user must manually enable)
+- cua_driver — Desktop automation via CUA. SECURITY RISK.
 
 NOTE: If enable fails with timeout, retry automatically (multi-window race condition).`,
     args: {

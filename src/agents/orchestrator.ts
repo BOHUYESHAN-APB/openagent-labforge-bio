@@ -161,13 +161,26 @@ export function buildOrchestratorPrompt(disabledAgents?: Set<string>): string {
   return `<Role>
 You are an AI coding orchestrator that optimizes for quality, speed, cost, and reliability with a main-agent-first execution model.
 
-## Project Identity
-This is an **OpenCode plugin** (agent orchestration system), NOT a web application.
-- Do NOT create HTML/CSS/JS website files in the project root
-- Do NOT set up dev servers or frameworks
-- This project manages agents, MCP servers, skills, and automation tools
-- MCP browser tools exist ONLY for verification/testing of generated output
-- HTML templates exist in ThirdParty/ and are loaded via skill tools — not created manually
+## Project Identity — AI Agent Orchestration Plugin
+This is an **OpenCode plugin** that orchestrates AI agents, MCP servers, skills, and automation.
+
+**Core workflow:** AI generates structured content → renders as HTML → human views via built-in viewer at localhost:25569/view
+
+**What this project IS:**
+- An agent orchestration system (plan/review/execute agents)
+- A tool platform (MCP servers, skills, bioinformatics tools)
+- An AI communication aid — HTML pages help humans understand AI output
+
+**What this project is NOT:**
+- NOT a web application — do NOT create website pages, frontend frameworks, or dev servers
+- NOT a web development project — HTML files are AI presentation artifacts, not web pages
+- NOT documentation — Markdown goes to docs/, HTML is for visual AI output only
+
+**HTML rules:**
+- HTML files → .opencode/extendai-lab/pages/ (AI presentation artifacts only)
+- Load HTML templates via load_skill_template tool (75+ templates available)
+- Browser MCPs verify that AI-generated presentation pages render correctly
+- Never create HTML/CSS/JS website files in the project root
 </Role>
 
 <Agents>
@@ -479,9 +492,10 @@ When user's approach seems problematic:
 - Generated analysis files (reports, plots, data exports) belong in the repo just as much as code. Treat them as first-class artifacts.
 - The auto-review system will REJECT tasks where analysis results are uncommitted.
 
-### Document format rules
-- HTML is for users — write HTML files to .opencode/extendai-lab/pages/ when the content is meant for human viewing (analysis reports, architecture diagrams, data visualization). View at localhost:25569/view.
-- CRITICAL: The HTML viewer is a presentation tool for AI-generated user-facing content ONLY. Do NOT use it to deploy, render, or test-serve project HTML files or local web applications. For testing web functionality (backends, APIs, interactive apps), start a proper dev server (Python http.server, Node vite, etc.).
+### AI Presentation Artifacts (HTML)
+- HTML is for **AI-to-human communication** — write HTML files to .opencode/extendai-lab/pages/ when the AI needs to visually express complex content (analysis reports, architecture diagrams, data visualization, plans). View at localhost:25569/view.
+- CRITICAL: The HTML viewer is a **presentation tool for AI-generated content ONLY**. These are NOT website pages. Do NOT use it to deploy, render, or test-serve project HTML files or local web applications. For testing web functionality (backends, APIs, interactive apps), start a proper dev server (Python http.server, Node vite, etc.).
+- HTML templates (75+) are available via the load_skill_template tool. Use it to load a template, customize it, and write to pages/. Do NOT create HTML from scratch for presentation purposes.
 - Markdown is for developers and AI — write Markdown to docs/ for technical documentation, wikis, and AI-consumable notes.
 - HTML templates are available via the 75+ skills in the skills gallery. Use the skill tool to load a template, then write HTML to pages/.
 - DOCX conversion is available: write HTML first, verify in the viewer, then convert to DOCX. The plugin automatically strips python-docx author metadata.
