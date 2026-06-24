@@ -1,89 +1,124 @@
 /// <reference path="../../bun-test.d.ts" />
 
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test"
-import * as fs from "node:fs"
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 type LoadOpencodePluginsModule = {
-  loadOpencodePlugins: (directory: string) => string[]
-  clearOpencodePluginsCache?: () => void
+  loadOpencodePlugins: (directory: string) => string[];
+  clearOpencodePluginsCache?: () => void;
+};
+
+function createTempDir(): string {
+  return mkdtempSync(path.join(os.tmpdir(), 'opencode-plugins-test-'));
 }
 
-const existsSyncMock = mock((_path: string) => true)
-const readFileSyncMock = mock((_path: string, _encoding?: string) => `{
-  "plugin": ["plugin-a", "plugin-b"]
-}`)
+function createConfigFile(dir: string, content: object): void {
+  const configDir = path.join(dir, '.opencode');
+  mkdirSync(configDir, { recursive: true });
+  writeFileSync(
+    path.join(configDir, 'opencode.json'),
+    JSON.stringify(content, null, 2),
+    'utf-8',
+  );
+}
 
 async function importFreshLoadOpencodePluginsModule(): Promise<LoadOpencodePluginsModule> {
-  const modulePath = `${new URL("./load-opencode-plugins.ts", import.meta.url).pathname}?test=${Date.now()}-${Math.random()}`
-  return import(modulePath)
+  const url = new URL(
+    `./load-opencode-plugins.ts?test=${Date.now()}-${Math.random()}`,
+    import.meta.url,
+  );
+  return import(url.href);
 }
 
-describe("loadOpencodePlugins", () => {
-  beforeEach(() => {
-    existsSyncMock.mockReset()
-    existsSyncMock.mockImplementation((_path: string) => true)
-    readFileSyncMock.mockReset()
-    readFileSyncMock.mockImplementation((_path: string, _encoding?: string) => `{
-  "plugin": ["plugin-a", "plugin-b"]
-}`)
+describe('loadOpencodePlugins', () => {
+  let tempDir: string;
 
-    mock.module("node:fs", () => ({
-      ...fs,
-      existsSync: existsSyncMock,
-      readFileSync: readFileSyncMock,
-    }))
-  })
+  beforeEach(() => {
+    tempDir = createTempDir();
+  });
 
   afterEach(() => {
-    mock.restore()
-  })
+    rmSync(tempDir, { recursive: true, force: true });
+  });
 
-  describe("#given the same directory is loaded twice", () => {
-    describe("#when loading plugins repeatedly", () => {
-      it("#then does not call readFileSync on the second load", async () => {
+  describe('#given the same directory is loaded twice', () => {
+    describe('#when loading plugins repeatedly', () => {
+      it('#then returns cached result instead of re-reading from disk', async () => {
         // given
-        const { loadOpencodePlugins } = await importFreshLoadOpencodePluginsModule()
+        createConfigFile(tempDir, {
+          plugin: ['@test/plugin-a', '@test/plugin-b'],
+        });
+        const { loadOpencodePlugins } =
+          await importFreshLoadOpencodePluginsModule();
 
         // when
-        const firstResult = loadOpencodePlugins("/some/fake/dir")
-        const readCountAfterFirstLoad = readFileSyncMock.mock.calls.length
-        const secondResult = loadOpencodePlugins("/some/fake/dir")
-        const readCountAfterSecondLoad = readFileSyncMock.mock.calls.length
+        const firstResult = loadOpencodePlugins(tempDir);
+
+        // Modify the file on disk to have different content
+        createConfigFile(tempDir, {
+          plugin: ['@test/plugin-c', '@test/plugin-d'],
+        });
+
+        const secondResult = loadOpencodePlugins(tempDir);
 
         // then
-        expect(firstResult).toEqual(["plugin-a", "plugin-b"])
-        expect(secondResult).toEqual(["plugin-a", "plugin-b"])
-        expect(readCountAfterFirstLoad).toBeGreaterThan(0)
-        expect(readCountAfterSecondLoad - readCountAfterFirstLoad).toBe(0)
-      })
-    })
-  })
+        // First result reads from disk and includes our test plugins
+        expect(firstResult).toEqual(
+          expect.arrayContaining(['@test/plugin-a', '@test/plugin-b']),
+        );
+        // Second result should return the SAME cached array as the first,
+        // proving the file was not re-read from disk
+        expect(secondResult).toEqual(firstResult);
+      });
+    });
+  });
 
-  describe("#given the plugin cache was cleared", () => {
-    describe("#when loading the same directory again", () => {
-      it("#then re-reads plugin config files from disk", async () => {
+  describe('#given the plugin cache was cleared', () => {
+    describe('#when loading the same directory again', () => {
+      it('#then re-reads plugin config files from disk', async () => {
         // given
-        const { loadOpencodePlugins, clearOpencodePluginsCache } = await importFreshLoadOpencodePluginsModule()
+        createConfigFile(tempDir, {
+          plugin: ['@test/plugin-a', '@test/plugin-b'],
+        });
+        const { loadOpencodePlugins, clearOpencodePluginsCache } =
+          await importFreshLoadOpencodePluginsModule();
 
-        if (typeof clearOpencodePluginsCache !== "function") {
-          throw new Error("clearOpencodePluginsCache export is missing")
+        if (typeof clearOpencodePluginsCache !== 'function') {
+          throw new Error('clearOpencodePluginsCache export is missing');
         }
 
         // when
-        const firstResult = loadOpencodePlugins("/some/fake/dir")
-        const readCountAfterFirstLoad = readFileSyncMock.mock.calls.length
-        loadOpencodePlugins("/some/fake/dir")
-        const readCountAfterSecondLoad = readFileSyncMock.mock.calls.length
-        clearOpencodePluginsCache()
-        const thirdResult = loadOpencodePlugins("/some/fake/dir")
-        const readCountAfterThirdLoad = readFileSyncMock.mock.calls.length
+        const firstResult = loadOpencodePlugins(tempDir);
+
+        // Modify the file on disk
+        createConfigFile(tempDir, {
+          plugin: ['@test/plugin-c', '@test/plugin-d'],
+        });
+
+        // Second load (cached) — should return the original cached value
+        const secondResult = loadOpencodePlugins(tempDir);
+
+        // Clear cache
+        clearOpencodePluginsCache();
+
+        // Third load — should re-read from disk and pick up the modified file
+        const thirdResult = loadOpencodePlugins(tempDir);
 
         // then
-        expect(firstResult).toEqual(["plugin-a", "plugin-b"])
-        expect(thirdResult).toEqual(["plugin-a", "plugin-b"])
-        expect(readCountAfterSecondLoad - readCountAfterFirstLoad).toBe(0)
-        expect(readCountAfterThirdLoad - readCountAfterSecondLoad).toBeGreaterThan(0)
-      })
-    })
-  })
-})
+        expect(firstResult).toEqual(
+          expect.arrayContaining(['@test/plugin-a', '@test/plugin-b']),
+        );
+        // Cached result is identical to first
+        expect(secondResult).toEqual(firstResult);
+        // After cache clear, the new file content is picked up
+        expect(thirdResult).toEqual(
+          expect.arrayContaining(['@test/plugin-c', '@test/plugin-d']),
+        );
+        // The result changed after cache clear (re-read from disk)
+        expect(thirdResult).not.toEqual(firstResult);
+      });
+    });
+  });
+});
