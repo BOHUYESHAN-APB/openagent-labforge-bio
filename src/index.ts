@@ -86,6 +86,7 @@ import {
   createMemoryCommandsHook,
   createModeDetectorHook,
   createPhaseReminderHook,
+  createPlanModeHook,
   createPostFileToolNudgeHook,
   createPrefixStabilityHook,
   createPtyAvailabilityHook,
@@ -124,6 +125,8 @@ import {
   createCouncilTool,
   createMcpToggleTool,
   createMediaInventoryTool,
+  createPlanEnterTool,
+  createPlanExitTool,
   createPresetManager,
   createSavePlanTool,
   createSubtaskTool,
@@ -370,6 +373,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   let checkpointResumeHook: ReturnType<typeof createCheckpointResumeHook>;
   let memoryCommandsHook: ReturnType<typeof createMemoryCommandsHook>;
   let sessionGoalHook: ReturnType<typeof createSessionGoalHook>;
+  let planModeHook: ReturnType<typeof createPlanModeHook>;
   let effectiveAgentOverlayManager: EffectiveAgentOverlayManager;
   let subtaskState: ReturnType<typeof createSubtaskState>;
   let councilTools: Record<string, unknown>;
@@ -759,6 +763,10 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       shouldManageSession: (sessionID) => shouldManagePrimarySession(sessionID),
     });
     modeDetectorHook = createModeDetectorHook();
+    planModeHook = createPlanModeHook({
+      overlayManager: effectiveAgentOverlayManager,
+      getCurrentAgent: (sessionID) => sessionAgentMap.get(sessionID),
+    });
     thinkingLanguageHook = createThinkingLanguageHook();
     thinkingFloorHook = createThinkingFloorHook({
       enabled: config.thinkingFloor?.enabled !== false,
@@ -862,6 +870,8 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       ast_grep_replace,
       detect_bio_task: detectBioTaskTool,
       load_agent_instructions: loadAgentInstructionsTool,
+      plan_enter: createPlanEnterTool(),
+      plan_exit: createPlanExitTool(),
       cancel_task: createCancelTaskTool({
         client: ctx.client,
         backgroundJobBoard: taskSessionManagerHook.backgroundJobBoard,
@@ -1538,6 +1548,12 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     // Best-effort rescue only for stale apply_patch input before native
     // execution
     'tool.execute.before': async (input, output) => {
+      // Plan mode hook: handle plan_enter/plan_exit overlay switching
+      planModeHook['tool.execute.before'](
+        input as { tool: string; sessionID?: string },
+        output as { args?: Record<string, unknown>; [key: string]: unknown },
+      );
+
       await applyPatchHook['tool.execute.before'](
         input as {
           tool: string;
@@ -1705,15 +1721,14 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       const agent =
         responseOverlayAgent ?? persistentOverlayAgent ?? resolvedAgent;
 
-      if (
-        agent &&
-        output?.message &&
-        typeof output.message.agent === 'string'
-      ) {
+      // Force-set message agent when overlay is active (plan/review mode).
+      // This ensures the UI shows the correct agent even in interactive mode.
+      // Also prevents sessionAgentMap from being overwritten during plan mode.
+      if (agent && output?.message) {
         output.message.agent = agent;
       }
 
-      if (resolvedAgent && !responseOverlayAgent) {
+      if (resolvedAgent && !responseOverlayAgent && !persistentOverlayAgent) {
         const currentMappedAgent = sessionAgentMap.get(input.sessionID);
         const shouldUpdateBaseAgent =
           !persistentOverlayAgent ||
@@ -1762,6 +1777,25 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
       if (overlayAgentName === 'reviewer') {
         await todoContinuationHook.handleSystemTransform(input, output);
+        collapseSystemInPlace(output.system);
+        return;
+      }
+
+      // Plan overlay: isolate prometheus prompt + inject mode instructions
+      if (overlayAgentName === 'prometheus') {
+        const promptAgentDef = agentDefs.find(
+          (a) => a.name === 'prometheus',
+        );
+        const promptText =
+          typeof promptAgentDef?.config?.prompt === 'string'
+            ? promptAgentDef.config.prompt
+            : undefined;
+        if (promptText) {
+          output.system.length = 0;
+          output.system.push(promptText);
+        }
+        // Inject PLAN_MODE_INSTRUCTIONS on top of the isolated prompt
+        planModeHook['experimental.chat.system.transform'](input, output);
         collapseSystemInPlace(output.system);
         return;
       }
