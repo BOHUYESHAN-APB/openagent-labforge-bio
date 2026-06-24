@@ -18,6 +18,7 @@
 import type { CheckpointManager } from '../../checkpoint/manager';
 import type { EffectiveAgentOverlay } from '../../utils/effective-agent-overlay';
 import { log } from '../../utils/logger';
+import { getCompactionPrompt } from './prompt';
 
 const HOOK_NAME = 'compaction';
 
@@ -136,12 +137,15 @@ export function createCompactionHook(options?: CompactionHookOptions): {
         });
       }
 
-      // Keep OpenCode's native compaction prompt — it produces better summaries.
-      // Do NOT override output.prompt or clear output.context.
-      // Our only role here is checkpoint integration (pre-compaction snapshot).
+      // Replace compaction prompt with improved version.
+      // DO NOT clear output.context — OpenCode provides useful context strings
+      // (conversation messages) that the compaction needs to see.
+      const improvedPrompt = getCompactionPrompt(customInstructions);
+      output.prompt = improvedPrompt;
 
-      log(`[${HOOK_NAME}] Pre-compaction checkpoint created (using native compaction prompt)`, {
+      log(`[${HOOK_NAME}] Replaced compaction prompt (anti-interference + detailed)`, {
         sessionID: input.sessionID,
+        promptLength: improvedPrompt.length,
         hasCustomInstructions: !!customInstructions,
       });
     },
