@@ -42,6 +42,7 @@ describe('boulder state', () => {
       remaining: 2,
       percent: 33,
       isComplete: false,
+      nextTaskLabel: '1. First task',
     });
   });
 

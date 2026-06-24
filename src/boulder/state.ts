@@ -27,6 +27,8 @@ export interface PlanFile {
   path: string;
   modifiedAt: string;
   progress: PlanProgress;
+  /** Brief one-line description extracted from plan file content */
+  description?: string;
 }
 
 export interface PlanProgress {
@@ -35,10 +37,16 @@ export interface PlanProgress {
   remaining: number;
   percent: number;
   isComplete: boolean;
+  /** Label of the first unchecked task (e.g. "1. Implement baseline") */
+  nextTaskLabel?: string;
 }
 
 const CHECKBOX_PATTERN = /^- \[( |x|X)\] (.+)$/;
 const STRUCTURED_TASK_PATTERN = /^(?:\d+\.|F\d+\.)\s+/;
+
+/** Heading patterns that demarcate counted sections (OMO-compatible) */
+const COUNTED_SECTIONS = /^##\s+(?:TODOs|Final\s+Verification\s+Wave)\s*$/;
+const ANY_HEADING = /^##\s+/;
 
 export function getLegacyPlansDir(workspaceRoot: string): string {
   return join(workspaceRoot, '.sisyphus', 'plans');
@@ -121,6 +129,7 @@ export function listPlanFiles(workspaceRoot: string): PlanFile[] {
         path: filePath,
         modifiedAt: stats.mtime.toISOString(),
         progress: getPlanProgress(content),
+        description: extractPlanDescription(content),
       });
     }
   }
@@ -151,28 +160,100 @@ export function findPlanFile(
   );
 }
 
+/**
+ * Parse plan content into progress stats.
+ *
+ * **Dual-mode** (matching OMO's upstream approach):
+ * 1. Structured — if plan has `## TODOs` or `## Final Verification Wave`
+ *    sections, only count column-zero checkboxes inside those sections
+ *    that match STRUCTURED_TASK_PATTERN (`1.` / `F1.` prefix).
+ * 2. Simple — otherwise count ALL column-zero checkboxes (no prefix filter).
+ *
+ * Also extracts `nextTaskLabel` — the label of the first unchecked task.
+ */
 export function getPlanProgress(content: string): PlanProgress {
-  const tasks = content
-    .split(/\r?\n/)
-    .map((line) => line.match(CHECKBOX_PATTERN))
-    .filter((match): match is RegExpMatchArray => Boolean(match))
-    .filter((match) => {
-      const label = match[2]?.trim() ?? '';
-      return STRUCTURED_TASK_PATTERN.test(label);
-    });
+  const lines = content.split(/\r?\n/);
+  const hasCountedSections = lines.some((line) => COUNTED_SECTIONS.test(line));
 
-  const completed = tasks.filter((match) =>
-    /^[xX]$/.test(match[1] ?? ''),
-  ).length;
+  let tasks: RegExpMatchArray[];
+
+  if (hasCountedSections) {
+    // Structured mode: only checkboxes inside ## TODOs / ## Final Verification Wave
+    let inCountedSection = false;
+    tasks = [];
+    for (const line of lines) {
+      if (ANY_HEADING.test(line)) {
+        inCountedSection = COUNTED_SECTIONS.test(line);
+        continue;
+      }
+      if (!inCountedSection) continue;
+      const match = line.match(CHECKBOX_PATTERN);
+      if (match && STRUCTURED_TASK_PATTERN.test(match[2]?.trim() ?? '')) {
+        tasks.push(match);
+      }
+    }
+  } else {
+    // Simple mode: count all column-zero checkboxes, no prefix filter
+    tasks = lines
+      .map((line) => line.match(CHECKBOX_PATTERN))
+      .filter((m): m is RegExpMatchArray => Boolean(m));
+  }
+
+  const completed = tasks.filter((m) => /^[xX]$/.test(m[1] ?? '')).length;
   const total = tasks.length;
   const remaining = Math.max(total - completed, 0);
+
+  // First unchecked task label (for "next task" display)
+  const nextUnchecked = tasks.find((m) => m[1] === ' ');
+
   return {
     total,
     completed,
     remaining,
     percent: total === 0 ? 0 : Math.round((completed / total) * 100),
     isComplete: total > 0 && remaining === 0,
+    nextTaskLabel: nextUnchecked ? (nextUnchecked[2]?.trim() ?? undefined) : undefined,
   };
+}
+
+/**
+ * Extract a brief one-line description from a plan file.
+ * Looks for the first non-title heading, then a short paragraph.
+ */
+export function extractPlanDescription(content: string): string | undefined {
+  const lines = content.split(/\r?\n/);
+  let foundTitle = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Skip the first `# Title` line (it's the plan name, redundant)
+    if (trimmed.startsWith('# ') && !foundTitle) {
+      foundTitle = true;
+      continue;
+    }
+
+    // Take the first `## Section` or `### Task` heading after the title
+    if (/^#{2,3}\s+/.test(trimmed)) {
+      return trimmed.replace(/^#+\s+/, '').trim().slice(0, 120);
+    }
+
+    // Or take the first non-empty paragraph sentence
+    if (
+      foundTitle &&
+      trimmed.length > 10 &&
+      !trimmed.startsWith('-') &&
+      !trimmed.startsWith('>') &&
+      !trimmed.startsWith('```')
+    ) {
+      const sentence = trimmed.replace(/^[#*\s]+/, '').split(/[.。]/)[0]?.trim();
+      if (sentence && sentence.length > 10) {
+        return sentence.slice(0, 120);
+      }
+    }
+  }
+
+  return undefined;
 }
 
 export function planNameFromPath(filePath: string): string {

@@ -256,30 +256,47 @@ function multiplePlansMessage(
   plans: Array<{
     name: string;
     path: string;
+    description?: string;
     progress: {
       completed: number;
       total: number;
       percent: number;
+      nextTaskLabel?: string;
     };
   }>,
 ): string {
-  const planList = plans
-    .map(
-      (plan) =>
-        `- ${plan.name} (${plan.progress.completed}/${plan.progress.total}, ${plan.progress.percent}%) — ${plan.path}`,
-    )
+  const maxOptions = 5;
+  const showAll = plans.length <= maxOptions;
+  const listed = showAll ? plans : plans.slice(0, maxOptions);
+
+  const planList = listed
+    .map((plan) => {
+      const desc = plan.description
+        ? ` — ${plan.description}`
+        : '';
+      const next = plan.progress.nextTaskLabel
+        ? `\n      Next: ${plan.progress.nextTaskLabel}`
+        : '';
+      return `- ${plan.name} (${plan.progress.completed}/${plan.progress.total}, ${plan.progress.percent}%)${desc}${next}`;
+    })
     .join('\n');
+
+  const overflow =
+    !showAll && plans.length > maxOptions
+      ? `\n... and ${plans.length - maxOptions} more plans.`
+      : '';
 
   return `## Multiple incomplete plans found
 
 Execution is ambiguous because more than one saved plan is still incomplete.
 
-Use the question tool to ask the user which saved plan to execute, then run:
-
-/ol-start-work <selected-plan-name>
+Use the question tool to ask the user which saved plan to execute.
 
 Incomplete plans:
-${planList}`;
+${planList}${overflow}
+
+**If there are too many options, let the user type the plan name manually.**
+When the user picks one, run: /ol-start-work <selected-plan-name>`;
 }
 
 function buildStartWorkContext(input: {
