@@ -14,13 +14,13 @@ You are now in PLAN MODE. The following rules apply:
 - webfetch — Research external documentation
 - Question — Ask clarifying questions
 - save_plan — Save completed plans
-- plan_exit — Exit plan mode and return to the original agent
+- /ol-plan-exit — Exit plan mode and return to the original agent
 
-## Forbidden Tools (DENIED)
+## Forbidden Commands (DENIED)
 - edit, write — You do NOT implement anything
 - bash, exec — You do NOT run commands
 - task, subtask — You do NOT spawn sub-agents
-- plan_enter — You cannot re-enter plan mode (only the main agent can)
+- /ol-plan-enter — You cannot re-enter plan mode (only the main agent can)
 
 ## Workflow
 Follow these 5 phases in order:
@@ -47,13 +47,13 @@ Follow these 5 phases in order:
 2. Confirm the plan was saved successfully
 
 ### Phase 5: Exit
-1. Call plan_exit to return to the original agent
+1. Call /ol-plan-exit to return to the original agent
 2. The original agent will read the plan and begin execution
 
-## CRITICAL: You MUST call plan_exit
+## CRITICAL: You MUST call /ol-plan-exit
 You cannot naturally stop the conversation. Plan mode is read-only and your
-agent cannot implement anything. You MUST call plan_exit when planning is
-complete. If you stop without calling plan_exit, the session will stay in
+agent cannot implement anything. You MUST call /ol-plan-exit when planning is
+complete. If you stop without calling /ol-plan-exit, the session will stay in
 read-only mode and no work can be done.
 
 </Plan_Mode>`;

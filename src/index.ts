@@ -123,10 +123,10 @@ import {
   ast_grep_search,
   createCancelTaskTool,
   createCouncilTool,
+  createEnterPlanModeTool,
+  createExitPlanModeTool,
   createMcpToggleTool,
   createMediaInventoryTool,
-  createPlanEnterTool,
-  createPlanExitTool,
   createPresetManager,
   createSavePlanTool,
   createSubtaskTool,
@@ -253,11 +253,13 @@ const HEALTH_CHECK = {
   minMcps: 1,
 } as const;
 
+const AUTO_CONTINUE_ON_COMMAND = 'ol-auto-continue-on';
+const AUTO_CONTINUE_OFF_COMMAND = 'ol-auto-continue-off';
 const CHECKPOINT_LIGHT_COMMAND = 'ol-checkpoint-light';
 const CHECKPOINT_HEAVY_COMMAND = 'ol-checkpoint-heavy';
 const CHECKPOINT_RESUME_LATEST_COMMAND = 'ol-checkpoint-resume-latest';
-const AUTO_CONTINUE_ON_COMMAND = 'ol-auto-continue-on';
-const AUTO_CONTINUE_OFF_COMMAND = 'ol-auto-continue-off';
+const PLAN_ENTER_COMMAND = 'ol-plan-enter';
+const PLAN_EXIT_COMMAND = 'ol-plan-exit';
 
 function registerCommandIfMissing(
   commands: Record<string, unknown>,
@@ -301,6 +303,14 @@ function registerCompleteArgumentCommands(opencodeConfig: {
   registerCommandIfMissing(commands, CHECKPOINT_RESUME_LATEST_COMMAND, {
     template: CHECKPOINT_RESUME_TEMPLATE,
     description: 'Resume from latest checkpoint',
+  });
+  registerCommandIfMissing(commands, PLAN_ENTER_COMMAND, {
+    template: '',
+    description: 'Enter plan mode — switch to prometheus (planner) for strategic planning. prometheus has read-only access and works through a 5-phase planning workflow. Call /ol-plan-exit to return to the original agent.',
+  });
+  registerCommandIfMissing(commands, PLAN_EXIT_COMMAND, {
+    template: '',
+    description: 'Exit plan mode — return to the agent that was active before /ol-plan-enter. Must be called by prometheus when planning is complete.',
   });
 }
 
@@ -870,8 +880,8 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       ast_grep_replace,
       detect_bio_task: detectBioTaskTool,
       load_agent_instructions: loadAgentInstructionsTool,
-      plan_enter: createPlanEnterTool(),
-      plan_exit: createPlanExitTool(),
+      enter_plan_mode: createEnterPlanModeTool(),
+      exit_plan_mode: createExitPlanModeTool(),
       cancel_task: createCancelTaskTool({
         client: ctx.client,
         backgroundJobBoard: taskSessionManagerHook.backgroundJobBoard,
@@ -1619,6 +1629,51 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       } else if (typedInput.command === CHECKPOINT_RESUME_LATEST_COMMAND) {
         effectiveInput.command = 'ol-checkpoint-resume';
         effectiveInput.arguments = 'latest';
+      } else if (typedInput.command === PLAN_ENTER_COMMAND) {
+        // Activate plan overlay + set message agent
+        const returnAgent = sessionAgentMap.get(typedInput.sessionID) ?? 'orchestrator';
+        effectiveAgentOverlayManager.activate(typedInput.sessionID, {
+          phase: 'plan',
+          agent: 'prometheus',
+          source: PLAN_ENTER_COMMAND,
+          returnAgent,
+        });
+        if (typedOutput?.message) {
+          typedOutput.message.agent = 'prometheus';
+        }
+        // Inject context about plan mode
+        typedOutput.parts.push({
+          type: 'text',
+          text: `## Plan Mode Activated
+
+You are now in plan mode. prometheus (planner) is active.
+
+**Allowed tools**: read, glob, grep, webfetch, Question, save_plan, /ol-plan-exit
+**Denied tools**: write, edit, bash, task, subtask, /ol-plan-enter
+
+Follow the 5-phase workflow:
+1. Interview — gather requirements with Question tool
+2. Research — explore codebase, webfetch docs
+3. Generate — create structured plan
+4. Save — call save_plan
+5. Exit — call /ol-plan-exit`,
+        });
+        return;
+      } else if (typedInput.command === PLAN_EXIT_COMMAND) {
+        // Clear plan overlay + restore message agent
+        const overlay = effectiveAgentOverlayManager.getCurrent(typedInput.sessionID);
+        const returnAgent = overlay?.returnAgent ?? sessionAgentMap.get(typedInput.sessionID) ?? 'orchestrator';
+        effectiveAgentOverlayManager.clear(typedInput.sessionID, 'plan');
+        if (typedOutput?.message) {
+          typedOutput.message.agent = returnAgent;
+        }
+        typedOutput.parts.push({
+          type: 'text',
+          text: `## Plan Mode Exited
+
+Returning to the original agent (${returnAgent}). The plan has been saved.`,
+        });
+        return;
       }
 
       await todoContinuationHook.handleCommandExecuteBefore(

@@ -1,8 +1,15 @@
 import { type ToolDefinition, tool } from '@opencode-ai/plugin';
 
-export function createPlanExitTool(): ToolDefinition {
+/**
+ * exit_plan_mode tool — alternative name to avoid any naming conflicts.
+ *
+ * This registers as a plugin tool with a unique name (exit_plan_mode instead
+ * of plan_exit) to test if the original plan_exit tool's invisibility was
+ * caused by a naming conflict with OpenCode built-in tools.
+ */
+export function createExitPlanModeTool(): ToolDefinition {
   return tool({
-    description: `Exit plan mode — return to the agent that was active before plan_enter.
+    description: `Exit plan mode — return to the agent that was active before entering plan mode.
 
 Use this when: planning is complete and the plan has been saved via save_plan.
 

@@ -1,11 +1,26 @@
 /**
  * Plan Mode Hook
  *
- * Handles the plan_enter/plan_exit tool lifecycle:
- * - tool.execute.before: Intercepts plan_enter to activate plan overlay,
- *   and plan_exit to clear it. Also denies plan_enter when already in plan mode.
- * - system.transform: Injects plan-mode instructions on top of the prometheus
- *   prompt when the plan overlay is active.
+ * Handles plan mode lifecycle across two entry points:
+ *
+ * 1. Command path (/ol-plan-enter, /ol-plan-exit):
+ *    - command.execute.before in index.ts activates/deactivates overlay
+ *    - Works for user-invoked or system-invoked plan mode
+ *
+ * 2. Tool path (enter_plan_mode, exit_plan_mode):
+ *    - tool.execute.before intercepts these tool calls
+ *    - Activates overlay + saves returnAgent for enter_plan_mode
+ *    - Clears overlay for exit_plan_mode
+ *    - On the next LLM turn, chat.message handler picks up overlay
+ *      and switches agent via output.message.agent
+ *
+ * Common deny logic:
+ * - tool.execute.before denies write/edit/bash/task/subtask when plan
+ *   overlay is active (regardless of activation path)
+ *
+ * Common prompt injection:
+ * - system.transform injects PLAN_MODE_INSTRUCTIONS when prometheus
+ *   prompt is isolated with plan overlay active
  */
 import { PLAN_MODE_INSTRUCTIONS } from '../../agents/prompts/prometheus/plan-mode-instructions';
 import type { EffectiveAgentOverlayManager } from '../../utils/effective-agent-overlay';
@@ -46,19 +61,19 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
           _denied: true,
           error:
             `Plan mode is read-only. Tool "${tool}" is not allowed during planning. ` +
-            'Use plan_exit to return to the original agent if you need to modify files or run commands.',
+            'Use /ol-plan-exit to return to the original agent if you need to modify files or run commands.',
         };
         return;
       }
 
-      if (tool === 'plan_enter') {
+      if (tool === 'enter_plan_mode') {
         // Already in plan mode? Deny.
         const currentOverlay = options.overlayManager.getCurrent(sessionID);
         if (currentOverlay?.phase === 'plan') {
           output.args = {
             _denied: true,
             error:
-              'Already in plan mode. Only the original agent (not prometheus) can call plan_enter.',
+              'Already in plan mode. Only the main agent (not prometheus) can call enter_plan_mode.',
           };
           return;
         }
@@ -69,22 +84,13 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
         options.overlayManager.activate(sessionID, {
           phase: 'plan',
           agent: 'prometheus',
-          source: 'plan-enter-tool',
+          source: 'enter-plan-mode-tool',
           returnAgent,
         });
-
-        // Mirror command.execute.before pattern (used by /ol-start-work):
-        // Set output.message.agent to change the caller's user-message agent,
-        // so OpenCode reads lastUser.agent = 'prometheus' and switches agent.
-        // This is how /ol-start-work switches to executor (atlas) agent.
-        if ('message' in output) {
-          const msg = (output as { message?: { agent?: string } }).message;
-          if (msg) msg.agent = 'prometheus';
-        }
         return;
       }
 
-      if (tool === 'plan_exit') {
+      if (tool === 'exit_plan_mode') {
         // Not in plan mode? Nothing to exit.
         const currentOverlay = options.overlayManager.getCurrent(sessionID);
         if (currentOverlay?.phase !== 'plan') {
@@ -95,18 +101,8 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
           return;
         }
 
-        // Clear plan overlay
+        // Clear plan overlay — chat.message handler will restore agent
         options.overlayManager.clear(sessionID, 'plan');
-
-        // Restore output.message.agent to returnAgent so OpenCode switches back
-        if ('message' in output) {
-          const msg = (output as { message?: { agent?: string } }).message;
-          if (msg) {
-            const returnAgent =
-              currentOverlay?.returnAgent ?? options.getCurrentAgent(sessionID) ?? 'orchestrator';
-            msg.agent = returnAgent;
-          }
-        }
         return;
       }
     },
