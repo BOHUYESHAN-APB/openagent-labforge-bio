@@ -41,7 +41,6 @@ describe('agent alias backward compatibility', () => {
       agents: {
         'frontend-ui-ux-engineer': { model: 'test/old-frontend-model' },
       },
-      subagentPolicy: { mode: 'full' },
     };
     const agents = createAgents(config);
     const designer = agents.find((a) => a.name === 'designer');
@@ -67,7 +66,6 @@ describe('agent alias backward compatibility', () => {
         explorer: { model: 'direct-explorer' },
         designer: { model: 'direct-designer' },
       },
-      subagentPolicy: { mode: 'full' },
     };
     const agents = createAgents(config);
     expect(agents.find((a) => a.name === 'explorer')?.config.model).toBe(
@@ -107,7 +105,6 @@ describe('fixer agent fallback', () => {
       agents: {
         librarian: { model: 'librarian-custom-model' },
       },
-      subagentPolicy: { mode: 'minimal' },
     };
     const agents = createAgents(config);
     const fixer = agents.find((a) => a.name === 'fixer');
@@ -124,7 +121,6 @@ describe('fixer agent fallback', () => {
         librarian: { model: 'librarian-model' },
         fixer: { model: 'fixer-specific-model' },
       },
-      subagentPolicy: { mode: 'minimal' },
     };
     const agents = createAgents(config);
     const fixer = agents.find((a) => a.name === 'fixer');
@@ -257,7 +253,7 @@ describe('skill permissions', () => {
   });
 
   test('fixer does not get codemap skill allowed by default', () => {
-    const agents = createAgents({ subagentPolicy: { mode: 'minimal' } });
+    const agents = createAgents();
     const fixer = agents.find((a) => a.name === 'fixer');
     expect(fixer).toBeDefined();
     const skillPerm = (fixer?.config.permission as Record<string, unknown>)
@@ -286,7 +282,7 @@ describe('skill permissions', () => {
 
 describe('tool permissions', () => {
   test('council agent is allowed to invoke council_session', () => {
-    const agents = createAgents({ subagentPolicy: { mode: 'full' } });
+    const agents = createAgents();
     const council = agents.find((a) => a.name === 'council');
     expect((council?.config.permission as any).council_session).toBe('allow');
   });
@@ -355,7 +351,6 @@ describe('agent classification', () => {
     // Enable all agents (including observer) for classification testing
     const configs = getAgentConfigs({
       disabled_agents: [],
-      subagentPolicy: { mode: 'full' },
     });
 
     // Primary agent
@@ -410,7 +405,7 @@ describe('getAgentConfigs', () => {
 
 describe('council agent model resolution', () => {
   test('council agent uses default model', () => {
-    const agents = createAgents({ subagentPolicy: { mode: 'full' } });
+    const agents = createAgents();
     const council = agents.find((a) => a.name === 'council');
     expect(council?.config.model).toBe(DEFAULT_MODELS.council);
   });
@@ -444,7 +439,6 @@ describe('council agent model resolution', () => {
     };
     const agents = createAgents({
       ...config,
-      subagentPolicy: { mode: 'full' },
     });
     const council = agents.find((a) => a.name === 'council');
     expect(council?.config.model).toBe('anthropic/claude-opus-4-6');
@@ -472,7 +466,6 @@ describe('council agent model resolution', () => {
     };
     const agents = createAgents({
       ...config,
-      subagentPolicy: { mode: 'full' },
     });
     const council = agents.find((a) => a.name === 'council');
     expect(council?.config.model).toBe('google/gemini-3-pro');
@@ -497,7 +490,6 @@ describe('council agent model resolution', () => {
     };
     const agents = createAgents({
       ...config,
-      subagentPolicy: { mode: 'full' },
     });
     const council = agents.find((a) => a.name === 'council');
     expect(council?.config.model).toBe(DEFAULT_MODELS.council);
@@ -522,7 +514,6 @@ describe('council agent model resolution', () => {
     if (parsed.success) {
       const config: PluginConfig = {
         council: parsed.data,
-        subagentPolicy: { mode: 'full' },
       };
       const agents = createAgents(config);
       const council = agents.find((a) => a.name === 'council');
@@ -795,17 +786,6 @@ describe('PluginConfigSchema custom-agent-only prompt fields', () => {
     expect(result.success).toBe(true);
   });
 
-  test('accepts subagentPolicy config', () => {
-    const result = PluginConfigSchema.safeParse({
-      subagentPolicy: {
-        mode: 'custom',
-        allowedAgents: ['explorer', 'oracle'],
-      },
-    });
-
-    expect(result.success).toBe(true);
-  });
-
   test('accepts multi-runtime compatibility baseline config', () => {
     const result = PluginConfigSchema.safeParse({
       runtimeTargets: {
@@ -827,144 +807,14 @@ describe('PluginConfigSchema custom-agent-only prompt fields', () => {
   });
 });
 
-describe('subagentPolicy', () => {
-  test('full is the default lane-driven set', () => {
-    const agents = createAgents();
-    const names = agents.map((a) => a.name);
-    const prompt = agents.find((a) => a.name === 'orchestrator')?.config.prompt;
+test('orchestrator prompt includes stable shared prefix template', () => {
+  const prompt = buildOrchestratorPrompt();
 
-    expect(names).toContain('explorer');
-    expect(names).toContain('librarian');
-    expect(names).toContain('oracle');
-    expect(names).toContain('fixer');
-    expect(names).toContain('designer');
-    expect(names).toContain('council');
-    expect(names).not.toContain('observer');
-    expect(prompt).toContain('Full registration / lane-driven default');
-    expect(prompt).toContain('shared-prefix snapshot');
-    expect(prompt).toContain('[SHARED_CONTEXT_START]');
-  });
-
-  test('legacy minimal keeps the low-agent cache-first specialist set', () => {
-    const agents = createAgents({
-      subagentPolicy: { mode: 'minimal' },
-    });
-    const names = agents.map((a) => a.name);
-    const prompt = agents.find((a) => a.name === 'orchestrator')?.config.prompt;
-
-    expect(names).toContain('explorer');
-    expect(names).toContain('librarian');
-    expect(names).toContain('oracle');
-    expect(names).toContain('fixer');
-    expect(names).not.toContain('designer');
-    expect(names).not.toContain('council');
-    expect(names).not.toContain('observer');
-    expect(prompt).toContain('Minimal / legacy compatibility');
-  });
-
-  test('full enables configured subagents but still keeps main-agent-first guidance', () => {
-    const agents = createAgents({
-      disabled_agents: [],
-      subagentPolicy: { mode: 'full' },
-    });
-    const names = agents.map((a) => a.name);
-    const prompt = agents.find((a) => a.name === 'orchestrator')?.config.prompt;
-
-    expect(names).toContain('designer');
-    expect(names).toContain('council');
-    expect(names).toContain('observer');
-    expect(prompt).toContain('Full registration / lane-driven default');
-    expect(prompt).toContain(
-      'main agent must still execute work directly by default',
-    );
-    expect(prompt).toContain('same shared-prefix snapshot');
-  });
-
-  test('custom allowlist limits built-in and custom subagents', () => {
-    const agents = createAgents({
-      disabled_agents: [],
-      subagentPolicy: {
-        mode: 'custom',
-        allowedAgents: ['explorer', 'fixer', 'auditor'],
-      },
-      agents: {
-        auditor: {
-          model: 'openai/gpt-5.4-mini',
-          prompt: 'Audit things.',
-        },
-        janitor: {
-          model: 'openai/gpt-5.4-mini',
-          prompt: 'Clean things.',
-        },
-      },
-    });
-    const names = agents.map((a) => a.name);
-    const prompt = agents.find((a) => a.name === 'orchestrator')?.config.prompt;
-
-    expect(names).toContain('explorer');
-    expect(names).toContain('fixer');
-    expect(names).toContain('auditor');
-    expect(names).not.toContain('librarian');
-    expect(names).not.toContain('oracle');
-    expect(names).not.toContain('janitor');
-    expect(prompt).toContain('Custom allowlist');
-    expect(prompt).toContain('@explorer, @fixer, @auditor');
-  });
-
-  test('main-only disables built-in orchestratable subagents', () => {
-    const agents = createAgents({
-      disabled_agents: [],
-      subagentPolicy: { mode: 'main-only' },
-    });
-    const names = agents.map((a) => a.name);
-    const prompt = agents.find((a) => a.name === 'orchestrator')?.config.prompt;
-
-    expect(names).toContain('orchestrator');
-    expect(names).toContain('councillor');
-    expect(names).not.toContain('explorer');
-    expect(names).not.toContain('librarian');
-    expect(names).not.toContain('oracle');
-    expect(names).not.toContain('fixer');
-    expect(prompt).toContain('Main-agent-only');
-    expect(prompt).not.toMatch(/@explorer\b/);
-  });
-
-  test('orchestrator prompt includes stable shared prefix template', () => {
-    const prompt = buildOrchestratorPrompt(undefined, {
-      mode: 'full',
-    });
-
-    expect(prompt).toContain('[SHARED_CONTEXT_START]');
-    expect(prompt).toContain('project: <repo/project name, stack, root path>');
-    expect(prompt).toContain('[SHARED_CONTEXT_END]');
-    expect(prompt).toContain('role prompt second, dynamic query last');
-    expect(prompt).toContain('create_session, add_message');
-  });
-
-  test('full prompt describes both delegation modes', () => {
-    const prompt = buildOrchestratorPrompt(undefined, {
-      mode: 'full',
-    });
-
-    expect(prompt).toContain('lane-driven default');
-    expect(prompt).toContain('background=false');
-    expect(prompt).toContain('background=true');
-    expect(prompt).toContain('fire-and-forget');
-  });
-
-  test('main-only skips custom subagents', () => {
-    const agents = createAgents({
-      subagentPolicy: { mode: 'main-only' },
-      agents: {
-        auditor: {
-          model: 'openai/gpt-5.4-mini',
-          prompt: 'Audit things.',
-        },
-      },
-    });
-
-    expect(agents.map((a) => a.name)).not.toContain('auditor');
-  });
+  expect(prompt).toContain('[SHARED_CONTEXT_START]');
+  expect(prompt).toContain('project: <repo/project name, stack, root path>');
+  expect(prompt).toContain('[SHARED_CONTEXT_END]');
+  expect(prompt).toContain('role prompt second, dynamic query last');
+  expect(prompt).toContain('create_session, add_message');
 });
 
 describe('main-agent-first prompt guardrails', () => {
@@ -1033,7 +883,6 @@ describe('disabled_agents', () => {
   test('disabling council disables council agent', () => {
     const config: PluginConfig = {
       disabled_agents: ['council'],
-      subagentPolicy: { mode: 'full' },
     };
     const agents = createAgents(config);
     const names = agents.map((a) => a.name);
@@ -1077,7 +926,7 @@ describe('disabled_agents', () => {
   test('getEnabledAgentNames includes enabled custom agents', () => {
     const config: PluginConfig = {
       disabled_agents: ['janitor'],
-      subagentPolicy: { mode: 'full' },
+
       agents: {
         janitor: { model: 'openai/gpt-5.4-mini' },
         reviewer: { model: 'openai/gpt-5.4-mini' },
@@ -1098,13 +947,12 @@ describe('disabled_agents', () => {
     expect(agents.map((a) => a.name)).toContain('observer');
   });
 
-  test('empty disabled_agents enables observer within legacy minimal policy', () => {
+  test('empty disabled_agents enables all agents', () => {
     const config: PluginConfig = {
       disabled_agents: [],
-      subagentPolicy: { mode: 'minimal' },
     };
     const agents = createAgents(config);
-    expect(agents.length).toBe(12); // 6 primary + councillor + 5 minimal subagents
+    expect(agents.length).toBe(18); // 6 primary + 12 subagents
     expect(agents.map((a) => a.name)).toContain('observer');
   });
 });
@@ -1119,7 +967,6 @@ describe('observer agent', () => {
   test('observer is enabled when removed from disabled_agents', () => {
     const config: PluginConfig = {
       disabled_agents: [],
-      subagentPolicy: { mode: 'minimal' },
     };
     const agents = createAgents(config);
     const names = agents.map((a) => a.name);
@@ -1138,7 +985,6 @@ describe('observer agent', () => {
   test('observer can be enabled alongside other disabled agents', () => {
     const config: PluginConfig = {
       disabled_agents: ['designer'],
-      subagentPolicy: { mode: 'full' },
     };
     const agents = createAgents(config);
     const names = agents.map((a) => a.name);

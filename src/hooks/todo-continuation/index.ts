@@ -46,6 +46,7 @@ Apply the active reviewer methodology in the system prompt, then output a verdic
 
 ## What You Must Check
 
+0. **Plan Completion** (HIGHEST PRIORITY) — If there is an active saved plan, check whether ALL plan checkboxes are complete. If any remain incomplete, output [REJECT: Plan items still incomplete — continue execution].
 1. **User Requirements** — Are all original requirements addressed?
 2. **Todo Completion** — Are todos genuinely complete, not just marked complete?
 3. **Lazy Patterns** (CRITICAL) — Reject if you find:

@@ -49,7 +49,15 @@ const CONFIG_FIELDS: FieldDef[] = [
     label: 'Default Preset',
     type: 'select',
     section: 'General',
-    options: ['free', 'ds-first', 'openai', 'openai-go', 'ds-mimo', '3-mix', 'custom'],
+    options: [
+      'free',
+      'ds-first',
+      'openai',
+      'openai-go',
+      'ds-mimo',
+      '3-mix',
+      'custom',
+    ],
     default: 'free',
   },
   {
@@ -65,15 +73,6 @@ const CONFIG_FIELDS: FieldDef[] = [
     type: 'boolean',
     section: 'General',
     default: true,
-  },
-  // Subagent Policy
-  {
-    key: 'subagentPolicy.mode',
-    label: 'Subagent Policy Mode',
-    type: 'select',
-    section: 'Subagent',
-    options: ['full', 'ultra-minimal', 'minimal', 'custom', 'main-only'],
-    default: 'full',
   },
   // Todo Continuation
   {
@@ -294,8 +293,11 @@ export function renderDocFile(
   const isMd = /\.md$/i.test(path),
     isHtml = /\.html?$/i.test(path);
   let body = `<h2>${path}</h2>`;
+  body += `<p class="sub">Project document — not an AI-generated HTML artifact. Use <a href="/view">HTML Hub</a> for AI-generated pages.</p>`;
   if (isHtml)
-    body += `<iframe srcdoc="${escapeAttr(content)}" sandbox="allow-scripts allow-same-origin" class="iframe-full"></iframe>`;
+    // Render project .html files as source code, not live iframes,
+    // to avoid confusing project files with AI-generated artifacts
+    body += `<pre class="code-block">${escapeHtml(content)}</pre>`;
   else if (isMd) body += md2html(content);
   else body += `<pre class="code-block">${escapeHtml(content)}</pre>`;
   return base(path, body, theme);
@@ -547,21 +549,39 @@ img{max-width:100%;border-radius:4px}
 
 // ── Teams Page ──────────────────────────────────────
 export function renderTeamsPage(teams: any[], theme: string): string {
-  const teamsHtml = teams.length === 0
-    ? '<p class="sub">No active teams. Create a team using the team_create tool.</p>'
-    : teams.map(team => {
-        const statusClass = team.status === 'active' ? 'active' : team.status === 'deleting' ? 'paused' : 'complete';
-        const membersHtml = (team.members || []).map((m: any) => {
-          const statusColor = m.status === 'running' ? 'var(--ok)' : m.status === 'idle' ? 'var(--warn)' : 'var(--sub)';
-          return `<span class="team-member" style="border-left: 3px solid ${m.color || 'var(--border)'}">
+  const teamsHtml =
+    teams.length === 0
+      ? '<p class="sub">No active teams. Create a team using the team_create tool.</p>'
+      : teams
+          .map((team) => {
+            const statusClass =
+              team.status === 'active'
+                ? 'active'
+                : team.status === 'deleting'
+                  ? 'paused'
+                  : 'complete';
+            const membersHtml = (team.members || [])
+              .map((m: any) => {
+                const statusColor =
+                  m.status === 'running'
+                    ? 'var(--ok)'
+                    : m.status === 'idle'
+                      ? 'var(--warn)'
+                      : 'var(--sub)';
+                return `<span class="team-member" style="border-left: 3px solid ${m.color || 'var(--border)'}">
             ${m.name} <span style="color:${statusColor};font-size:11px">${m.status}</span>
             ${m.sessionId ? `<span style="color:var(--sub);font-size:10px">(${m.sessionId.slice(0, 8)})</span>` : ''}
           </span>`;
-        }).join('');
+              })
+              .join('');
 
-        const taskProgress = team.tasks ? Math.round((team.tasks.completed / Math.max(team.tasks.total, 1)) * 100) : 0;
+            const taskProgress = team.tasks
+              ? Math.round(
+                  (team.tasks.completed / Math.max(team.tasks.total, 1)) * 100,
+                )
+              : 0;
 
-        return `
+            return `
           <div class="session-card">
             <h3>${team.teamName} <span class="status ${statusClass}">${team.status}</span></h3>
             <p class="sub mono">Run ID: ${team.teamRunId || 'N/A'} · Created: ${team.createdAt ? new Date(team.createdAt).toLocaleString() : 'N/A'}</p>
@@ -569,19 +589,24 @@ export function renderTeamsPage(teams: any[], theme: string): string {
               <strong>Members (${(team.members || []).length}):</strong><br>
               ${membersHtml || '<span class="sub">No members</span>'}
             </div>
-            ${team.tasks ? `
+            ${
+              team.tasks
+                ? `
               <div style="margin:12px 0">
                 <strong>Tasks:</strong> ${team.tasks.completed}/${team.tasks.total} completed
                 <div class="progress-bar"><div class="fill" style="width:${taskProgress}%"></div></div>
                 <span class="sub">Pending: ${team.tasks.pending} · In Progress: ${team.tasks.in_progress} · Completed: ${team.tasks.completed}</span>
               </div>
-            ` : ''}
+            `
+                : ''
+            }
             <div style="margin-top:8px">
               <a href="/api/teams/${team.teamRunId}" class="card-link" style="display:inline-block;padding:4px 12px;font-size:12px">View Details</a>
             </div>
           </div>
         `;
-      }).join('');
+          })
+          .join('');
 
   return base(
     'Teams',
@@ -599,26 +624,36 @@ export function renderTeamsPage(teams: any[], theme: string): string {
 }
 
 // ── Sessions Page ───────────────────────────────────
-export function renderSessionsPage(data: { boulder: any; plans: any[] }, theme: string): string {
-  const boulderHtml = data.boulder && Object.keys(data.boulder).length > 0
-    ? `<div class="session-card">
+export function renderSessionsPage(
+  data: { boulder: any; plans: any[] },
+  theme: string,
+): string {
+  const boulderHtml =
+    data.boulder && Object.keys(data.boulder).length > 0
+      ? `<div class="session-card">
         <h3>Active Boulder State</h3>
         <pre>${JSON.stringify(data.boulder, null, 2)}</pre>
       </div>`
-    : '<p class="sub">No active boulder state.</p>';
+      : '<p class="sub">No active boulder state.</p>';
 
-  const plansHtml = data.plans.length === 0
-    ? '<p class="sub">No plans found.</p>'
-    : data.plans.map(plan => {
-        const progress = plan.total > 0 ? Math.round((plan.completed / plan.total) * 100) : 0;
-        return `
+  const plansHtml =
+    data.plans.length === 0
+      ? '<p class="sub">No plans found.</p>'
+      : data.plans
+          .map((plan) => {
+            const progress =
+              plan.total > 0
+                ? Math.round((plan.completed / plan.total) * 100)
+                : 0;
+            return `
           <div class="session-card">
             <h3>${plan.name}</h3>
             <div class="progress-bar"><div class="fill" style="width:${progress}%"></div></div>
             <span class="sub">${plan.completed}/${plan.total} tasks completed (${progress}%)</span>
           </div>
         `;
-      }).join('');
+          })
+          .join('');
 
   return base(
     'Sessions',
@@ -637,19 +672,31 @@ export function renderSessionsPage(data: { boulder: any; plans: any[] }, theme: 
 
 // ── Changes Page ────────────────────────────────────
 export function renderChangesPage(changes: any[], theme: string): string {
-  const changesHtml = changes.length === 0
-    ? '<p class="sub">No change proposals. Use the save_change tool to create one.</p>'
-    : changes.map(change => {
-        const statusClass = change.status === 'in_progress' ? 'active' : change.status === 'completed' ? 'complete' : '';
-        return `
+  const changesHtml =
+    changes.length === 0
+      ? '<p class="sub">No change proposals. Use the save_change tool to create one.</p>'
+      : changes
+          .map((change) => {
+            const statusClass =
+              change.status === 'in_progress'
+                ? 'active'
+                : change.status === 'completed'
+                  ? 'complete'
+                  : '';
+            return `
           <div class="session-card">
             <h3>${change.name} <span class="status ${statusClass}">${change.status || 'unknown'}</span></h3>
-            ${change.tasks ? `
+            ${
+              change.tasks
+                ? `
               <span class="sub">${change.tasks.completed || 0}/${change.tasks.total || 0} tasks completed</span>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
         `;
-      }).join('');
+          })
+          .join('');
 
   return base(
     'Changes',
@@ -664,17 +711,20 @@ export function renderChangesPage(changes: any[], theme: string): string {
 
 // ── Explore Page ────────────────────────────────────
 export function renderExplorePage(explorations: any[], theme: string): string {
-  const exploreHtml = explorations.length === 0
-    ? '<p class="sub">No explorations. Use the save_explore tool to create one.</p>'
-    : explorations.map(exp => {
-        return `
+  const exploreHtml =
+    explorations.length === 0
+      ? '<p class="sub">No explorations. Use the save_explore tool to create one.</p>'
+      : explorations
+          .map((exp) => {
+            return `
           <div class="session-card">
             <h3>${exp.name}</h3>
             ${exp.tags ? `<span class="sub">Tags: ${exp.tags.join(', ')}</span>` : ''}
             ${exp.created ? `<br><span class="sub">Created: ${new Date(exp.created).toLocaleString()}</span>` : ''}
           </div>
         `;
-      }).join('');
+          })
+          .join('');
 
   return base(
     'Explore',

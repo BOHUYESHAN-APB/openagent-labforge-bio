@@ -1,5 +1,4 @@
 import type { AgentConfig } from '@opencode-ai/sdk/v2';
-import type { SubagentPolicyConfig } from '../config';
 
 export interface AgentDefinition {
   name: string;
@@ -119,99 +118,6 @@ const PARALLEL_DELEGATION_EXAMPLES = [
   '- @observer + @explorer in parallel (visual analysis + code search)?',
 ];
 
-const MINIMAL_SUBAGENTS = [
-  'explorer',
-  'librarian',
-  'oracle',
-  'fixer',
-  'observer',
-] as const;
-
-const ULTRA_MINIMAL_SUBAGENTS = ['explorer', 'librarian', 'oracle'] as const;
-
-export function getMinimalSubagentNames(): readonly string[] {
-  return MINIMAL_SUBAGENTS;
-}
-
-export function getUltraMinimalSubagentNames(): readonly string[] {
-  return ULTRA_MINIMAL_SUBAGENTS;
-}
-
-/**
- * Build the orchestrator prompt with dynamic agent filtering.
- * @param disabledAgents - Set of disabled agent names to exclude from the prompt
- * @returns The complete orchestrator prompt string
- */
-function buildSubagentPolicyPrompt(policy?: SubagentPolicyConfig): string {
-  const mode = policy?.mode ?? 'full';
-
-  if (mode === 'full') {
-    return `
-
-### Subagent Policy: Full registration / lane-driven default
-- Full configured subagent registration is available, but the main agent must still execute work directly by default.
-- Registered specialists are checklist/tooling references first, not automatic spawn targets.
-- Even in full mode, child sessions should be reserved for independent specialist judgment. Use \`background=false\` (blocking) or \`background=true\` (fire-and-forget) as appropriate.
-- If the main agent can do the task directly, do it in the main agent instead of opening a child and waiting.
-- This is the preferred default operating mode; routing should be decided by dependency semantics and lane fit, not by artificially shrinking specialist availability.
-- When multiple independent specialists are needed, batch them in one message (both blocking or both fire-and-forget). Give every child the same shared-prefix snapshot before role-specific instructions so prefix-cache providers can reuse the identical leading context.`;
-  }
-
-  if (mode === 'custom') {
-    const allowed = policy?.allowedAgents?.length
-      ? policy.allowedAgents.map((name) => `@${name}`).join(', ')
-      : '(none configured)';
-    return `
-
-### Subagent Policy: Custom allowlist
-- Only these configured subagents should be considered for real child-session delegation: ${allowed}.
-- Treat non-allowlisted specialist descriptions as local main-agent checklists, not spawn targets.
-- If the allowlist is too small for safe execution, proceed in the main agent with direct tools unless the user explicitly asks to expand it.
-- Even allowlisted specialists should stay tool-like by default; only spawn when independent judgment is needed. Use \`background=false\` (blocking) or \`background=true\` (fire-and-forget) as appropriate.
-- When multiple independent specialists are needed, batch them in one message. Pass the shared-prefix snapshot first, then role/task-specific instructions. Keep the snapshot structure identical across children.`;
-  }
-
-  if (mode === 'main-only') {
-    return `
-
-### Subagent Policy: Main-agent-only
-- Built-in orchestratable subagent delegation is disabled to preserve main-session prompt-cache reuse and avoid token-billed child sessions.
-- Do the work in the main agent using direct tools.
-- Use specialist descriptions only as local checklists; do not ask for subagents unless the user explicitly changes this mode.
-- When you would normally delegate, first compress the needed specialist framing into a short checklist and execute it yourself.`;
-  }
-
-  if (mode === 'minimal') {
-    return `
-
-### Subagent Policy: Minimal / legacy compatibility
-- Keeps a small specialist set registered, but the main agent still executes directly by default.
-- Default minimal specialists are @explorer, @librarian, @oracle, @fixer, and @observer only when visual/media handling is enabled.
-- Other specialties should be handled as local main-agent checklists instead of fresh child sessions.
-- Before spawning a child, weigh specialist judgment value vs blocking cost (\`background=false\`) or fire-and-forget utility (\`background=true\`).
-- Only spawn a child if it adds specialist judgment the main agent cannot cheaply reproduce, and the user has explicitly allowed child sessions.
-- When multiple independent specialists are needed, batch them in one message (blocking or fire-and-forget as appropriate).
-- When delegation is worthwhile, pass the shared-prefix snapshot first, then the role prompt/task. Keep the snapshot constant across all children in the same batch.
-- Prefer resuming an existing specialist session over creating a fresh one; reuse improves continuity and cache behavior.
-- This mode is retained for compatibility-sensitive installs and should not be treated as the product's primary orchestration story.`;
-  }
-
-  return `
-
-### Subagent Policy: Ultra minimal / legacy compatibility
-- Compatibility mode. Serve with the main agent first; treat subagents as rare specialist tools.
-- Fresh child sessions lower cache hit rate. Use \`background=false\` (blocking) for needed results, \`background=true\` (non-blocking) for fire-and-forget parallel work. Only spawn when specialist judgment is truly necessary.
-- Default ultra-minimal specialists are @explorer, @librarian, and @oracle only.
-- Treat @fixer, @designer, @council, @reviewer, @metis, @momus, @multimodal-looker, and most custom specialists as tool-like local main-agent checklists by default.
-- Prefer doing work directly in the main agent with stable context.
-- Only spawn a child when it materially improves correctness, external-doc accuracy, or independent architectural judgment, and the user has explicitly allowed child sessions.
-- If the main agent can do the task directly, it should act as that specialist itself instead of opening a child session.
-- When multiple independent specialists are needed, batch them in one message (all \`background=false\` sharing wait time, or \`background=true\` for non-blocking fire-and-forget).
-- When delegation is worthwhile, pass the shared-prefix snapshot first, then the role prompt/task. Keep the snapshot constant across all children in the same batch.
-- Prefer resuming an existing specialist session over creating a fresh one.
-- This mode is retained as a compatibility escape hatch, not as the default architecture.`;
-}
-
 const SHARED_PREFIX_SNAPSHOT_TEMPLATE = `[SHARED_CONTEXT_START]
 project: <repo/project name, stack, root path>
 task: <one-sentence current objective, <=50 words>
@@ -229,10 +135,7 @@ do_not_reread:
 - <files/results already summarized well enough>
 [SHARED_CONTEXT_END]`;
 
-export function buildOrchestratorPrompt(
-  disabledAgents?: Set<string>,
-  subagentPolicy?: SubagentPolicyConfig,
-): string {
+export function buildOrchestratorPrompt(disabledAgents?: Set<string>): string {
   // Filter agent descriptions
   const enabledAgents = Object.entries(AGENT_DESCRIPTIONS)
     .filter(([name]) => !disabledAgents?.has(name))
@@ -315,8 +218,6 @@ ${SHARED_PREFIX_SNAPSHOT_TEMPLATE}
 - Put role-specific prompts and query parameters after the shared snapshot. The goal is: shared prefix first, role prompt second, dynamic query last.
 - If a shared-context/session MCP is actually visible in this runtime (for example tools like create_session, add_message, get_messages, search_context), create or reuse a task session, write the same snapshot there, and tell child agents to read/search that shared session before work.
 - If no shared-context tool is visible, pass the same snapshot directly in the delegation prompt.
-${buildSubagentPolicyPrompt(subagentPolicy)}
-
 ### 子 Agent 工具选择指南
 
 #### 三种子 agent 工具
@@ -356,6 +257,14 @@ ${buildSubagentPolicyPrompt(subagentPolicy)}
 - If multiple remembered sessions fit, prefer the most recently used matching session.
 - Prefer re-uses over creating new sessions all the time
 
+### CRITICAL: Never Stop Mid-Plan
+When an active saved plan exists with incomplete checkboxes, you MUST NOT stop or pause.
+- Do NOT ask "should I continue?" — the answer is always YES while plan items remain.
+- Do NOT output "let me know if you want me to continue" — this wastes a turn.
+- Do NOT stop to ask for confirmation on the next step — execute it immediately.
+- The review system runs automatically when ALL plan items are complete. Until then, keep executing.
+- Stopping mid-plan = task failure.
+
 ### Auto-Continue
 When working through multi-step tasks, consider enabling auto-continue to avoid stopping between batches:
 - **Enable when:** User requests autonomous/batch work, or you create 4+ todos in a session
@@ -383,7 +292,7 @@ Before starting work, assess task complexity to determine execution mode:
 - Auto-continuation is enabled by default. When you create todos via the todowrite tool, the system will automatically resume working without needing to manually enable auto-continue.
 - Even a single todo triggers auto mode.
 - System will auto-resume when incomplete todos remain.
-- Post-implementation review triggers automatically before stopping.
+- Post-implementation review triggers automatically before stopping — but ONLY when ALL plan items are done.
 - To stop auto mode: call auto_continue(enabled=false) or use the stop-continuation command.
 
 **How to activate auto mode manually (if disabled):**
@@ -564,6 +473,7 @@ When user's approach seems problematic:
 
 ### Document format rules
 - HTML is for users — write HTML files to .opencode/extendai-lab/pages/ when the content is meant for human viewing (analysis reports, architecture diagrams, data visualization). View at localhost:25569/view.
+- CRITICAL: The HTML viewer is a presentation tool for AI-generated user-facing content ONLY. Do NOT use it to deploy, render, or test-serve project HTML files or local web applications. For testing web functionality (backends, APIs, interactive apps), start a proper dev server (Python http.server, Node vite, etc.).
 - Markdown is for developers and AI — write Markdown to docs/ for technical documentation, wikis, and AI-consumable notes.
 - HTML templates are available via the 75+ skills in the skills gallery. Use the skill tool to load a template, then write HTML to pages/.
 - DOCX conversion is available: write HTML first, verify in the viewer, then convert to DOCX. The plugin automatically strips python-docx author metadata.
@@ -592,9 +502,8 @@ export function createOrchestratorAgent(
   customPrompt?: string,
   customAppendPrompt?: string,
   disabledAgents?: Set<string>,
-  subagentPolicy?: SubagentPolicyConfig,
 ): AgentDefinition {
-  const basePrompt = buildOrchestratorPrompt(disabledAgents, subagentPolicy);
+  const basePrompt = buildOrchestratorPrompt(disabledAgents);
   const prompt = resolvePrompt(basePrompt, customPrompt, customAppendPrompt);
 
   const definition: AgentDefinition = {

@@ -205,25 +205,6 @@ export const SessionManagerConfigSchema = z.object({
 
 export type SessionManagerConfig = z.infer<typeof SessionManagerConfigSchema>;
 
-// Subagent usage policy. This is primarily a prompt/control-plane setting for
-// cost models where cache reuse matters more than child-session parallelism.
-export const SubagentPolicyConfigSchema = z.object({
-  mode: z
-    .enum(['full', 'ultra-minimal', 'minimal', 'custom', 'main-only'])
-    .default('full')
-    .describe(
-      'Subagent usage mode: full (default; all 15+ custom agents available), ultra-minimal/minimal (only OpenCode built-in default agents, no custom subagents), custom (only allowedAgents list), main-only (disable all subagents). Registered agent changes require plugin reload/restart.',
-    ),
-  allowedAgents: z
-    .array(z.string())
-    .optional()
-    .describe(
-      'Allowed orchestratable subagents when mode is custom. Non-allowed specialists should be treated as main-agent checklists.',
-    ),
-});
-
-export type SubagentPolicyConfig = z.infer<typeof SubagentPolicyConfigSchema>;
-
 export const RuntimeTargetConfigSchema = z.object({
   enabled: z.boolean().default(false),
   configPath: z.string().min(1).optional(),
@@ -679,7 +660,6 @@ export const PluginConfigSchema = z
     websearch: WebsearchConfigSchema.optional(),
     interview: InterviewConfigSchema.optional(),
     sessionManager: SessionManagerConfigSchema.optional(),
-    subagentPolicy: SubagentPolicyConfigSchema.optional(),
     runtimeTargets: RuntimeTargetsConfigSchema.optional(),
     compatProviders: CompatProvidersConfigSchema.optional(),
     todoContinuation: TodoContinuationConfigSchema.optional(),

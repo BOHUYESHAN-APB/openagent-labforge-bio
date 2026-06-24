@@ -36,8 +36,6 @@ import { createOracleAgent } from './oracle';
 import {
   type AgentDefinition,
   createOrchestratorAgent,
-  getMinimalSubagentNames,
-  getUltraMinimalSubagentNames,
   resolvePrompt,
 } from './orchestrator';
 import { createPrometheusAgent } from './prometheus';
@@ -80,7 +78,7 @@ function reorderPrimaryAgentFactories(
             ? 'bio-orchestrator'
             : preferredVisibleAgent === 'chem-analyst'
               ? 'chem-orchestrator'
-            : undefined;
+              : undefined;
 
   if (!preferredInternalName) return entries;
 
@@ -339,7 +337,6 @@ const PRIMARY_AGENT_FACTORIES: Record<
     customPrompt?: string,
     customAppendPrompt?: string,
     disabledAgents?: Set<string>,
-    subagentPolicy?: PluginConfig['subagentPolicy'],
   ) => AgentDefinition
 > = {
   orchestrator: createOrchestratorAgent,
@@ -362,8 +359,6 @@ const PRIMARY_AGENT_FACTORIES: Record<
  */
 export function createAgents(config?: PluginConfig): AgentDefinition[] {
   const disabled = getDisabledAgents(config);
-  const subagentPolicy = config?.subagentPolicy;
-  const allowedCustomSubagents = new Set(subagentPolicy?.allowedAgents ?? []);
 
   // Model resolution: per-agent override > modelPreferences > inherit (undefined).
   // When undefined is returned, OpenCode's native model inheritance kicks in —
@@ -420,7 +415,6 @@ export function createAgents(config?: PluginConfig): AgentDefinition[] {
         customPrompts.prompt,
         customPrompts.appendPrompt,
         disabled,
-        subagentPolicy,
       );
       if (override) {
         applyOverrides(agent, override);
@@ -446,15 +440,6 @@ export function createAgents(config?: PluginConfig): AgentDefinition[] {
     .map(normalizeCustomAgentName)
     .filter((name) => name.length > 0)
     .filter((name) => {
-      if (subagentPolicy?.mode === 'main-only') {
-        return false;
-      }
-      if (
-        subagentPolicy?.mode === 'custom' &&
-        !allowedCustomSubagents.has(name)
-      ) {
-        return false;
-      }
       if (!isSafeCustomAgentName(name)) {
         throw new Error(`Unsafe custom agent name '${name}'`);
       }
@@ -634,7 +619,8 @@ export function getAgentConfigs(
     }
   };
 
-  const isInternalOnly = (name: string): boolean => name === 'councillor' || name === 'reviewer';
+  const isInternalOnly = (name: string): boolean =>
+    name === 'councillor' || name === 'reviewer';
 
   const entries: Array<[string, SDKAgentConfig]> = [];
 
@@ -715,36 +701,6 @@ export function getDisabledAgents(config?: PluginConfig): Set<string> {
     }
   }
 
-  const mode = config?.subagentPolicy?.mode ?? 'full';
-  const minimalAgents = new Set(getMinimalSubagentNames());
-  const ultraMinimalAgents = new Set(getUltraMinimalSubagentNames());
-  const allowedAgents = new Set(config?.subagentPolicy?.allowedAgents ?? []);
-
-  if (mode === 'main-only') {
-    for (const name of ORCHESTRATABLE_AGENTS) {
-      if (!PROTECTED_AGENTS.has(name)) {
-        disabled.add(name);
-      }
-    }
-  } else if (mode === 'ultra-minimal') {
-    for (const name of ORCHESTRATABLE_AGENTS) {
-      if (!PROTECTED_AGENTS.has(name) && !ultraMinimalAgents.has(name)) {
-        disabled.add(name);
-      }
-    }
-  } else if (mode === 'minimal') {
-    for (const name of ORCHESTRATABLE_AGENTS) {
-      if (!PROTECTED_AGENTS.has(name) && !minimalAgents.has(name)) {
-        disabled.add(name);
-      }
-    }
-  } else if (mode === 'custom') {
-    for (const name of ORCHESTRATABLE_AGENTS) {
-      if (!PROTECTED_AGENTS.has(name) && !allowedAgents.has(name)) {
-        disabled.add(name);
-      }
-    }
-  }
   return disabled;
 }
 

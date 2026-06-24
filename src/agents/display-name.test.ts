@@ -234,7 +234,6 @@ describe('displayName', () => {
   test('exposes default plain-English names for planning review subagents', () => {
     const sdkConfigs = getAgentConfigs({
       disabled_agents: [],
-      subagentPolicy: { mode: 'full' },
     }) as Record<string, { hidden?: boolean; mode?: string }>;
 
     expect(sdkConfigs['requirements-analyst']).toBeDefined();

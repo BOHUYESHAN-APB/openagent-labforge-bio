@@ -221,36 +221,6 @@ function writeExtendaiConfig(config: Record<string, unknown>): void {
 }
 
 /**
- * Get the allowed agents for a given subagent policy mode.
- */
-function getAllowedAgentsForMode(mode: string): string[] {
-  const modeAgents: Record<string, string[]> = {
-    // Ultra-minimal/minimal: only OpenCode's built-in default agents
-    // (engineer/planner), no custom subagents registered
-    'ultra-minimal': [],
-    minimal: [],
-    // Full: all 15+ custom agents available
-    full: [
-      'explorer',
-      'librarian',
-      'oracle',
-      'designer',
-      'fixer',
-      'observer',
-      'council',
-      'metis',
-      'momus',
-      'multimodal-looker',
-      'reviewer',
-    ],
-    custom: [], // 从配置文件读取
-    'main-only': [], // 不允许子 agent
-  };
-
-  return modeAgents[mode] || [];
-}
-
-/**
  * Best-effort log to opencode's app logger.
  * Wrapped in try/catch to avoid deadlocking on opencode v1.4.8–v1.4.9
  * where client.app.log() during init triggers a middleware cycle.
@@ -280,74 +250,11 @@ const HEALTH_CHECK = {
   minMcps: 1,
 } as const;
 
-const SUBAGENT_POLICY_COMMAND = 'ol-subagents';
-
-const SUBAGENT_POLICY_USAGE =
-  'Compatibility commands: /ol-subagents-UM ultra-minimal, /ol-subagents-M minimal, /ol-subagents-F full, /ol-subagents-C custom, /ol-subagents-MO main-only. Real agent registration changes require config reload/restart.';
-
 const CHECKPOINT_LIGHT_COMMAND = 'ol-checkpoint-light';
 const CHECKPOINT_HEAVY_COMMAND = 'ol-checkpoint-heavy';
 const CHECKPOINT_RESUME_LATEST_COMMAND = 'ol-checkpoint-resume-latest';
 const AUTO_CONTINUE_ON_COMMAND = 'ol-auto-continue-on';
 const AUTO_CONTINUE_OFF_COMMAND = 'ol-auto-continue-off';
-
-const SUBAGENT_POLICY_ALIASES = {
-  um: 'ultra-minimal',
-  ultraminimal: 'ultra-minimal',
-  'ultra-minimal': 'ultra-minimal',
-  m: 'minimal',
-  minimal: 'minimal',
-  f: 'full',
-  full: 'full',
-  c: 'custom',
-  custom: 'custom',
-  mo: 'main-only',
-  'main-only': 'main-only',
-  mainonly: 'main-only',
-} as const;
-
-type SubagentPolicyMode =
-  (typeof SUBAGENT_POLICY_ALIASES)[keyof typeof SUBAGENT_POLICY_ALIASES];
-
-const SUBAGENT_POLICY_COMMAND_MODES = {
-  'ol-subagents-UM': 'ultra-minimal',
-  'ol-subagents-M': 'minimal',
-  'ol-subagents-F': 'full',
-  'ol-subagents-C': 'custom',
-  'ol-subagents-MO': 'main-only',
-} as const satisfies Record<string, SubagentPolicyMode>;
-
-const SUBAGENT_POLICY_COMMAND_DESCRIPTIONS: Record<
-  keyof typeof SUBAGENT_POLICY_COMMAND_MODES,
-  string
-> = {
-  'ol-subagents-UM':
-    'Subagent policy: UM=ultra-minimal — only OpenCode built-in agents, no custom subagents',
-  'ol-subagents-M':
-    'Subagent policy: M=minimal — same as ultra-minimal, only built-in agents',
-  'ol-subagents-F':
-    'Subagent policy: F=full — all 15+ custom agents available (default)',
-  'ol-subagents-C':
-    'Subagent policy: C=custom — use allowedAgents allowlist',
-  'ol-subagents-MO':
-    'Subagent policy: MO=main-only — disable all subagents',
-};
-
-function parseSubagentPolicyMode(
-  argument: string | undefined,
-): SubagentPolicyMode | undefined {
-  const first = argument?.trim().split(/\s+/)[0]?.toLowerCase();
-  if (!first) return undefined;
-  return SUBAGENT_POLICY_ALIASES[first as keyof typeof SUBAGENT_POLICY_ALIASES];
-}
-
-function getSubagentPolicyModeForCommand(
-  command: string,
-): SubagentPolicyMode | undefined {
-  return SUBAGENT_POLICY_COMMAND_MODES[
-    command as keyof typeof SUBAGENT_POLICY_COMMAND_MODES
-  ];
-}
 
 function registerCommandIfMissing(
   commands: Record<string, unknown>,
@@ -356,46 +263,6 @@ function registerCommandIfMissing(
 ): void {
   if (!commands[name]) {
     commands[name] = config;
-  }
-}
-
-function formatSubagentPolicyStatus(
-  config: ReturnType<typeof loadPluginConfig>,
-  requestedMode?: SubagentPolicyMode,
-): string {
-  const policy = config.subagentPolicy;
-  const mode = policy?.mode ?? 'full';
-  const allowed = policy?.allowedAgents?.length
-    ? policy.allowedAgents.join(', ')
-    : '(none configured)';
-  const requestNote = requestedMode
-    ? `\nRequested mode: ${requestedMode}\nConfig value: { "subagentPolicy": { "mode": "${requestedMode}" } }\n`
-    : '';
-
-  return `[Subagent policy]\n${SUBAGENT_POLICY_USAGE}\n\nActive mode: ${mode}\nAllowed agents: ${allowed}${requestNote}\nRuntime note: this command reports the active compatibility policy for the currently loaded plugin instance. Real changes to registered child agents/tools usually require updating config and reloading/restarting the plugin.\n\nProduct note: the preferred architecture is lane-driven with full specialist availability by default; these policy modes remain as compatibility controls.\n\nExecution rule: the main agent should perform work directly by default. Registered specialists should be treated as local checklists/tooling references first, not automatic child-session targets. Only use real child sessions when the active policy permits it, the work is genuinely parallel or independently judgment-heavy, and the user has explicitly allowed child-session use. When delegation is still worthwhile, put the same shared-prefix snapshot first for every child, then role/task-specific instructions. If shared-context MCP tools are visible, write that same snapshot to the shared session and tell children to read/search it before work. Prefer resuming existing specialist sessions when possible.`;
-}
-
-function registerSubagentPolicyCommand(opencodeConfig: {
-  command?: Record<string, unknown>;
-}): void {
-  if (!opencodeConfig.command) {
-    opencodeConfig.command = {};
-  }
-  const commands = opencodeConfig.command;
-  registerCommandIfMissing(commands, SUBAGENT_POLICY_COMMAND, {
-    template: '',
-    description: 'Show active subagent policy and cache guidance',
-  });
-
-  for (const [command, mode] of Object.entries(SUBAGENT_POLICY_COMMAND_MODES)) {
-    registerCommandIfMissing(commands, command, {
-      template: '',
-      description:
-        SUBAGENT_POLICY_COMMAND_DESCRIPTIONS[
-          command as keyof typeof SUBAGENT_POLICY_COMMAND_DESCRIPTIONS
-        ],
-      metadata: { subagentPolicyMode: mode },
-    });
   }
 }
 
@@ -1397,9 +1264,6 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       presetManager.registerCommand(opencodeConfig);
       memoryCommandsHook.registerCommands(opencodeConfig);
       sessionGoalHook.registerCommand(opencodeConfig);
-      registerSubagentPolicyCommand(
-        opencodeConfig as { command?: Record<string, unknown> },
-      );
       registerCompleteArgumentCommands(
         opencodeConfig as { command?: Record<string, unknown> },
       );
@@ -1781,50 +1645,6 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         effectiveInput,
         typedOutput,
       );
-
-      if (
-        typedInput.command === SUBAGENT_POLICY_COMMAND ||
-        getSubagentPolicyModeForCommand(typedInput.command)
-      ) {
-        const requestedMode =
-          getSubagentPolicyModeForCommand(typedInput.command) ??
-          parseSubagentPolicyMode(typedInput.arguments);
-
-        // If it's a mode switch command, modify the config file
-        if (requestedMode && typedInput.command !== SUBAGENT_POLICY_COMMAND) {
-          // Read current config
-          const currentConfig = readExtendaiConfig();
-
-          // Modify config
-          writeExtendaiConfig({
-            ...currentConfig,
-            subagentPolicy: {
-              ...(currentConfig.subagentPolicy as Record<string, unknown>),
-              mode: requestedMode,
-            },
-          });
-
-          // Generate confirmation message
-          const allowedAgents = getAllowedAgentsForMode(requestedMode);
-          const confirmation = `✅ 已切换到 ${requestedMode} 模式
-
-可用子 agent: ${allowedAgents.length > 0 ? allowedAgents.join(', ') : '(无)'}
-生效时间: 下一轮对话
-
-注意: 当前对话仍使用旧的 policy，新 policy 将在下一轮对话中生效`;
-
-          typedOutput.parts.length = 0;
-          typedOutput.parts.push(createInternalAgentTextPart(confirmation));
-        } else {
-          // View current policy
-          typedOutput.parts.length = 0;
-          typedOutput.parts.push(
-            createInternalAgentTextPart(
-              formatSubagentPolicyStatus(config, requestedMode),
-            ),
-          );
-        }
-      }
     },
 
     'chat.params': async (
@@ -1951,29 +1771,42 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         : undefined;
       const promptAgentName = overlayAgentName ?? baseAgentName;
       if (promptAgentName) {
-        const promptAgentDef = agentDefs.find(
-          (a) => a.name === promptAgentName,
-        );
-        const promptText =
-          typeof promptAgentDef?.config?.prompt === 'string'
-            ? promptAgentDef.config.prompt
-            : promptAgentName === 'orchestrator'
-              ? buildOrchestratorPrompt(disabledAgents)
-              : undefined;
-        const shouldIsolateOverlayPrompt = Boolean(
-          overlayAgentName && promptText,
-        );
+        // Check if mode variant will replace the base prompt
+        const sessionMode = input.sessionID
+          ? promptModeManager.getCurrentMode(input.sessionID)
+          : undefined;
+        const isModeReplacement =
+          sessionMode &&
+          sessionMode !== 'light' &&
+          promptModeManager.shouldApplyToAgent(promptAgentName);
 
-        if (shouldIsolateOverlayPrompt && promptText) {
-          output.system.length = 0;
-          output.system.push(promptText);
-        } else if (promptText) {
-          const alreadyInjected = output.system.some(
-            (s) => typeof s === 'string' && s.includes('<Role>'),
+        if (!isModeReplacement) {
+          // Only inject base prompt when mode won't replace it
+          const promptAgentDef = agentDefs.find(
+            (a) => a.name === promptAgentName,
           );
-          if (!alreadyInjected) {
-            output.system[0] =
-              promptText + (output.system[0] ? `\n\n${output.system[0]}` : '');
+          const promptText =
+            typeof promptAgentDef?.config?.prompt === 'string'
+              ? promptAgentDef.config.prompt
+              : promptAgentName === 'orchestrator'
+                ? buildOrchestratorPrompt(disabledAgents)
+                : undefined;
+          const shouldIsolateOverlayPrompt = Boolean(
+            overlayAgentName && promptText,
+          );
+
+          if (shouldIsolateOverlayPrompt && promptText) {
+            output.system.length = 0;
+            output.system.push(promptText);
+          } else if (promptText) {
+            const alreadyInjected = output.system.some(
+              (s) => typeof s === 'string' && s.includes('<Role>'),
+            );
+            if (!alreadyInjected) {
+              output.system[0] =
+                promptText +
+                (output.system[0] ? `\n\n${output.system[0]}` : '');
+            }
           }
         }
       }

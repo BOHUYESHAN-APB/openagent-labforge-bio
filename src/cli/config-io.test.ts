@@ -428,7 +428,6 @@ describe('config-io', () => {
 
     const schema = JSON.parse(readFileSync(schemaPath, 'utf-8'));
     expect(schema.title).toBe(PACKAGE_NAME);
-    expect(schema.properties).toHaveProperty('subagentPolicy');
   });
 
   test('writeLiteConfig writes selected preset', () => {

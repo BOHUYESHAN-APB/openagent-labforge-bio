@@ -3,6 +3,7 @@
  * Shared server: one process across OpenCode windows via lock file.
  */
 
+import { Database } from 'bun:sqlite';
 import {
   existsSync,
   readdirSync,
@@ -18,7 +19,6 @@ import {
   readFile,
   writeFile,
 } from 'node:fs/promises';
-import { Database } from 'bun:sqlite';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { Server as McpServer } from '@modelcontextprotocol/sdk/server/index.js';
@@ -34,22 +34,22 @@ import {
   handleAcademicBuildDocx,
 } from '../academic/tools/index.js';
 import {
+  type HtmlWorkspaceGroup,
+  renderChangesPage,
   renderConfigEditor,
   renderDashboard,
   renderDocFile,
   renderDocs,
   renderError,
-  type HtmlWorkspaceGroup,
-  renderHtmlViewer,
+  renderExplorePage,
   renderHtmlPage,
+  renderHtmlViewer,
   renderPlanFile,
   renderPlans,
+  renderSessionsPage,
   renderSkillDetail,
   renderSkillsList,
   renderTeamsPage,
-  renderSessionsPage,
-  renderChangesPage,
-  renderExplorePage,
 } from './pages';
 import {
   normalizeWorkspaceDirectory,
@@ -96,10 +96,10 @@ function loadWorkspaceRecords(): WorkspaceRecord[] {
           'select directory, type, strategy from project_directory where directory is not null',
         )
         .all() as Array<{
-          directory: string | null;
-          type: string | null;
-          strategy: string | null;
-        }>;
+        directory: string | null;
+        type: string | null;
+        strategy: string | null;
+      }>;
       for (const row of directoryRows) {
         if (!row.directory) continue;
         const resolved = resolve(row.directory);
@@ -142,7 +142,9 @@ function resolveWorkspaceFromRequest(url: URL): string {
   }
 
   const normalized = normalizeWorkspaceDirectory(requested);
-  const match = loadWorkspaceRecords().find((workspace) => workspace.id === normalized);
+  const match = loadWorkspaceRecords().find(
+    (workspace) => workspace.id === normalized,
+  );
   if (match) {
     return match.directory;
   }
@@ -416,14 +418,20 @@ async function handleRequest(req: Request): Promise<Response> {
       );
     }
     if (p === '/view')
-      return new Response(renderHtmlViewer(t, getHtmlWorkspaceGroups(), requestWorkspaceRoot), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      } as any);
+      return new Response(
+        renderHtmlViewer(t, getHtmlWorkspaceGroups(), requestWorkspaceRoot),
+        {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        } as any,
+      );
     if (p === '/api/html-pages') {
       return Response.json(getWorkspaceHtmlPages(requestWorkspaceRoot));
     }
     if (p === '/api/html-open') {
-      const relativePath = (url.searchParams.get('path') ?? '').replace(/\\/g, '/');
+      const relativePath = (url.searchParams.get('path') ?? '').replace(
+        /\\/g,
+        '/',
+      );
       if (!relativePath) return err(400, 'Missing path');
       const fullPath = join(
         requestWorkspaceRoot,
@@ -435,9 +443,12 @@ async function handleRequest(req: Request): Promise<Response> {
       if (!existsSync(fullPath) || statSync(fullPath).isDirectory()) {
         return err(404, 'HTML page not found');
       }
-      return new Response(renderHtmlPage(relativePath, readFileSync(fullPath, 'utf8'), t), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      } as any);
+      return new Response(
+        renderHtmlPage(relativePath, readFileSync(fullPath, 'utf8'), t),
+        {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        } as any,
+      );
     }
     if (p === '/skills')
       return new Response(renderSkillsList(scanAllSkills(), t), {
@@ -448,7 +459,10 @@ async function handleRequest(req: Request): Promise<Response> {
       const docs = await Promise.all(
         dirs.map(async (d) => ({
           dirName: d,
-          files: await listDir(join(requestWorkspaceRoot, d), requestWorkspaceRoot),
+          files: await listDir(
+            join(requestWorkspaceRoot, d),
+            requestWorkspaceRoot,
+          ),
         })),
       );
       return new Response(
@@ -469,7 +483,9 @@ async function handleRequest(req: Request): Promise<Response> {
     }
     if (p === '/teams') {
       try {
-        const { listAllTeamStatuses } = await import('../features/team-mode/team-runtime/status.js');
+        const { listAllTeamStatuses } = await import(
+          '../features/team-mode/team-runtime/status.js'
+        );
         const config = {} as any;
         const teams = await listAllTeamStatuses(config);
         return new Response(renderTeamsPage(teams, t), {
@@ -482,31 +498,50 @@ async function handleRequest(req: Request): Promise<Response> {
       }
     }
     if (p === '/sessions') {
-      const boulderFile = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
-      const plansDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'plans');
+      const boulderFile = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'boulder.json',
+      );
+      const plansDir = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'plans',
+      );
       let boulder = {};
       if (existsSync(boulderFile)) {
-        try { boulder = JSON.parse(readFileSync(boulderFile, 'utf8')); } catch {}
+        try {
+          boulder = JSON.parse(readFileSync(boulderFile, 'utf8'));
+        } catch {}
       }
       const plans = existsSync(plansDir)
-        ? readdirSync(plansDir).filter(f => f.endsWith('.md')).map(f => {
-            const content = readFileSync(join(plansDir, f), 'utf8');
-            const total = (content.match(/- \[ \]/g) || []).length;
-            const completed = (content.match(/- \[x\]/g) || []).length;
-            return { name: f, total, completed };
-          })
+        ? readdirSync(plansDir)
+            .filter((f) => f.endsWith('.md'))
+            .map((f) => {
+              const content = readFileSync(join(plansDir, f), 'utf8');
+              const total = (content.match(/- \[ \]/g) || []).length;
+              const completed = (content.match(/- \[x\]/g) || []).length;
+              return { name: f, total, completed };
+            })
         : [];
       return new Response(renderSessionsPage({ boulder, plans }, t), {
         headers: { 'Content-Type': 'text/html; charset=utf-8' },
       } as any);
     }
     if (p === '/changes') {
-      const changesDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'changes');
+      const changesDir = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'changes',
+      );
       let changes: any[] = [];
       try {
         changes = readdirSync(changesDir, { withFileTypes: true })
-          .filter(e => e.isDirectory())
-          .map(e => {
+          .filter((e) => e.isDirectory())
+          .map((e) => {
             const statusFile = join(changesDir, e.name, 'status.json');
             try {
               const status = JSON.parse(readFileSync(statusFile, 'utf8'));
@@ -521,12 +556,17 @@ async function handleRequest(req: Request): Promise<Response> {
       } as any);
     }
     if (p === '/explore') {
-      const exploreDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'explore');
+      const exploreDir = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'explore',
+      );
       let explorations: any[] = [];
       try {
         explorations = readdirSync(exploreDir, { withFileTypes: true })
-          .filter(e => e.isDirectory())
-          .map(e => {
+          .filter((e) => e.isDirectory())
+          .map((e) => {
             const contextFile = join(exploreDir, e.name, 'context.json');
             try {
               const context = JSON.parse(readFileSync(contextFile, 'utf8'));
@@ -570,17 +610,24 @@ async function handleRequest(req: Request): Promise<Response> {
     if (p === '/api/teams') {
       try {
         // Use the enhanced status aggregation
-        const { listAllTeamStatuses } = await import('../features/team-mode/team-runtime/status.js');
+        const { listAllTeamStatuses } = await import(
+          '../features/team-mode/team-runtime/status.js'
+        );
         const config = {} as any; // TODO: load actual config
         const teams = await listAllTeamStatuses(config);
         return Response.json({ teams });
       } catch (error) {
         // Fallback to file-based status
-        const teamsDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'teams');
+        const teamsDir = join(
+          requestWorkspaceRoot,
+          '.opencode',
+          'extendai-lab',
+          'teams',
+        );
         try {
           const teams = readdirSync(teamsDir, { withFileTypes: true })
-            .filter(e => e.isDirectory())
-            .map(e => {
+            .filter((e) => e.isDirectory())
+            .map((e) => {
               const statusFile = join(teamsDir, e.name, 'status.json');
               try {
                 const status = JSON.parse(readFileSync(statusFile, 'utf8'));
@@ -596,11 +643,17 @@ async function handleRequest(req: Request): Promise<Response> {
       }
     }
 
-    if (p.startsWith('/api/teams/') && !p.includes('/tasks') && !p.includes('/messages')) {
+    if (
+      p.startsWith('/api/teams/') &&
+      !p.includes('/tasks') &&
+      !p.includes('/messages')
+    ) {
       // Get specific team status
       const teamRunId = p.split('/')[3];
       try {
-        const { aggregateStatus } = await import('../features/team-mode/team-runtime/status.js');
+        const { aggregateStatus } = await import(
+          '../features/team-mode/team-runtime/status.js'
+        );
         const config = {} as any; // TODO: load actual config
         const status = await aggregateStatus(teamRunId, config);
         if (status) {
@@ -608,13 +661,23 @@ async function handleRequest(req: Request): Promise<Response> {
         }
         return Response.json({ error: 'Team not found' }, { status: 404 });
       } catch {
-        return Response.json({ error: 'Failed to get team status' }, { status: 500 });
+        return Response.json(
+          { error: 'Failed to get team status' },
+          { status: 500 },
+        );
       }
     }
 
     if (p.startsWith('/api/teams/') && p.includes('/tasks')) {
       const teamName = p.split('/')[3];
-      const tasksFile = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'teams', teamName, 'tasks.json');
+      const tasksFile = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'teams',
+        teamName,
+        'tasks.json',
+      );
       try {
         const tasks = JSON.parse(readFileSync(tasksFile, 'utf8'));
         return Response.json({ team: teamName, tasks });
@@ -625,7 +688,14 @@ async function handleRequest(req: Request): Promise<Response> {
 
     if (p.startsWith('/api/teams/') && p.includes('/messages')) {
       const teamName = p.split('/')[3];
-      const messagesFile = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'teams', teamName, 'messages.json');
+      const messagesFile = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'teams',
+        teamName,
+        'messages.json',
+      );
       try {
         const messages = JSON.parse(readFileSync(messagesFile, 'utf8'));
         return Response.json({ team: teamName, messages });
@@ -637,7 +707,9 @@ async function handleRequest(req: Request): Promise<Response> {
     // ── Session-to-Team Registry API ────────────────────
     if (p === '/api/team-sessions') {
       try {
-        const { getAllTeamSessions } = await import('../features/team-mode/team-runtime/session-to-team-registry.js');
+        const { getAllTeamSessions } = await import(
+          '../features/team-mode/team-runtime/session-to-team-registry.js'
+        );
         const sessions = getAllTeamSessions();
         return Response.json({ sessions });
       } catch {
@@ -647,8 +719,18 @@ async function handleRequest(req: Request): Promise<Response> {
 
     // ── Session Status API ──────────────────────────────
     if (p === '/api/sessions') {
-      const boulderFile = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
-      const plansDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'plans');
+      const boulderFile = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'boulder.json',
+      );
+      const plansDir = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'plans',
+      );
       try {
         let boulder = {};
         if (existsSync(boulderFile)) {
@@ -656,8 +738,8 @@ async function handleRequest(req: Request): Promise<Response> {
         }
         const plans = existsSync(plansDir)
           ? readdirSync(plansDir)
-              .filter(f => f.endsWith('.md'))
-              .map(f => {
+              .filter((f) => f.endsWith('.md'))
+              .map((f) => {
                 const content = readFileSync(join(plansDir, f), 'utf8');
                 const total = (content.match(/- \[ \]/g) || []).length;
                 const completed = (content.match(/- \[x\]/g) || []).length;
@@ -671,7 +753,12 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     if (p === '/api/sessions/active') {
-      const boulderFile = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'boulder.json');
+      const boulderFile = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'boulder.json',
+      );
       try {
         if (existsSync(boulderFile)) {
           const boulder = JSON.parse(readFileSync(boulderFile, 'utf8'));
@@ -685,11 +772,16 @@ async function handleRequest(req: Request): Promise<Response> {
 
     // ── Changes API ─────────────────────────────────────
     if (p === '/api/changes') {
-      const changesDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'changes');
+      const changesDir = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'changes',
+      );
       try {
         const changes = readdirSync(changesDir, { withFileTypes: true })
-          .filter(e => e.isDirectory())
-          .map(e => {
+          .filter((e) => e.isDirectory())
+          .map((e) => {
             const statusFile = join(changesDir, e.name, 'status.json');
             try {
               const status = JSON.parse(readFileSync(statusFile, 'utf8'));
@@ -706,11 +798,16 @@ async function handleRequest(req: Request): Promise<Response> {
 
     // ── Explore API ─────────────────────────────────────
     if (p === '/api/explore') {
-      const exploreDir = join(requestWorkspaceRoot, '.opencode', 'extendai-lab', 'explore');
+      const exploreDir = join(
+        requestWorkspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'explore',
+      );
       try {
         const explorations = readdirSync(exploreDir, { withFileTypes: true })
-          .filter(e => e.isDirectory())
-          .map(e => {
+          .filter((e) => e.isDirectory())
+          .map((e) => {
             const contextFile = join(exploreDir, e.name, 'context.json');
             try {
               const context = JSON.parse(readFileSync(contextFile, 'utf8'));
@@ -735,7 +832,10 @@ async function handleRequest(req: Request): Promise<Response> {
 const mcpTools: Tool[] = [
   {
     name: 'extendai_list_skills',
-    description: 'List all document/design skills',
+    description:
+      'List all available HTML page templates, presentation decks, and academic writing tools.\n' +
+      'Use this to discover what page templates or tools are available for the current task.\n' +
+      'IMPORTANT: This lists UI/design/document tools — NOT project files. For project exploration use glob/grep.',
     inputSchema: {
       type: 'object',
       properties: { category: { type: 'string' } },
@@ -743,17 +843,23 @@ const mcpTools: Tool[] = [
   },
   {
     name: 'extendai_read_plan',
-    description: 'Read a plan',
+    description:
+      'Read a saved plan from .opencode/extendai-lab/plans/\n' +
+      'Use to continue work from a previously saved plan. Returns the full markdown plan content.',
     inputSchema: { type: 'object', properties: { name: { type: 'string' } } },
   },
   {
     name: 'extendai_list_checkpoints',
-    description: 'List checkpoints',
+    description:
+      'List all session checkpoints for recovery purposes.\n' +
+      'Use to find and resume from earlier session states.',
     inputSchema: { type: 'object', properties: {} },
   },
   {
     name: 'extendai_dashboard_status',
-    description: 'Dashboard status',
+    description:
+      'Returns workspace info, loaded skill count, and active port.\n' +
+      'Use to verify the extendai-lab server is running and check its configuration.',
     inputSchema: { type: 'object', properties: {} },
   },
   ...academicTools,
@@ -829,12 +935,19 @@ async function main() {
 
     return {
       content: [
-        { type: 'text' as const, text: `Dashboard: http://${HOST}:${actualPort}` },
+        {
+          type: 'text' as const,
+          text: `Dashboard: http://${HOST}:${actualPort}`,
+        },
       ],
     };
   });
 
-  const server = Bun.serve({ port: PORT, hostname: HOST, fetch: handleRequest });
+  const server = Bun.serve({
+    port: PORT,
+    hostname: HOST,
+    fetch: handleRequest,
+  });
   actualPort = server.port ?? 0;
   await srvLog(`HTTP: http://${HOST}:${actualPort}`);
 

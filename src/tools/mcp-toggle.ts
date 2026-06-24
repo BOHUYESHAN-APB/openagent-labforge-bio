@@ -57,7 +57,7 @@ async function withRetry<T>(
     } catch (err: unknown) {
       lastError = err instanceof Error ? err : new Error(String(err));
       if (attempt < maxRetries - 1) {
-        const delay = MCP_RETRY_BASE_DELAY_MS * Math.pow(2, attempt);
+        const delay = MCP_RETRY_BASE_DELAY_MS * 2 ** attempt;
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -80,7 +80,7 @@ export function createMcpToggleTool(
     description: `Enable or disable an MCP server for the current session only. Does NOT modify global config — other sessions are unaffected. ONLY for primary orchestrator agents.
 
 RULES:
-- NEVER disable: websearch, context7, grep_app, extendaiLab (core infra)
+- NEVER disable: websearch, context7, grep_app, extendaiLab (core infra — do NOT confuse with web dev servers)
 - NEVER enable: cua_driver (desktop automation — user must enable manually)
 - Browser: prefer chrome_devtools_mcp first; browser_puppeteer as fallback
 - Paper search: enable ONLY ONE at a time (semantic_scholar_fastmcp recommended)
@@ -160,9 +160,7 @@ NOTE: If enable fails with timeout, retry automatically (multi-window race condi
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         const retryInfo =
-          action === 'enable'
-            ? ` after ${MCP_RETRY_MAX} attempts`
-            : '';
+          action === 'enable' ? ` after ${MCP_RETRY_MAX} attempts` : '';
         return `Failed to ${action} MCP "${name}"${retryInfo}: ${msg}`;
       }
     },
