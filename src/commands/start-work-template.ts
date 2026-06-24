@@ -5,6 +5,15 @@ export const START_WORK_TEMPLATE = `You are starting an ExtendAI Lab work sessio
 - /ol-start-work [plan-name] [--worktree <path>]
 - If no plan name given, the hook auto-selects or presents options.
 
+### USER ARGUMENTS
+
+<user_arguments>
+$ARGUMENTS
+</user_arguments>
+
+The user typed a plan name (or nothing) above. The hook has resolved it to a specific
+plan file path — see "## OL START WORK > Runtime context > Plan file" below.
+
 ## WHAT THE HOOK ALREADY DID
 
 The command hook should have:
