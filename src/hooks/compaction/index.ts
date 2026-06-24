@@ -138,8 +138,11 @@ export function createCompactionHook(options?: CompactionHookOptions): {
       }
 
       // Replace compaction prompt with our improved version
+      // CRITICAL: also clear context array to prevent upstream context strings
+      // from contaminating the compaction (e.g. conversation formatting instructions)
       const improvedPrompt = getCompactionPrompt(customInstructions);
       output.prompt = improvedPrompt;
+      output.context = [];
 
       log(`[${HOOK_NAME}] 替换压缩提示词`, {
         sessionID: input.sessionID,
