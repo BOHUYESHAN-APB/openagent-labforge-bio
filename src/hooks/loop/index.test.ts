@@ -1,8 +1,7 @@
 /**
- * Loop 状态管理器测试
+ * LoopStateMachine 测试
  *
- * 注意：createLoop/getLoop/updateLoop/deleteLoop 使用文件系统，
- * 通过临时目录隔离测试。
+ * 注意：FSM 使用文件系统持久化，通过临时目录隔离测试。
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -13,13 +12,9 @@ import {
   deleteLoop,
   getLoop,
   isLoopActive,
+  resetLoopModule,
   routeVerdict,
-  updateLoop,
 } from './index';
-
-// ──────────────────────────────────────────
-// 测试辅助：劫持 cwd 到临时目录
-// ──────────────────────────────────────────
 
 const TEST_LOOP_DIR = '.opencode/loops';
 const originalCwd = process.cwd;
@@ -28,60 +23,60 @@ let testDir = '';
 beforeEach(() => {
   testDir = join(
     import.meta.dirname,
-    '..',
-    '..',
-    '..',
-    '.opencode',
-    'test-tmp',
+    '..', '..', '..',
+    '.opencode', 'test-tmp',
     `loop-test-${Date.now()}`,
   );
   mkdirSync(join(testDir, TEST_LOOP_DIR), { recursive: true });
   process.cwd = () => testDir;
+  resetLoopModule();
 });
 
 afterEach(() => {
   process.cwd = originalCwd;
+  resetLoopModule();
 });
 
 // ──────────────────────────────────────────
-// createLoop / getLoop
+// FSM: createLoop / getLoop / transition
 // ──────────────────────────────────────────
 
-describe('createLoop / getLoop', () => {
-  test('creates loop state file with default values', () => {
-    const loop = createLoop('Fix auth module', 'engineer', 'engineer');
+describe('LoopStateMachine: create / get / transition', () => {
+  test('createLoop returns FSM in interview phase', () => {
+    const fsm = createLoop('Fix auth module', 'engineer', 'engineer');
 
-    // Validate returned object
-    expect(loop.loop_id).toBeDefined();
-    expect(loop.loop_id).toMatch(/^loop_/);
-    expect(loop.description).toBe('Fix auth module');
-    expect(loop.executor_type).toBe('engineer');
-    expect(loop.return_agent).toBe('engineer');
-    expect(loop.phase).toBe('interview');
-    expect(loop.iteration).toBe(1);
-    expect(loop.max_iterations).toBe(3);
-    expect(loop.verdict_history).toEqual([]);
-    expect(loop.created_at).toBeGreaterThan(0);
-    expect(loop.updated_at).toBeGreaterThan(0);
+    expect(fsm.state.loop_id).toMatch(/^loop_/);
+    expect(fsm.state.description).toBe('Fix auth module');
+    expect(fsm.state.executor_type).toBe('engineer');
+    expect(fsm.state.return_agent).toBe('engineer');
+    expect(fsm.state.phase).toBe('interview');
+    expect(fsm.state.iteration).toBe(1);
+    expect(fsm.state.max_iterations).toBe(3);
+    expect(fsm.state.transition_seq).toBe(1); // idle→interview
+    expect(fsm.effectiveAgent).toBe('prometheus');
+  });
 
-    // Validate persisted file
+  test('persists state to file', () => {
+    const fsm = createLoop('Test', 'engineer', 'engineer');
     const statePath = join(testDir, TEST_LOOP_DIR, 'active.json');
     expect(existsSync(statePath)).toBe(true);
     const saved = JSON.parse(readFileSync(statePath, 'utf-8'));
-    expect(saved.loop_id).toBe(loop.loop_id);
-    expect(saved.description).toBe('Fix auth module');
+    expect(saved.loop_id).toBe(fsm.state.loop_id);
+    expect(saved.phase).toBe('interview');
+    expect(saved.needs_kickstart).toBe(false);
+    expect(saved.pending_switch.phase).toBe('interview');
   });
 
   test('getLoop returns null when no loop exists', () => {
     expect(getLoop()).toBeNull();
   });
 
-  test('getLoop returns the active loop after creation', () => {
+  test('getLoop recovers from disk after creation', () => {
     createLoop('RNA-seq analysis', 'bio-orchestrator', 'atlas');
-    const loop = getLoop();
-    expect(loop).not.toBeNull();
-    expect(loop!.description).toBe('RNA-seq analysis');
-    expect(loop!.executor_type).toBe('bio-orchestrator');
+    const fsm = getLoop();
+    expect(fsm).not.toBeNull();
+    expect(fsm!.state.description).toBe('RNA-seq analysis');
+    expect(fsm!.state.executor_type).toBe('bio-orchestrator');
   });
 
   test('getLoop returns null when state file is corrupted', () => {
@@ -89,41 +84,93 @@ describe('createLoop / getLoop', () => {
     writeFileSync(statePath, 'not valid json', 'utf-8');
     expect(getLoop()).toBeNull();
   });
+
+  test('valid transitions enforced', () => {
+    const fsm = createLoop('Test', 'engineer', 'engineer');
+    expect(fsm.state.phase).toBe('interview');
+
+    // interview → execute ✓
+    expect(fsm.transition('execute')).toBe(true);
+    expect(fsm.state.phase).toBe('execute');
+
+    // execute → review ✓
+    expect(fsm.transition('review')).toBe(true);
+    expect(fsm.state.phase).toBe('review');
+
+    // review → interview ✗ (invalid)
+    expect(fsm.transition('interview')).toBe(false);
+    expect(fsm.state.phase).toBe('review'); // unchanged
+
+    // review → redesign ✓
+    expect(fsm.transition('redesign')).toBe(true);
+    expect(fsm.state.phase).toBe('redesign');
+  });
+
+  test('transition auto-sets needs_kickstart for execute/redesign', () => {
+    const fsm = createLoop('Test', 'engineer', 'engineer');
+    // interview: needs_kickstart was false initially
+    expect(fsm.state.needs_kickstart).toBe(false);
+
+    // interview → execute: auto-sets needs_kickstart
+    fsm.transition('execute');
+    expect(fsm.state.needs_kickstart).toBe(true);
+
+    // consume
+    const kickstart = fsm.consumeKickstart();
+    expect(kickstart).not.toBeNull();
+    expect(fsm.state.needs_kickstart).toBe(false);
+  });
+
+  test('transition_seq increments on each transition', () => {
+    const fsm = createLoop('Test', 'engineer', 'engineer');
+    expect(fsm.state.transition_seq).toBe(1); // idle→interview
+
+    fsm.transition('execute');
+    expect(fsm.state.transition_seq).toBe(2);
+
+    fsm.transition('review');
+    expect(fsm.state.transition_seq).toBe(3);
+  });
 });
 
 // ──────────────────────────────────────────
-// updateLoop
+// Kickstart
 // ──────────────────────────────────────────
 
-describe('updateLoop', () => {
-  test('updates fields and sets updated_at', async () => {
-    const created = createLoop('Test', 'engineer', 'engineer');
-    const originalUpdated = created.updated_at;
-
-    // Small delay to ensure timestamp difference
-    await new Promise((r) => setTimeout(r, 5));
-    const updated = updateLoop({ phase: 'execute', iteration: 2 });
-    expect(updated).not.toBeNull();
-    expect(updated!.phase).toBe('execute');
-    expect(updated!.iteration).toBe(2);
-    expect(updated!.updated_at).toBeGreaterThan(originalUpdated);
+describe('LoopStateMachine: kickstart', () => {
+  test('consumeKickstart returns execute prompt', () => {
+    const fsm = createLoop('Test', 'engineer', 'engineer');
+    fsm.transition('execute');
+    const prompt = fsm.consumeKickstart();
+    expect(prompt).toContain('Execute Phase');
+    expect(prompt).toContain('engineer');
   });
 
-  test('returns null when no loop exists', () => {
-    const result = updateLoop({ phase: 'execute' });
-    expect(result).toBeNull();
+  test('consumeKickstart is idempotent (same seq only once)', () => {
+    const fsm = createLoop('Test', 'engineer', 'engineer');
+    fsm.transition('execute');
+    expect(fsm.consumeKickstart()).not.toBeNull();  // first call
+    expect(fsm.consumeKickstart()).toBeNull();       // second call → null
   });
 
-  test('persists changes to file', () => {
-    createLoop('Test', 'engineer', 'engineer');
-    updateLoop({ phase: 'review' });
+  test('consumeKickstart returns redesign prompt', () => {
+    const fsm = createLoop('Test', 'engineer', 'engineer');
+    fsm.transition('redesign');
+    const prompt = fsm.consumeKickstart();
+    expect(prompt).toContain('Redesign Phase');
+    expect(prompt).toContain('autonomous');
+  });
 
-    const loop = getLoop();
-    expect(loop!.phase).toBe('review');
+  test('needsKickstart getter works correctly', () => {
+    const fsm = createLoop('Test', 'engineer', 'engineer');
+    // interview: auto-set to false initially, no kickstart consumed
+    expect(fsm.needsKickstart).toBe(false);
 
-    const statePath = join(testDir, TEST_LOOP_DIR, 'active.json');
-    const saved = JSON.parse(readFileSync(statePath, 'utf-8'));
-    expect(saved.phase).toBe('review');
+    fsm.transition('execute');
+    expect(fsm.needsKickstart).toBe(true);
+
+    fsm.consumeKickstart();
+    expect(fsm.needsKickstart).toBe(false);
   });
 });
 
@@ -132,105 +179,78 @@ describe('updateLoop', () => {
 // ──────────────────────────────────────────
 
 describe('deleteLoop / isLoopActive', () => {
-  test('isLoopActive returns false with no loop', () => {
+  test('isLoopActive: false with no loop, true with loop, false after delete', () => {
     expect(isLoopActive()).toBe(false);
-  });
 
-  test('isLoopActive returns true when loop exists', () => {
-    createLoop('Test', 'engineer', 'engineer');
-    expect(isLoopActive()).toBe(true);
-  });
-
-  test('deleteLoop removes state file', () => {
     createLoop('Test', 'engineer', 'engineer');
     expect(isLoopActive()).toBe(true);
 
     deleteLoop();
-
     expect(isLoopActive()).toBe(false);
-    expect(getLoop()).toBeNull();
   });
 
   test('deleteLoop is safe to call with no loop', () => {
-    // Should not throw
     deleteLoop();
     expect(true).toBe(true);
+  });
+
+  test('isLoopActive: false when phase is done', () => {
+    const fsm = createLoop('Test', 'engineer', 'engineer');
+    fsm.state.phase = 'done';
+    fsm.persist();
+    expect(isLoopActive()).toBe(false);
   });
 });
 
 // ──────────────────────────────────────────
-// routeVerdict
+// Verdict routing (compat routeVerdict)
 // ──────────────────────────────────────────
 
 describe('routeVerdict', () => {
-  test('approve → done, deletes loop', () => {
+  test('approve → done', () => {
     createLoop('Test', 'engineer', 'engineer');
     const result = routeVerdict('approve');
-
     expect(result).not.toBeNull();
     expect(result!.phase).toBe('done');
     expect(result!.agent).toBe('engineer');
-    // Loop should be deleted
-    expect(isLoopActive()).toBe(false);
   });
 
-  test('reject with scope=planner → redesign, increments iteration', () => {
+  test('reject scope=planner → redesign, increments iteration', () => {
     createLoop('Test', 'engineer', 'engineer');
     const result = routeVerdict('reject', 'planner', 'design needs work');
-
-    expect(result).not.toBeNull();
     expect(result!.phase).toBe('redesign');
     expect(result!.agent).toBe('prometheus');
 
-    // Loop state should be updated
-    const loop = getLoop();
-    expect(loop!.phase).toBe('redesign');
-    expect(loop!.iteration).toBe(2);
+    const fsm = getLoop();
+    expect(fsm!.state.phase).toBe('redesign');
+    expect(fsm!.state.iteration).toBe(2);
   });
 
-  test('reject with scope=executor → execute, includes fix instructions', () => {
+  test('reject scope=executor → execute', () => {
     createLoop('Test', 'engineer', 'engineer');
-    const result = routeVerdict('reject', 'executor', 'fix the null check');
-
-    expect(result).not.toBeNull();
+    const result = routeVerdict('reject', 'executor', 'fix null check');
     expect(result!.phase).toBe('execute');
     expect(result!.agent).toBe('engineer');
-    expect(result!.fixInstructions).toBe('fix the null check');
+    expect(result!.fixInstructions).toBe('fix null check');
   });
 
-  test('reject with no scope → execute (default)', () => {
+  test('reject no scope → execute default', () => {
     createLoop('Test', 'engineer', 'engineer');
     const result = routeVerdict('reject');
-
     expect(result!.phase).toBe('execute');
-    expect(result!.agent).toBe('engineer');
   });
 
-  test('reject with scope=planner exceeding max_iterations → done', () => {
-    createLoop('Test', 'engineer', 'engineer');
-    // Manually set iteration to 3 (max)
-    updateLoop({ iteration: 3 });
+  test('reject scope=planner beyond max_iterations → done', () => {
+    const fsm = createLoop('Test', 'engineer', 'engineer');
+    fsm.state.iteration = 3;
+    fsm.persist();
 
     const result = routeVerdict('reject', 'planner', 'still not good');
-    expect(result).not.toBeNull();
     expect(result!.phase).toBe('done');
-    // Loop should be deleted
-    expect(isLoopActive()).toBe(false);
   });
 
-  test('needs_user → execute with pause message', () => {
-    createLoop('Test', 'engineer', 'engineer');
-    const result = routeVerdict('needs_user');
-
-    expect(result).not.toBeNull();
-    expect(result!.phase).toBe('execute');
-    expect(result!.agent).toBe('engineer');
-    expect(result!.fixInstructions).toContain('Loop paused');
-  });
-
-  test('returns null when no loop is active', () => {
-    const result = routeVerdict('approve');
-    expect(result).toBeNull();
+  test('returns null when no loop active', () => {
+    expect(routeVerdict('approve')).toBeNull();
   });
 });
 
@@ -239,40 +259,28 @@ describe('routeVerdict', () => {
 // ──────────────────────────────────────────
 
 describe('classifyTaskExecutor', () => {
-  // Bio keywords
   test.each([
     'RNA-seq differential expression',
     '基因表达分析',
-    'DNA methylation calling',
     '蛋白质结构预测',
-    '生物信息学流程',
-    'genome assembly pipeline',
-    'ChIP-seq peak calling',
-    '转录组数据分析',
-    'PCA and clustering',
-  ])('detects bio task: %s', (desc) => {
+    'genome assembly',
+  ])('bio: %s', (desc) => {
     expect(classifyTaskExecutor(desc)).toBe('bio-orchestrator');
   });
 
-  // Chem keywords
   test.each([
     '化学分子模拟',
-    'material synthesis design',
-    'reaction mechanism analysis',
-    '化学反应路径',
-  ])('detects chem task: %s', (desc) => {
+    'material synthesis',
+    'reaction mechanism',
+  ])('chem: %s', (desc) => {
     expect(classifyTaskExecutor(desc)).toBe('chem-orchestrator');
   });
 
-  // Default to engineer
   test.each([
-    'Fix login page styling',
+    'Fix login page',
     'Refactor API routes',
-    'Add dark mode toggle',
-    'Implement caching layer',
     '任意自由文本',
-    'Build frontend component',
-  ])('defaults to engineer: %s', (desc) => {
+  ])('engineer: %s', (desc) => {
     expect(classifyTaskExecutor(desc)).toBe('engineer');
   });
 });

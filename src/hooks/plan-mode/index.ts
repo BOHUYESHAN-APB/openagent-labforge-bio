@@ -31,12 +31,11 @@ import { PLAN_MODE_INSTRUCTIONS } from '../../agents/prompts/prometheus/plan-mod
 import { REDESIGN_INSTRUCTIONS } from '../../agents/prompts/prometheus/redesign-instructions';
 import type { EffectiveAgentOverlayManager } from '../../utils/effective-agent-overlay';
 import { injectPhaseSwitch } from '../phase-switch';
-import { getLoop, isLoopActive, markLoopKickstart, updateLoop } from '../loop';
+import { getLoop, isLoopActive, LoopStateMachine } from '../loop';
 
 /**
  * 自动退出 plan mode
- * 清除 overlay，注入 phase switch 回到原 agent。
- * 在 loop 上下文中，还会标记阶段过渡以便 session.idle 自动注入提示词。
+ * 清除 overlay，通过 FSM transition 触发阶段切换 + kickstart 标记。
  */
 function autoExitPlanMode(
   overlayManager: EffectiveAgentOverlayManager,
@@ -49,19 +48,31 @@ function autoExitPlanMode(
   const returnAgent = overlay.returnAgent ?? 'orchestrator';
   overlayManager.clear(sessionID, 'plan');
 
-  // Loop context: update phase and mark for auto-progression
-  const loop = isLoopActive() ? getLoop() : null;
-  if (loop && (loop.phase === 'interview' || loop.phase === 'redesign')) {
-    updateLoop({ phase: 'execute' });
-    markLoopKickstart(sessionID, 'execute', loop.executor_type, reason);
+  // Loop: FSM transition（interview/redesign → execute）
+  // FSM.transition() 自动设置 needs_kickstart + pending_switch
+  const fsm = getLoop();
+  if (fsm && (fsm.state.phase === 'interview' || fsm.state.phase === 'redesign')) {
+    fsm.transition('execute');
   }
 
-  injectPhaseSwitch(sessionID, {
-    phase: 'done',
-    agent: returnAgent,
-    think: 'inherit',
-    extras: { returnAgent, fixInstructions: `auto-exit: ${reason}` },
-  });
+  // Consume FSM's phase switch (preferred over manual injectPhaseSwitch)
+  const sw = fsm?.consumePhaseSwitch();
+  if (sw) {
+    injectPhaseSwitch(sessionID, {
+      phase: sw.phase as 'execute' | 'redesign' | 'review' | 'interview' | 'done',
+      agent: sw.agent,
+      think: (sw.think as 'inherit' | 'max' | 'high') ?? 'inherit',
+      extras: { returnAgent, fixInstructions: `auto-exit: ${reason}` },
+    });
+  } else {
+    // Fallback: manual phase switch
+    injectPhaseSwitch(sessionID, {
+      phase: 'done',
+      agent: returnAgent,
+      think: 'inherit',
+      extras: { returnAgent, fixInstructions: `auto-exit: ${reason}` },
+    });
+  }
 
   return { returnAgent };
 }
@@ -86,7 +97,7 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
       if (activeOverlay?.phase === 'plan' || activeOverlay?.agent === 'prometheus') {
         // Check if loop redesign mode — different permission model
         const loop = isLoopActive() ? getLoop() : null;
-        const isRedesign = loop?.phase === 'redesign';
+        const isRedesign = loop?.state.phase === 'redesign';
 
         if (tool === 'question' && isRedesign) {
           // Redesign mode: deny question tool
@@ -137,7 +148,7 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
         (activeOverlay.phase === 'plan' || activeOverlay.agent === 'prometheus')
       ) {
         const loop = isLoopActive() ? getLoop() : null;
-        const isRedesign = loop?.phase === 'redesign';
+        const isRedesign = loop?.state.phase === 'redesign';
         if (!isRedesign) {
           autoExitPlanMode(
             options.overlayManager,
@@ -159,7 +170,7 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
             phase: 'review',
             agent: 'reviewer',
             source: 'task-complete-loop',
-            returnAgent: priorOverlay?.returnAgent ?? loop.return_agent,
+            returnAgent: priorOverlay?.returnAgent ?? loop.state.return_agent,
           });
           // Allow task_complete to proceed (return value shown before switch)
         }
@@ -179,7 +190,7 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
         if (mode === 'fix' && target === 'executor') {
           // Reviewer → executor (minor fix)
           const loop = isLoopActive() ? getLoop() : null;
-          const returnAgent = loop?.return_agent ?? 'orchestrator';
+          const returnAgent = loop?.state.return_agent ?? 'orchestrator';
           options.overlayManager.clear(sessionID, 'review');
           injectPhaseSwitch(sessionID, {
             phase: 'execute',
@@ -190,7 +201,7 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
         } else if (mode === 'redesign' && target === 'loop-planner') {
           // Reviewer → internal planner (major redesign)
           const loop = isLoopActive() ? getLoop() : null;
-          const returnAgent = loop?.return_agent ?? 'orchestrator';
+          const returnAgent = loop?.state.return_agent ?? 'orchestrator';
           options.overlayManager.activate(sessionID, {
             phase: 'plan',
             agent: 'prometheus',
@@ -207,7 +218,7 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
         } else if (mode === 'complete' && target === 'executor') {
           // Internal planner → executor (redesign complete)
           const loop = isLoopActive() ? getLoop() : null;
-          const returnAgent = loop?.return_agent ?? 'orchestrator';
+          const returnAgent = loop?.state.return_agent ?? 'orchestrator';
           options.overlayManager.clear(sessionID, 'plan');
           injectPhaseSwitch(sessionID, {
             phase: 'execute',
@@ -239,7 +250,7 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
         // the loop system controls agent transitions.
         if (target === 'prometheus' || target === 'planner') {
           const loop = isLoopActive() ? getLoop() : null;
-          if (loop?.phase === 'redesign') {
+          if (loop?.state.phase === 'redesign') {
             output.args = {
               _denied: true,
               error:
@@ -324,7 +335,7 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
       if (overlay.phase === 'plan' || overlay.agent === 'prometheus') {
         // Check if a loop redesign is active
         const loop = isLoopActive() ? getLoop() : null;
-        if (loop?.phase === 'redesign') {
+        if (loop?.state.phase === 'redesign') {
           // Inject redesign instructions (autonomous mode, no questioning)
           output.system.push(REDESIGN_INSTRUCTIONS);
         } else {

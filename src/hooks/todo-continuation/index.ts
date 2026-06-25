@@ -1580,7 +1580,7 @@ export function createTodoContinuationHook(
 
                 // Explicit agent recovery: inject phase switch to restore
                 // the original agent so the UI doesn't stay on reviewer (B9 fix)
-                const returnAgent = currentLoop?.return_agent
+                const returnAgent = currentLoop?.state.return_agent
                   || config?.overlayManager?.getCurrent(sessionID)?.returnAgent
                   || 'orchestrator';
                 config?.overlayManager?.clear(sessionID, 'review');
@@ -1615,7 +1615,7 @@ export function createTodoContinuationHook(
                     // overlay is needed for system.transform (prompt) and chat.params (think)
                     // Read return_agent from loop state (B6 fix: was hardcoded 'orchestrator')
                     const loopState = getLoop();
-                    const returnAgent = loopState?.return_agent || 'orchestrator';
+                    const returnAgent = loopState?.state.return_agent || 'orchestrator';
                     config?.overlayManager?.activate(sessionID, {
                       phase: 'plan',
                       agent: 'prometheus',

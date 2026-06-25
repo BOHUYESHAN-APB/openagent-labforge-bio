@@ -1,51 +1,75 @@
 /**
- * Loop 框架
+ * LoopStateMachine — 持久化有限状态机
  *
- * 管理循环执行的状态、阶段切换、迭代控制。
+ * 管理 Loop Engineering 的全部状态和阶段转换。所有状态（包括瞬态标记）
+ * 原子写入 .opencode/loops/active.json，跨 OpenCode 重启可恢复。
  *
- * 状态文件: .opencode/loops/active.json
- * 内部 plan: .opencode/loops/plans/{loop_id}/plan.md
+ * 合法转换:
+ *   idle → interview  (/ol-loop-start)
+ *   interview → execute (save_plan → auto-exit)
+ *   execute → review    (task_complete / todos done)
+ *   review → execute    (REJECT scope=executor — 小修)
+ *   review → redesign   (REJECT scope=planner — 重做)
+ *   review → done       (APPROVED)
+ *   redesign → execute  (save_plan → auto-exit)
+ *   redesign → done     (超过最大迭代)
  *
- * 生命周期:
- *   /ol-loop-start "xxx"
- *     → createLoop() → phase=interview → planner 问用户
- *     → save_plan → auto-exit → phase=execute
- *     → executor 执行 → todos done → auto-review
- *     → verdict 路由:
- *       approve → loop_done()
- *       reject+executor → phase=execute (fix)
- *       reject+planner → phase=redesign (replan)
- *     → redesign: planner 自主调子代理
- *     → 循环直到 approve 或 max_iterations
+ * 文件结构:
+ *   .opencode/loops/active.json      — 完整 FSM 状态
+ *   .opencode/loops/plans/{id}/       — 内部 plan (redesign 用)
  */
 
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { injectPhaseSwitch } from '../phase-switch';
 
 // ──────────────────────────────────────────
-// 类型定义
+// 类型
 // ──────────────────────────────────────────
 
-export interface LoopState {
+export type LoopPhase = 'idle' | 'interview' | 'execute' | 'review' | 'redesign' | 'done';
+
+export interface LoopVerdictEntry {
+  phase: string;
+  verdict: string;
+  scope?: string;
+  timestamp: number;
+}
+
+export interface LoopStateData {
   loop_id: string;
   description: string;
-  phase: 'interview' | 'execute' | 'review' | 'redesign' | 'done';
-  executor_type: string; // engineer | bio-orch | chem-orch | deep-worker
+  phase: LoopPhase;
+  executor_type: string;
   return_agent: string;
-  plan_path_original?: string; // 用户可见 plan（第一轮）
-  plan_path_internal?: string; // 内部不可见 plan（重做时）
   iteration: number;
   max_iterations: number;
-  verdict_history: Array<{
-    phase: string;
-    verdict: string;
-    scope?: string;
-    timestamp: number;
-  }>;
+  verdict_history: LoopVerdictEntry[];
   created_at: number;
   updated_at: number;
+
+  // ── 瞬态标记（持久化以支持重启恢复）──
+  /** 是否需要注入 kickstart 提示词 */
+  needs_kickstart: boolean;
+  /** 待消费的 phase switch（用于 chat.message hook） */
+  pending_switch: { phase: string; agent: string; think?: string } | null;
+  /** 过渡序号，每次转换 +1，用于去重 */
+  transition_seq: number;
+  /** 上次 kickstart 消费时的 transition_seq，防止重复注入 */
+  last_kickstart_seq: number;
 }
+
+// ──────────────────────────────────────────
+// 合法转换表
+// ──────────────────────────────────────────
+
+const VALID_TRANSITIONS: Record<LoopPhase, LoopPhase[]> = {
+  idle:      ['interview'],
+  interview: ['execute', 'done'],
+  execute:   ['review', 'done'],
+  review:    ['execute', 'redesign', 'done'],
+  redesign:  ['execute', 'done'],
+  done:      [],
+};
 
 // ──────────────────────────────────────────
 // 路径
@@ -54,7 +78,7 @@ export interface LoopState {
 const LOOP_DIR = '.opencode/loops';
 const PLANS_DIR = join(LOOP_DIR, 'plans');
 
-function getLoopStatePath(workspaceRoot: string): string {
+function getStatePath(workspaceRoot: string): string {
   return join(workspaceRoot, LOOP_DIR, 'active.json');
 }
 
@@ -62,215 +86,374 @@ function getInternalPlanDir(workspaceRoot: string, loop_id: string): string {
   return join(workspaceRoot, PLANS_DIR, loop_id);
 }
 
-/** 获取 workspace root（从 cwd 向上找 .opencode） */
 function findWorkspaceRoot(): string {
-  // 用当前工作目录
-  // 生产环境应该从 session 配置读取
   return process.cwd();
 }
 
 // ──────────────────────────────────────────
-// CRUD
+// LoopStateMachine
 // ──────────────────────────────────────────
 
-export function createLoop(description: string, executor_type: string, return_agent: string): LoopState {
-  const now = Date.now();
-  const loop: LoopState = {
-    loop_id: `loop_${now.toString(36)}`,
-    description,
-    phase: 'interview',
-    executor_type,
-    return_agent,
-    iteration: 1,
-    max_iterations: 3,
-    verdict_history: [],
-    created_at: now,
-    updated_at: now,
-  };
+export class LoopStateMachine {
+  state: LoopStateData;
+  private workspaceRoot: string;
 
-  const workspaceRoot = findWorkspaceRoot();
-  const statePath = getLoopStatePath(workspaceRoot);
-  const dir = dirname(statePath);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  writeFileSync(statePath, JSON.stringify(loop, null, 2), 'utf-8');
-
-  return loop;
-}
-
-export function getLoop(): LoopState | null {
-  const workspaceRoot = findWorkspaceRoot();
-  const statePath = getLoopStatePath(workspaceRoot);
-  if (!existsSync(statePath)) return null;
-  try {
-    return JSON.parse(readFileSync(statePath, 'utf-8')) as LoopState;
-  } catch {
-    return null;
+  private constructor(state: LoopStateData, workspaceRoot: string) {
+    this.state = state;
+    this.workspaceRoot = workspaceRoot;
   }
-}
 
-export function updateLoop(updates: Partial<LoopState>): LoopState | null {
-  const loop = getLoop();
-  if (!loop) return null;
-  Object.assign(loop, updates, { updated_at: Date.now() });
-  const workspaceRoot = findWorkspaceRoot();
-  writeFileSync(getLoopStatePath(workspaceRoot), JSON.stringify(loop, null, 2), 'utf-8');
-  return loop;
-}
+  // ── 工厂方法 ──
 
-export function deleteLoop(): void {
-  const workspaceRoot = findWorkspaceRoot();
-  const statePath = getLoopStatePath(workspaceRoot);
-  try {
-    if (existsSync(statePath)) unlinkSync(statePath);
-  } catch {
-    // ignore cleanup errors
+  /** 创建新 FSM（idle → interview） */
+  static create(
+    description: string,
+    executor_type: string,
+    return_agent: string,
+    workspaceRoot?: string,
+  ): LoopStateMachine {
+    const root = workspaceRoot ?? findWorkspaceRoot();
+    const now = Date.now();
+    const state: LoopStateData = {
+      loop_id: `loop_${now.toString(36)}`,
+      description,
+      phase: 'idle',
+      executor_type,
+      return_agent,
+      iteration: 1,
+      max_iterations: 3,
+      verdict_history: [],
+      created_at: now,
+      updated_at: now,
+      needs_kickstart: false,
+      pending_switch: null,
+      transition_seq: 0,
+      last_kickstart_seq: -1,
+    };
+    const fsm = new LoopStateMachine(state, root);
+    fsm.persist();
+    // 初始转换: idle → interview
+    fsm.transition('interview');
+    return fsm;
   }
-}
 
-/** Check if a loop is active */
-export function isLoopActive(): boolean {
-  return getLoop() !== null;
-}
+  /** 从磁盘恢复已有 FSM */
+  static recover(workspaceRoot?: string): LoopStateMachine | null {
+    const root = workspaceRoot ?? findWorkspaceRoot();
+    const path = getStatePath(root);
+    if (!existsSync(path)) return null;
+    try {
+      const data = JSON.parse(readFileSync(path, 'utf-8')) as LoopStateData;
+      return new LoopStateMachine(data, root);
+    } catch {
+      return null;
+    }
+  }
 
-// ──────────────────────────────────────────
-// 阶段过渡自动推进
-// ──────────────────────────────────────────
+  // ── 持久化 ──
 
-/**
- * 待注入的阶段过渡提示。
- * 当 autoExitPlanMode 在 loop 上下文中清除 overlay 后，
- * 标记 session 需要自动注入过渡提示词，由 session.idle 处理器消费。
- */
-const pendingLoopKickstart = new Map<string, { phase: LoopState['phase']; agent: string; extra?: string }>();
+  /** 原子写入状态到磁盘（写临时文件 → rename） */
+  persist(): void {
+    this.state.updated_at = Date.now();
+    const path = getStatePath(this.workspaceRoot);
+    const dir = dirname(path);
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
-/**
- * 标记一个 loop session 需要自动过渡提示词注入。
- * 由 plan-mode hook 的 autoExitPlanMode 调用（在 loop 上下文中）。
- */
-export function markLoopKickstart(
-  sessionID: string,
-  phase: LoopState['phase'],
-  agent: string,
-  extra?: string,
-): void {
-  pendingLoopKickstart.set(sessionID, { phase, agent, extra });
-}
+    const tmpPath = path + '.tmp';
+    writeFileSync(tmpPath, JSON.stringify(this.state, null, 2), 'utf-8');
+    try {
+      renameSync(tmpPath, path);
+    } catch {
+      // Windows: rename may fail if target exists, fallback to direct write
+      writeFileSync(path, JSON.stringify(this.state, null, 2), 'utf-8');
+      try { unlinkSync(tmpPath); } catch { /* ignore */ }
+    }
+  }
 
-/**
- * 读取并消费 pending 的 loop 过渡提示词。
- * 返回注入提示词文本，如果不存在则返回 null。
- * 由 todo-continuation 的 session.idle 处理器调用。
- */
-export function consumeLoopKickstart(sessionID: string): string | null {
-  const entry = pendingLoopKickstart.get(sessionID);
-  if (!entry) return null;
-  pendingLoopKickstart.delete(sessionID);
+  /** 删除 FSM 状态文件 */
+  destroy(): void {
+    const path = getStatePath(this.workspaceRoot);
+    try {
+      if (existsSync(path)) unlinkSync(path);
+    } catch { /* ignore */ }
+  }
 
-  const { phase, extra } = entry;
-  if (phase === 'execute') {
-    return `## Loop: Execute Phase
+  // ── 转换 ──
 
-The planner has saved the plan. You are the executor.
+  /**
+   * 执行状态转换。
+   * @returns true 如果转换成功，false 如果是非法转换
+   */
+  transition(to: LoopPhase): boolean {
+    const from = this.state.phase;
+    if (!VALID_TRANSITIONS[from].includes(to)) {
+      return false;
+    }
+
+    this.state.phase = to;
+    this.state.transition_seq++;
+
+    // 自动设置 kickstart 标志
+    this.state.needs_kickstart = (to === 'execute' || to === 'redesign');
+
+    // 设置 phase switch（供 chat.message hook 消费）
+    this.state.pending_switch = {
+      phase: to,
+      agent: this.effectiveAgent,
+      think: to === 'redesign' ? 'max' : to === 'review' ? 'high' : 'inherit',
+    };
+
+    this.persist();
+    return true;
+  }
+
+  // ── 派生属性 ──
+
+  /** 当前阶段对应的有效 agent */
+  get effectiveAgent(): string {
+    switch (this.state.phase) {
+      case 'interview': return 'prometheus';
+      case 'redesign':  return 'prometheus';
+      case 'review':    return 'reviewer';
+      case 'execute':   return this.state.executor_type;
+      default:          return this.state.return_agent;
+    }
+  }
+
+  /** 当前阶段对应的 overlay phase */
+  get overlayPhase(): string {
+    switch (this.state.phase) {
+      case 'interview': return 'plan';
+      case 'redesign':  return 'plan';
+      case 'review':    return 'review';
+      case 'execute':   return 'execute';
+      default:          return 'execute';
+    }
+  }
+
+  /** 是否需要注入 kickstart 提示词（消费后清除） */
+  get needsKickstart(): boolean {
+    return this.state.needs_kickstart &&
+      this.state.last_kickstart_seq < this.state.transition_seq;
+  }
+
+  // ── Kickstart ──
+
+  /**
+   * 消费 kickstart 标志并返回要注入的提示词。
+   * 幂等：同一 transition_seq 只返回一次。
+   */
+  consumeKickstart(): string | null {
+    if (!this.needsKickstart) return null;
+
+    this.state.last_kickstart_seq = this.state.transition_seq;
+    this.state.needs_kickstart = false;
+    this.persist();
+
+    if (this.state.phase === 'execute') {
+      return `## Loop: Execute Phase
+
+The planner has saved the plan. You are the executor (${this.state.executor_type}).
 1. Read the plan from .opencode/extendai-lab/plans/
 2. Create a todo list from the plan tasks
 3. Execute each task systematically
 4. Call task_complete when all work is done
-${extra ? `\nContext: ${extra}` : ''}`;
+
+Loop ID: ${this.state.loop_id} | Iteration: ${this.state.iteration}/${this.state.max_iterations}`;
+    }
+
+    if (this.state.phase === 'redesign') {
+      return `## Loop: Redesign Phase
+
+The reviewer rejected the plan for major rework. You are the internal planner (autonomous mode).
+
+Your task:
+1. Read the review feedback above carefully — every finding must be addressed
+2. Use task(explorer) to search the codebase for relevant context
+3. Use task(librarian) to check external documentation
+4. Use task(oracle) for architectural guidance
+5. Create a revised plan that addresses ALL findings
+6. Call save_plan when done — the loop system handles the transition back to execute
+
+CRITICAL: Do NOT ask the user questions. All investigation is autonomous.
+Loop ID: ${this.state.loop_id} | Iteration: ${this.state.iteration}/${this.state.max_iterations}`;
+    }
+
+    return null;
   }
 
-  if (phase === 'redesign') {
-    return `## Loop: Redesign Phase
+  // ── Phase Switch ──
 
-The reviewer rejected the plan with scope=planner. You are the internal planner.
-1. Read the review feedback carefully
-2. Use task(explorer) to search the codebase
-3. Use task(librarian) to check external docs
-4. Use task(oracle) for architectural advice
-5. Create a revised plan addressing all findings
-6. Call save_plan when done
-${extra ? `\nReview feedback: ${extra}` : ''}`;
+  /** 消费 phase switch（供 chat.message hook 调用） */
+  consumePhaseSwitch(): { phase: string; agent: string; think?: string } | null {
+    const sw = this.state.pending_switch;
+    if (!sw) return null;
+    this.state.pending_switch = null;
+    this.persist();
+    return sw;
   }
 
-  return null;
+  // ── Verdict ──
+
+  /** 记录审查结果并路由到下一阶段 */
+  handleVerdict(
+    verdict: string,
+    scope?: string,
+    findings?: string,
+  ): { phase: LoopPhase; agent: string; message?: string } | null {
+    // 记录
+    this.state.verdict_history.push({
+      phase: this.state.phase,
+      verdict,
+      scope,
+      timestamp: Date.now(),
+    });
+
+    if (verdict === 'approve') {
+      return { phase: 'done', agent: this.state.return_agent };
+    }
+
+    if (verdict === 'reject') {
+      if (scope === 'planner') {
+        const next = this.state.iteration + 1;
+        if (next > this.state.max_iterations) {
+          this.transition('done');
+          return { phase: 'done', agent: this.state.return_agent, message: 'Max iterations reached' };
+        }
+        this.state.iteration = next;
+        this.transition('redesign');
+        return { phase: 'redesign', agent: 'prometheus', message: findings };
+      }
+      // scope=executor: 回到 execute
+      this.transition('execute');
+      return { phase: 'execute', agent: this.state.executor_type, message: findings };
+    }
+
+    return null;
+  }
+
+  /** 进入 review 阶段 */
+  enterReview(): boolean {
+    return this.transition('review');
+  }
+
+  // ── 内部 plan 路径 ──
+
+  get internalPlanDir(): string {
+    return getInternalPlanDir(this.workspaceRoot, this.state.loop_id);
+  }
+
+  get internalPlanPath(): string {
+    return join(this.internalPlanDir, 'plan.md');
+  }
+
+  ensureInternalPlanDir(): void {
+    const dir = this.internalPlanDir;
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  }
 }
 
 // ──────────────────────────────────────────
-// 阶段路由
+// 兼容性导出（保持现有 API 可用）
 // ──────────────────────────────────────────
 
+let _activeFsm: LoopStateMachine | null = null;
+
+function getOrRecover(): LoopStateMachine | null {
+  // Always read from disk for correctness (no in-memory cache that
+  // would cause test isolation issues or stale state after restart).
+  return LoopStateMachine.recover();
+}
+
+/** Reset module state — for tests only */
+export function resetLoopModule(): void {
+  _activeFsm = null;
+}
+
+export function createLoop(description: string, executor_type: string, return_agent: string): LoopStateMachine {
+  _activeFsm = LoopStateMachine.create(description, executor_type, return_agent);
+  return _activeFsm;
+}
+
+export function getLoop(): LoopStateMachine | null {
+  return getOrRecover();
+}
+
+export function isLoopActive(): boolean {
+  const fsm = getOrRecover();
+  return fsm !== null && fsm.state.phase !== 'done';
+}
+
+export function deleteLoop(): void {
+  if (_activeFsm) {
+    _activeFsm.destroy();
+    _activeFsm = null;
+  }
+}
+
+/** @deprecated 使用 fsm.transition() 代替 */
+export function updateLoop(_updates: Record<string, unknown>): void {
+  // 保留兼容，但实际应通过 FSM 方法操作
+  const fsm = getOrRecover();
+  if (!fsm) return;
+  if (_updates.phase && typeof _updates.phase === 'string') {
+    fsm.transition(_updates.phase as LoopPhase);
+  }
+  if (typeof _updates.iteration === 'number') {
+    fsm.state.iteration = _updates.iteration;
+    fsm.persist();
+  }
+}
+
 /**
- * 根据 verdict 路由到下一个阶段
- * 返回要注入的 phase switch 消息参数
+ * 标记 loop kickstart（由 plan-mode 的 autoExitPlanMode 调用）。
+ * 现在改为直接通过 FSM transition + consumeKickstart 处理，
+ * 不再需要单独的 kickstart Map。
  */
+export function markLoopKickstart(
+  _sessionID: string,
+  _phase: string,
+  _agent: string,
+  _extra?: string,
+): void {
+  // FSM 在 transition('execute') 时自动设置 needs_kickstart。
+  // 此函数保留兼容，实际不再使用。
+}
+
+/**
+ * 消费 loop kickstart（由 todo-continuation 的 session.idle 调用）。
+ * 现在改为直接调用 fsm.consumeKickstart()。
+ */
+export function consumeLoopKickstart(_sessionID: string): string | null {
+  const fsm = getOrRecover();
+  if (!fsm) return null;
+  return fsm.consumeKickstart();
+}
+
+/** @deprecated 使用 fsm.handleVerdict() 代替 */
 export function routeVerdict(
   verdict: string,
   scope?: string,
   fixInstructions?: string,
-): { phase: LoopState['phase']; agent?: string; fixInstructions?: string } | null {
-  const loop = getLoop();
-  if (!loop) return null;
-
-  switch (verdict) {
-    case 'approve':
-      deleteLoop();
-      return { phase: 'done', agent: loop.return_agent };
-
-    case 'reject':
-      if (scope === 'planner') {
-        // 重做：迭代计数 + 1
-        const nextIter = loop.iteration + 1;
-        if (nextIter > loop.max_iterations) {
-          // 超过上限，强制退出
-          deleteLoop();
-          return { phase: 'done', agent: loop.return_agent, fixInstructions: 'Max loop iterations reached' };
-        }
-        updateLoop({ phase: 'redesign', iteration: nextIter });
-        return { phase: 'redesign', agent: 'prometheus' };
-      }
-      // scope=executor 或默认：直接修
-      updateLoop({ phase: 'execute' });
-      return { phase: 'execute', agent: loop.executor_type, fixInstructions };
-
-    case 'needs_user':
-    case 'blocked':
-      // 需要用户介入，暂停循环但保持状态
-      return { phase: 'execute', agent: loop.return_agent, fixInstructions: `Loop paused: ${verdict}` };
-
-    default:
-      return null;
-  }
+): { phase: LoopPhase; agent?: string; fixInstructions?: string } | null {
+  const fsm = getOrRecover();
+  if (!fsm) return null;
+  const result = fsm.handleVerdict(verdict, scope, fixInstructions);
+  if (!result) return null;
+  return { phase: result.phase, agent: result.agent, fixInstructions: result.message };
 }
 
-/**
- * 根据任务描述判断 executor 类型
- */
 export function classifyTaskExecutor(description: string): string {
   const lower = description.toLowerCase();
-  if (
-    lower.includes('rna') ||
-    lower.includes('基因') ||
-    lower.includes('dna') ||
-    lower.includes('蛋白') ||
-    lower.includes('生物') ||
-    lower.includes('genome') ||
-    lower.includes('seq') ||
-    lower.includes('转录') ||
-    lower.includes('pca') ||
-    lower.includes('聚类')
-  ) {
+  if (lower.includes('rna') || lower.includes('基因') || lower.includes('dna') ||
+      lower.includes('蛋白') || lower.includes('生物') || lower.includes('genome') ||
+      lower.includes('seq') || lower.includes('转录') || lower.includes('pca') ||
+      lower.includes('聚类')) {
     return 'bio-orchestrator';
   }
-  if (
-    lower.includes('化学') ||
-    lower.includes('分子') ||
-    lower.includes('反应') ||
-    lower.includes('material') ||
-    lower.includes('chemistry') ||
-    lower.includes('reaction') ||
-    lower.includes('synthesis') ||
-    lower.includes('catalyst') ||
-    lower.includes('compound')
-  ) {
+  if (lower.includes('化学') || lower.includes('分子') || lower.includes('反应') ||
+      lower.includes('material') || lower.includes('chemistry') || lower.includes('reaction') ||
+      lower.includes('synthesis') || lower.includes('catalyst') || lower.includes('compound')) {
     return 'chem-orchestrator';
   }
   return 'engineer';
