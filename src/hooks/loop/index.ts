@@ -157,16 +157,25 @@ export class LoopStateMachine {
     this.state.updated_at = Date.now();
     const path = getStatePath(this.workspaceRoot);
     const dir = dirname(path);
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    try {
+      if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    } catch (err) {
+      console.error('[LoopFSM] mkdir failed:', dir, err);
+      return; // Don't crash — just skip persist
+    }
 
     const tmpPath = path + '.tmp';
-    writeFileSync(tmpPath, JSON.stringify(this.state, null, 2), 'utf-8');
     try {
-      renameSync(tmpPath, path);
-    } catch {
-      // Windows: rename may fail if target exists, fallback to direct write
-      writeFileSync(path, JSON.stringify(this.state, null, 2), 'utf-8');
-      try { unlinkSync(tmpPath); } catch { /* ignore */ }
+      writeFileSync(tmpPath, JSON.stringify(this.state, null, 2), 'utf-8');
+      try {
+        renameSync(tmpPath, path);
+      } catch {
+        // Windows fallback
+        writeFileSync(path, JSON.stringify(this.state, null, 2), 'utf-8');
+        try { unlinkSync(tmpPath); } catch { /* ignore */ }
+      }
+    } catch (err) {
+      console.error('[LoopFSM] persist failed:', path, err);
     }
   }
 

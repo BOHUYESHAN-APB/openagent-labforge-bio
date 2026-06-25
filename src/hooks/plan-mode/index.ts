@@ -150,11 +150,16 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
         const loop = isLoopActive() ? getLoop() : null;
         const isRedesign = loop?.state.phase === 'redesign';
         if (!isRedesign) {
-          autoExitPlanMode(
-            options.overlayManager,
-            sessionID,
-            'save_plan called — plan saved, auto-exiting',
-          );
+          try {
+            autoExitPlanMode(
+              options.overlayManager,
+              sessionID,
+              'save_plan called — plan saved, auto-exiting',
+            );
+          } catch (err) {
+            // Log but don't crash — save_plan should still succeed
+            console.error('[plan-mode] autoExitPlanMode failed:', err);
+          }
         }
         // Allow save_plan to proceed (don't deny)
       }
