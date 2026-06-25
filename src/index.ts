@@ -1706,29 +1706,47 @@ Returning to the original agent (${returnAgent}). The plan has been saved.`,
         const returnAgent = sessionAgentMap.get(typedInput.sessionID) ?? 'orchestrator';
         const executorType = classifyTaskExecutor(description);
 
-        // Create loop state and inject phase switch to planner
+        // Create loop state
         createLoop(description, executorType, returnAgent);
-        injectPhaseSwitch(typedInput.sessionID, {
-          phase: 'interview',
+
+        // Activate overlay so system.transform injects prometheus prompt
+        effectiveAgentOverlayManager.activate(typedInput.sessionID, {
+          phase: 'plan',
           agent: 'prometheus',
-          think: 'max',
-          extras: { returnAgent },
+          source: LOOP_START_COMMAND,
+          returnAgent,
         });
 
-        // Set message agent immediately for UI
-        if (typedOutput?.message) {
-          typedOutput.message.agent = 'prometheus';
+        // Do NOT call injectPhaseSwitch here — it would be consumed by
+        // chat.message on this same command message, showing in output.
+        // Do NOT set output.message.agent — it doesn't take effect for commands.
+        // Do NOT push text parts — they'd show under the wrong agent.
+        //
+        // Instead: inject a synthetic internal message that triggers a new
+        // assistant turn. The overlay is already active, so the AI responds
+        // as prometheus with the correct system prompt.
+        try {
+          await ctx.client.session.prompt({
+            path: { id: typedInput.sessionID },
+            body: {
+              parts: [
+                createInternalAgentTextPart(
+                  `[phase:interview|agent:prometheus|think:max|return:${returnAgent}]
+The user started a loop: "${description}".
+Executor type: ${executorType}.
+You are prometheus (planner). Gather requirements by asking the user questions,
+then create a detailed plan. After save_plan, the loop auto-transitions to execute phase.`,
+                ),
+              ],
+            },
+          });
+        } catch (e) {
+          // Fallback: show error in command output
+          typedOutput.parts.push({
+            type: 'text',
+            text: `Loop failed to start: ${e instanceof Error ? e.message : String(e)}`,
+          });
         }
-        typedOutput.parts.push({
-          type: 'text',
-          text: `## Loop Started
-
-**Task**: ${description}
-**Phase**: Interview — prometheus (planner) will ask questions to clarify requirements.
-**Executor**: ${executorType}
-
-Gather requirements, create a detailed plan, then execution will begin automatically.`,
-        });
         return;
       }
 
