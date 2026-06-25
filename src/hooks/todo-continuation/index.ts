@@ -1737,6 +1737,7 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
                   await ctx.client.session.prompt({
                     path: { id: sessionID },
                     body: {
+                      agent: 'engineer',
                       parts: [
                         createInternalAgentTextPart(
                           buildReworkPrompt(findings),
@@ -1814,10 +1815,11 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
             sessionID,
             buildUserVisibleReviewNotification({ stage: 'starting' }),
           );
-          // NOTE: agent field intentionally omitted — the overlay handles routing
+          // NOTE: overlay handles agent routing; agent field ensures correct UI display
           await ctx.client.session.prompt({
             path: { id: sessionID },
             body: {
+              agent: REVIEW_EFFECTIVE_AGENT,
               parts: [createInternalAgentTextPart(reviewPrompt)],
             },
           });
@@ -2000,6 +2002,7 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
           await ctx.client.session.prompt({
             path: { id: sessionID },
             body: {
+              agent: 'engineer',
               parts: [
                 createInternalAgentTextPart(
                   `[Context-pressure forcing: current session is at L${pressureState.level} (${Math.round(
@@ -2081,6 +2084,7 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
           await ctx.client.session.prompt({
             path: { id: sessionID },
             body: {
+              agent: 'engineer',
               parts: [
                 createInternalAgentTextPart(promptText),
               ],
