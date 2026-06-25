@@ -607,10 +607,10 @@ export function getAgentConfigs(
       sdkConfig.mode = 'subagent';
       sdkConfig.hidden = true;
     } else if (name === 'reviewer') {
-      // Internal agent — subagent mode, hidden from @ autocomplete
-      // Only used by auto-review system, not exposed to users
+      // Loop review agent — UI visible, but not manually selectable
+      // Only activated by /ol-loop-start or auto-review system
       sdkConfig.mode = 'subagent';
-      sdkConfig.hidden = true;
+      sdkConfig.hidden = false;
     } else if (isPrimaryAgent(name)) {
       // Primary agents are visible in UI
       sdkConfig.mode = 'primary';
@@ -622,7 +622,7 @@ export function getAgentConfigs(
   };
 
   const isInternalOnly = (name: string): boolean =>
-    name === 'councillor' || name === 'reviewer';
+    name === 'councillor';
 
   const entries: Array<[string, SDKAgentConfig]> = [];
 

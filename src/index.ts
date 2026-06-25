@@ -72,6 +72,13 @@ import {
   createTeamTaskUpdateTool,
 } from './features/team-mode/tools/team-tools';
 import {
+  buildPhaseSwitchText,
+  getThinkLevel,
+  injectPhaseSwitch,
+  resolveThinkingEffort,
+  tryConsumePhaseSwitch,
+} from './hooks/phase-switch';
+import {
   createApplyPatchHook,
   createAutoUpdateCheckerHook,
   createBashTimeoutRecoveryHook,
@@ -1641,6 +1648,13 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         if (typedOutput?.message) {
           typedOutput.message.agent = 'prometheus';
         }
+        // Inject phase switch for guaranteed UI refresh
+        injectPhaseSwitch(typedInput.sessionID, {
+          phase: 'interview',
+          agent: 'prometheus',
+          think: 'max',
+          extras: { returnAgent },
+        });
         // Inject context about plan mode — balanced: Question tool + direct input
         typedOutput.parts.push({
           type: 'text',
@@ -1664,6 +1678,13 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         if (typedOutput?.message) {
           typedOutput.message.agent = returnAgent;
         }
+        // Inject phase switch for guaranteed UI refresh
+        injectPhaseSwitch(typedInput.sessionID, {
+          phase: 'done',
+          agent: returnAgent,
+          think: 'inherit',
+          extras: { returnAgent },
+        });
         typedOutput.parts.push({
           type: 'text',
           text: `## Plan Mode Exited
@@ -1748,6 +1769,27 @@ Returning to the original agent (${returnAgent}). The plan has been saved.`,
           options: Record<string, unknown>;
         },
       );
+
+      // Per-agent thinking intensity: override based on phase/agent
+      if (input.sessionID) {
+        const overlay = effectiveAgentOverlayManager.getCurrent(
+          input.sessionID,
+        );
+        if (overlay) {
+          const thinkLevel = getThinkLevel(overlay.phase, overlay.agent);
+          const effort = resolveThinkingEffort(
+            thinkLevel,
+            input.model?.id,
+          );
+          if (effort) {
+            const output = _output as {
+              options?: Record<string, unknown>;
+            };
+            output.options = output.options ?? {};
+            output.options.reasoningEffort = effort;
+          }
+        }
+      }
     },
 
     'chat.headers': chatHeadersHook['chat.headers'],
@@ -1806,6 +1848,21 @@ Returning to the original agent (${returnAgent}). The plan has been saved.`,
           { sessionID: input.sessionID },
           { message: output.message ?? {}, parts: output.parts },
         );
+      }
+
+      // Inject phase-switch synthetic message if there's a pending switch
+      // This handles agent/phase transitions triggered by any hook
+      if (output?.parts) {
+        const phaseSwitch = tryConsumePhaseSwitch(input.sessionID);
+        if (phaseSwitch) {
+          const textPart = output.parts.find(
+            (p) => p.type === 'text' && p.text,
+          );
+          if (textPart) {
+            const switchText = buildPhaseSwitchText(phaseSwitch);
+            textPart.text = `${switchText}\n\n${textPart.text ?? ''}`;
+          }
+        }
       }
     },
 
