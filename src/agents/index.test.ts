@@ -401,6 +401,20 @@ describe('getAgentConfigs', () => {
     expect(configs.orchestrator.description).toBeDefined();
     expect(configs.explorer.description).toBeDefined();
   });
+
+  test('reviewer is visible (hidden: false) but not primary', () => {
+    const configs = getAgentConfigs({ disabled_agents: [] });
+    expect(configs.reviewer).toBeDefined();
+    expect(configs.reviewer.mode).toBe('subagent');
+    expect(configs.reviewer.hidden).toBe(false);
+  });
+
+  test('councillor is hidden (hidden: true) internal agent', () => {
+    const configs = getAgentConfigs({ disabled_agents: [] });
+    expect(configs.councillor).toBeDefined();
+    expect(configs.councillor.mode).toBe('subagent');
+    expect(configs.councillor.hidden).toBe(true);
+  });
 });
 
 describe('council agent model resolution', () => {
