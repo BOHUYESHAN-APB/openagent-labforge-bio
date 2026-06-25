@@ -1535,7 +1535,14 @@ export function createTodoContinuationHook(
                 if (isLoopActive()) {
                   const nextPhase = routeVerdict(verdict, scope, findings);
                   if (nextPhase && nextPhase.phase === 'redesign') {
-                    // Route to planner: inject redesign phase switch
+                    // Route to planner: activate overlay + inject phase switch
+                    // overlay is needed for system.transform (prompt) and chat.params (think)
+                    config?.overlayManager?.activate(sessionID, {
+                      phase: 'plan',
+                      agent: 'prometheus',
+                      source: 'loop-redesign',
+                      returnAgent: 'orchestrator',
+                    });
                     injectPS(sessionID, {
                       phase: 'redesign',
                       agent: 'prometheus',
