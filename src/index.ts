@@ -78,6 +78,7 @@ import {
   resolveThinkingEffort,
   tryConsumePhaseSwitch,
 } from './hooks/phase-switch';
+import { classifyTaskExecutor, createLoop } from './hooks/loop';
 import {
   createApplyPatchHook,
   createAutoUpdateCheckerHook,
@@ -267,6 +268,7 @@ const CHECKPOINT_HEAVY_COMMAND = 'ol-checkpoint-heavy';
 const CHECKPOINT_RESUME_LATEST_COMMAND = 'ol-checkpoint-resume-latest';
 const PLAN_ENTER_COMMAND = 'ol-plan-enter';
 const PLAN_EXIT_COMMAND = 'ol-plan-exit';
+const LOOP_START_COMMAND = 'ol-loop-start';
 
 function registerCommandIfMissing(
   commands: Record<string, unknown>,
@@ -317,7 +319,12 @@ function registerCompleteArgumentCommands(opencodeConfig: {
   });
   registerCommandIfMissing(commands, PLAN_EXIT_COMMAND, {
     template: '',
-    description: 'Exit plan mode — return to the agent that was active before /ol-plan-enter. Must be called by prometheus when planning is complete.',
+    description: 'Exit plan mode — return to the original agent. Call this when planning is complete.',
+  });
+  registerCommandIfMissing(commands, LOOP_START_COMMAND, {
+    template: '',
+    description: 'Start a loop session. Creates a plan → executes → reviews → cycles until approved.',
+    argumentHint: '[task description]',
   });
 }
 
@@ -1690,6 +1697,35 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           text: `## Plan Mode Exited
 
 Returning to the original agent (${returnAgent}). The plan has been saved.`,
+        });
+        return;
+      } else if (typedInput.command === LOOP_START_COMMAND) {
+        const description = typedInput.arguments || 'Untitled loop task';
+        const returnAgent = sessionAgentMap.get(typedInput.sessionID) ?? 'orchestrator';
+        const executorType = classifyTaskExecutor(description);
+
+        // Create loop state and inject phase switch to planner
+        createLoop(description, executorType, returnAgent);
+        injectPhaseSwitch(typedInput.sessionID, {
+          phase: 'interview',
+          agent: 'prometheus',
+          think: 'max',
+          extras: { returnAgent },
+        });
+
+        // Set message agent immediately for UI
+        if (typedOutput?.message) {
+          typedOutput.message.agent = 'prometheus';
+        }
+        typedOutput.parts.push({
+          type: 'text',
+          text: `## Loop Started
+
+**Task**: ${description}
+**Phase**: Interview — prometheus (planner) will ask questions to clarify requirements.
+**Executor**: ${executorType}
+
+Gather requirements, create a detailed plan, then execution will begin automatically.`,
         });
         return;
       }

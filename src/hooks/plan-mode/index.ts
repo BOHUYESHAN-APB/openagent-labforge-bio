@@ -28,21 +28,10 @@
  *   prompt is isolated with plan overlay active
  */
 import { PLAN_MODE_INSTRUCTIONS } from '../../agents/prompts/prometheus/plan-mode-instructions';
+import { REDESIGN_INSTRUCTIONS } from '../../agents/prompts/prometheus/redesign-instructions';
 import type { EffectiveAgentOverlayManager } from '../../utils/effective-agent-overlay';
 import { injectPhaseSwitch } from '../phase-switch';
-
-/** 在 plan mode 中禁用的工具 */
-const DENIED_IN_PLAN_MODE = new Set([
-  'write',
-  'edit',
-  'bash',
-  'exec',
-  'execute_command',
-  'powershell',
-  'shell',
-  'task',
-  'subtask',
-]);
+import { getLoop, isLoopActive } from '../loop';
 
 /**
  * 自动退出 plan mode
@@ -86,32 +75,56 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
       // If plan overlay is active, deny dangerous tools
       const activeOverlay = options.overlayManager.getCurrent(sessionID);
 
-      if (
-        activeOverlay?.phase === 'plan' &&
-        DENIED_IN_PLAN_MODE.has(tool)
-      ) {
-        // Auto-exit plan mode: planning is done, AI needs to execute
-        const exit = autoExitPlanMode(
-          options.overlayManager,
-          sessionID,
-          `${tool} attempted in plan mode — auto-exiting`,
-        );
-        output.args = {
-          _denied: true,
-          error:
-            `Plan mode is read-only. Tool "${tool}" is not allowed during planning. ` +
-            `Auto-exited plan mode. ` +
-            (exit
-              ? `Returning to ${exit.returnAgent}.`
-              : ''),
-        };
-        return;
+      if (activeOverlay?.phase === 'plan' || activeOverlay?.agent === 'prometheus') {
+        // Check if loop redesign mode — different permission model
+        const loop = isLoopActive() ? getLoop() : null;
+        const isRedesign = loop?.phase === 'redesign';
+
+        if (tool === 'question' && isRedesign) {
+          // Redesign mode: deny question tool
+          output.args = {
+            _denied: true,
+            error: 'Redesign mode: you cannot ask the user. Use sub-agents (task/subtask) to investigate autonomously.',
+          };
+          return;
+        }
+
+        // Deny write/edit/bash in all plan/redesign modes
+        const DENIED_WRITE = new Set([
+          'write', 'edit', 'bash', 'exec', 'execute_command',
+          'powershell', 'shell',
+        ]);
+        if (DENIED_WRITE.has(tool)) {
+          // Auto-exit plan mode
+          const exit = autoExitPlanMode(
+            options.overlayManager, sessionID,
+            `${tool} attempted in plan mode — auto-exiting`,
+          );
+          output.args = {
+            _denied: true,
+            error:
+              `Plan mode is read-only. Tool "${tool}" is not allowed. ` +
+              (exit ? `Auto-exited. Returning to ${exit.returnAgent}.` : ''),
+          };
+          return;
+        }
+
+        // Deny task/subtask only in interview mode (not redesign)
+        const DENIED_TASK = new Set(['task', 'subtask']);
+        if (DENIED_TASK.has(tool) && !isRedesign) {
+          output.args = {
+            _denied: true,
+            error: `Tool "${tool}" is not allowed during planning. Use /ol-plan-exit to return to the original agent if you need to spawn sub-agents.`,
+          };
+          return;
+        }
       }
 
-      // save_plan in plan mode: auto-exit (plan is saved, time to execute)
+      // save_plan in plan/redesign mode: auto-exit (plan is saved, time to execute)
       if (
         tool === 'save_plan' &&
-        activeOverlay?.phase === 'plan'
+        activeOverlay &&
+        (activeOverlay.phase === 'plan' || activeOverlay.agent === 'prometheus')
       ) {
         autoExitPlanMode(
           options.overlayManager,
@@ -206,13 +219,20 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
       if (!input.sessionID) return;
 
       const overlay = options.overlayManager.getCurrent(input.sessionID);
-      if (overlay) {
-        if (overlay.phase === 'plan') {
-          // Append plan-mode instructions to the already-isolated prometheus prompt
+      if (!overlay) return;
+
+      if (overlay.phase === 'plan' || overlay.agent === 'prometheus') {
+        // Check if a loop redesign is active
+        const loop = isLoopActive() ? getLoop() : null;
+        if (loop?.phase === 'redesign') {
+          // Inject redesign instructions (autonomous mode, no questioning)
+          output.system.push(REDESIGN_INSTRUCTIONS);
+        } else {
+          // Inject standard plan-mode instructions (interview mode)
           output.system.push(PLAN_MODE_INSTRUCTIONS);
         }
-        // Reviewer uses its own built-in prompt — no extra injection needed
       }
+      // Reviewer uses its own built-in prompt — no extra injection needed
     },
   };
 }

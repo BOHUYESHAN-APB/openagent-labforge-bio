@@ -578,10 +578,12 @@ function scheduleStateSave(
 /**
  * Parse review verdict from assistant message text.
  * Returns the structured verdict and its reason/findings.
+ * Also extracts scope from [REJECT: scope=planner/executor, reason]
  */
 function parseReviewVerdict(text: string): {
   verdict: ReviewVerdict;
   findings: string;
+  scope?: string;
 } {
   const approveMatch = text.match(/\[APPROVE\](.*)$/is);
   if (approveMatch) {
@@ -595,11 +597,14 @@ function parseReviewVerdict(text: string): {
 
   const rejectMatch = text.match(/\[REJECT(?::\s*(.*?))?\]/is);
   if (rejectMatch) {
+    const raw = rejectMatch[1]?.trim() || '';
+    // Extract scope=planner or scope=executor from reason
+    const scopeMatch = raw.match(/scope\s*=\s*(\w+)/i);
+    const scope = scopeMatch?.[1]?.toLowerCase();
     return {
       verdict: 'reject',
-      findings:
-        rejectMatch[1]?.trim() ||
-        'Review rejected work — check findings above.',
+      findings: raw,
+      scope,
     };
   }
 
@@ -1504,8 +1509,12 @@ export function createTodoContinuationHook(
               const text = lastAssistant.parts
                 .map((p) => p.text ?? '')
                 .join(' ');
-              const { verdict, findings } = parseReviewVerdict(text);
+              const { verdict, findings, scope } = parseReviewVerdict(text);
               if (verdict === 'approve') {
+                // Loop routing: if loop active, clean up
+                const { deleteLoop } = await import('../loop');
+                deleteLoop();
+
                 await config?.onBatchSummary?.({
                   sessionID,
                   summary: findings,
@@ -1520,6 +1529,43 @@ export function createTodoContinuationHook(
                 return; // Allow stop
               }
               if (verdict === 'reject') {
+                // Check if a loop is active for verdict routing
+                const { isLoopActive, routeVerdict } = await import('../loop');
+                const { injectPhaseSwitch: injectPS } = await import('../phase-switch');
+                if (isLoopActive()) {
+                  const nextPhase = routeVerdict(verdict, scope, findings);
+                  if (nextPhase && nextPhase.phase === 'redesign') {
+                    // Route to planner: inject redesign phase switch
+                    injectPS(sessionID, {
+                      phase: 'redesign',
+                      agent: 'prometheus',
+                      think: 'max',
+                      extras: { returnAgent: 'orchestrator', fixInstructions: `Review feedback: ${findings}` },
+                    });
+                    config?.overlayManager?.clear(sessionID, 'review');
+                    log(`[${HOOK_NAME}] Loop: verdict routed to redesign`, { sessionID, findings });
+                    return;
+                  }
+                  if (nextPhase && nextPhase.phase === 'execute') {
+                    // Route back to executor with fix instructions
+                    injectPS(sessionID, {
+                      phase: 'execute',
+                      agent: '', // will be filled from loop state
+                      think: 'inherit',
+                      extras: { fixInstructions: findings },
+                    });
+                    config?.overlayManager?.clear(sessionID, 'review');
+                    log(`[${HOOK_NAME}] Loop: verdict routed to executor fix`, { sessionID, findings });
+                    return;
+                  }
+                  // phase=done → fall through to standard approve handler
+                  if (nextPhase?.phase === 'done') {
+                    config?.overlayManager?.clear(sessionID, 'review');
+                    disableContinuationForCompletedBatch(sessionID);
+                    return;
+                  }
+                }
+
                 await config?.onReviewOutcome?.({
                   sessionID,
                   verdict,
