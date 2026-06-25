@@ -1715,43 +1715,44 @@ Returning to the original agent (${returnAgent}). The plan has been saved.`,
         createLoop(description, executorType, returnAgent);
 
         // Activate overlay so system.transform injects prometheus prompt
+        // and chat.message forces the agent to prometheus on next user turn.
         effectiveAgentOverlayManager.activate(typedInput.sessionID, {
           phase: 'plan',
           agent: 'prometheus',
           source: LOOP_START_COMMAND,
           returnAgent,
         });
-
-        // Do NOT call injectPhaseSwitch here — it would be consumed by
-        // chat.message on this same command message, showing in output.
-        // Do NOT set output.message.agent — it doesn't take effect for commands.
-        // Do NOT push text parts — they'd show under the wrong agent.
-        //
-        // Instead: inject a synthetic internal message that triggers a new
-        // assistant turn. The overlay is already active, so the AI responds
-        // as prometheus with the correct system prompt.
-        try {
-          await ctx.client.session.prompt({
-            path: { id: typedInput.sessionID },
-            body: {
-              parts: [
-                createInternalAgentTextPart(
-                  `[phase:interview|agent:prometheus|think:max|return:${returnAgent}]
-The user started a loop: "${description}".
-Executor type: ${executorType}.
-You are prometheus (planner). Gather requirements by asking the user questions,
-then create a detailed plan. After save_plan, the loop auto-transitions to execute phase.`,
-                ),
-              ],
-            },
-          });
-        } catch (e) {
-          // Fallback: show error in command output
-          typedOutput.parts.push({
-            type: 'text',
-            text: `Loop failed to start: ${e instanceof Error ? e.message : String(e)}`,
-          });
+        if (typedOutput?.message) {
+          typedOutput.message.agent = 'prometheus';
         }
+
+        // Inject phase switch — consumed by chat.message on next user message.
+        // This forces the AI to respond as prometheus with think=max.
+        injectPhaseSwitch(typedInput.sessionID, {
+          phase: 'interview',
+          agent: 'prometheus',
+          think: 'max',
+          extras: { returnAgent },
+        });
+
+        // Inject context into command output.
+        // Next user message triggers the actual planner response.
+        typedOutput.parts.push({
+          type: 'text',
+          text: `## Loop Started — prometheus (planner) is now active
+
+**Task:** ${description}
+**Executor:** ${executorType}
+
+Gather requirements by asking the user questions with the Question tool.
+After requirements are confirmed:
+1. Create a detailed plan
+2. Call save_plan to persist it
+3. The loop auto-transitions to the execute phase
+
+**Allowed tools:** read, glob, grep, webfetch, Question, save_plan
+**Denied tools:** write, edit, bash, task, subtask`,
+        });
         return;
       }
 
