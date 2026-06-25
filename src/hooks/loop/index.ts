@@ -133,6 +133,68 @@ export function isLoopActive(): boolean {
 }
 
 // ──────────────────────────────────────────
+// 阶段过渡自动推进
+// ──────────────────────────────────────────
+
+/**
+ * 待注入的阶段过渡提示。
+ * 当 autoExitPlanMode 在 loop 上下文中清除 overlay 后，
+ * 标记 session 需要自动注入过渡提示词，由 session.idle 处理器消费。
+ */
+const pendingLoopKickstart = new Map<string, { phase: LoopState['phase']; agent: string; extra?: string }>();
+
+/**
+ * 标记一个 loop session 需要自动过渡提示词注入。
+ * 由 plan-mode hook 的 autoExitPlanMode 调用（在 loop 上下文中）。
+ */
+export function markLoopKickstart(
+  sessionID: string,
+  phase: LoopState['phase'],
+  agent: string,
+  extra?: string,
+): void {
+  pendingLoopKickstart.set(sessionID, { phase, agent, extra });
+}
+
+/**
+ * 读取并消费 pending 的 loop 过渡提示词。
+ * 返回注入提示词文本，如果不存在则返回 null。
+ * 由 todo-continuation 的 session.idle 处理器调用。
+ */
+export function consumeLoopKickstart(sessionID: string): string | null {
+  const entry = pendingLoopKickstart.get(sessionID);
+  if (!entry) return null;
+  pendingLoopKickstart.delete(sessionID);
+
+  const { phase, extra } = entry;
+  if (phase === 'execute') {
+    return `## Loop: Execute Phase
+
+The planner has saved the plan. You are the executor.
+1. Read the plan from .opencode/extendai-lab/plans/
+2. Create a todo list from the plan tasks
+3. Execute each task systematically
+4. Call task_complete when all work is done
+${extra ? `\nContext: ${extra}` : ''}`;
+  }
+
+  if (phase === 'redesign') {
+    return `## Loop: Redesign Phase
+
+The reviewer rejected the plan with scope=planner. You are the internal planner.
+1. Read the review feedback carefully
+2. Use task(explorer) to search the codebase
+3. Use task(librarian) to check external docs
+4. Use task(oracle) for architectural advice
+5. Create a revised plan addressing all findings
+6. Call save_plan when done
+${extra ? `\nReview feedback: ${extra}` : ''}`;
+  }
+
+  return null;
+}
+
+// ──────────────────────────────────────────
 // 阶段路由
 // ──────────────────────────────────────────
 
@@ -203,7 +265,11 @@ export function classifyTaskExecutor(description: string): string {
     lower.includes('分子') ||
     lower.includes('反应') ||
     lower.includes('material') ||
-    lower.includes('chemistry')
+    lower.includes('chemistry') ||
+    lower.includes('reaction') ||
+    lower.includes('synthesis') ||
+    lower.includes('catalyst') ||
+    lower.includes('compound')
   ) {
     return 'chem-orchestrator';
   }

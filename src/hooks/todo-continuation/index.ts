@@ -1388,6 +1388,67 @@ export function createTodoContinuationHook(
         return;
       }
 
+      // ── Loop phase transition: auto-inject kickstart prompt ──
+      // When loop is active and a phase transition occurred
+      // (e.g. planner saved plan → executor needs to start working),
+      // inject a kickstart prompt regardless of auto-continue state.
+      // This is the automatic progression mechanism for Loop Engineering.
+      try {
+        const { consumeLoopKickstart, isLoopActive: checkLoop } = await import('../loop');
+        if (checkLoop()) {
+          const kickstart = consumeLoopKickstart(sessionID);
+          if (kickstart) {
+            log(`[${HOOK_NAME}] Loop: injecting phase transition kickstart`, {
+              sessionID,
+            });
+            state.isAutoInjecting = true;
+            try {
+              await ctx.client.session.prompt({
+                path: { id: sessionID },
+                body: {
+                  parts: [createInternalAgentTextPart(kickstart)],
+                },
+              });
+            } finally {
+              state.isAutoInjecting = false;
+            }
+            return; // Don't proceed to auto-continue — kickstart handles this turn
+          }
+
+          // Loop review kickstart: if review overlay is active (from task_complete)
+          // and no review prompt has been injected yet, inject review prompt now.
+          const reviewOverlay = config?.overlayManager?.getCurrent(sessionID);
+          if (
+            reviewOverlay?.agent === 'reviewer' &&
+            !state.reviewInjectedBySession.has(sessionID)
+          ) {
+            log(`[${HOOK_NAME}] Loop: injecting review kickstart (task_complete)`, {
+              sessionID,
+            });
+            state.reviewInjectedBySession.add(sessionID);
+            state.reviewVerdictBySession.set(sessionID, 'pending');
+            const reviewPrompt = buildReviewPrompt(undefined, reviewOverlay.phase);
+            state.isAutoInjecting = true;
+            try {
+              await ctx.client.session.prompt({
+                path: { id: sessionID },
+                body: {
+                  parts: [createInternalAgentTextPart(reviewPrompt)],
+                },
+              });
+            } finally {
+              state.isAutoInjecting = false;
+            }
+            return;
+          }
+        }
+      } catch (error) {
+        log(`[${HOOK_NAME}] Loop kickstart check error (non-fatal)`, {
+          sessionID,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+
       // Auto-enable check: if configured, not yet enabled, and enough
       // todos exist, automatically enable auto-continue.
       if (
@@ -1568,7 +1629,37 @@ export function createTodoContinuationHook(
                       extras: { returnAgent, fixInstructions: `Review feedback: ${findings}` },
                     });
                     config?.overlayManager?.clear(sessionID, 'review');
-                    log(`[${HOOK_NAME}] Loop: verdict routed to redesign`, { sessionID, findings });
+
+                    // Inject redesign kickstart prompt.
+                    // The overlay is active and phase switch is set —
+                    // now kickstart the planner to begin autonomous redesign.
+                    log(`[${HOOK_NAME}] Loop: injecting redesign kickstart`, { sessionID });
+                    const redesignPrompt = `## Loop: Redesign Phase
+
+The reviewer rejected the plan for major rework. You are the internal planner (autonomous mode).
+
+**Review feedback:** ${findings || 'See review output above'}
+
+**Your task:**
+1. Read the review feedback above carefully — every finding must be addressed
+2. Use task(explorer) to search the codebase for relevant context
+3. Use task(librarian) to check external documentation
+4. Use task(oracle) for architectural guidance
+5. Create a revised plan that addresses ALL findings
+6. Call save_plan when done — the loop system handles the transition back to execute
+
+**CRITICAL:** Do NOT ask the user questions. All investigation is autonomous.`;
+                    state.isAutoInjecting = true;
+                    try {
+                      await ctx.client.session.prompt({
+                        path: { id: sessionID },
+                        body: {
+                          parts: [createInternalAgentTextPart(redesignPrompt)],
+                        },
+                      });
+                    } finally {
+                      state.isAutoInjecting = false;
+                    }
                     return;
                   }
                   if (nextPhase && nextPhase.phase === 'execute') {
@@ -1581,7 +1672,21 @@ export function createTodoContinuationHook(
                       extras: { fixInstructions: findings },
                     });
                     config?.overlayManager?.clear(sessionID, 'review');
-                    log(`[${HOOK_NAME}] Loop: verdict routed to executor fix`, { sessionID, findings });
+
+                    // Inject rework prompt — kickstart executor to fix issues
+                    log(`[${HOOK_NAME}] Loop: injecting executor rework prompt`, { sessionID });
+                    const reworkPrompt = buildReworkPrompt(findings);
+                    state.isAutoInjecting = true;
+                    try {
+                      await ctx.client.session.prompt({
+                        path: { id: sessionID },
+                        body: {
+                          parts: [createInternalAgentTextPart(reworkPrompt)],
+                        },
+                      });
+                    } finally {
+                      state.isAutoInjecting = false;
+                    }
                     return;
                   }
                   // phase=done → fall through to standard approve handler

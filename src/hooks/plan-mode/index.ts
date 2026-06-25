@@ -31,11 +31,12 @@ import { PLAN_MODE_INSTRUCTIONS } from '../../agents/prompts/prometheus/plan-mod
 import { REDESIGN_INSTRUCTIONS } from '../../agents/prompts/prometheus/redesign-instructions';
 import type { EffectiveAgentOverlayManager } from '../../utils/effective-agent-overlay';
 import { injectPhaseSwitch } from '../phase-switch';
-import { getLoop, isLoopActive } from '../loop';
+import { getLoop, isLoopActive, markLoopKickstart, updateLoop } from '../loop';
 
 /**
  * 自动退出 plan mode
- * 清除 overlay，注入 phase switch 回到原 agent
+ * 清除 overlay，注入 phase switch 回到原 agent。
+ * 在 loop 上下文中，还会标记阶段过渡以便 session.idle 自动注入提示词。
  */
 function autoExitPlanMode(
   overlayManager: EffectiveAgentOverlayManager,
@@ -47,6 +48,13 @@ function autoExitPlanMode(
 
   const returnAgent = overlay.returnAgent ?? 'orchestrator';
   overlayManager.clear(sessionID, 'plan');
+
+  // Loop context: update phase and mark for auto-progression
+  const loop = isLoopActive() ? getLoop() : null;
+  if (loop && (loop.phase === 'interview' || loop.phase === 'redesign')) {
+    updateLoop({ phase: 'execute' });
+    markLoopKickstart(sessionID, 'execute', loop.executor_type, reason);
+  }
 
   injectPhaseSwitch(sessionID, {
     phase: 'done',
