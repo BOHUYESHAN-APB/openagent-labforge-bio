@@ -1402,9 +1402,20 @@ export function createTodoContinuationHook(
       try {
         const { consumeLoopKickstart, isLoopActive: checkLoop, getLoop: getLoopState } = await import('../loop');
         if (checkLoop()) {
+          const fsm = getLoopState();
+
+          // Loop execute phase: auto-enable continuation so the executor
+          // can work through multiple turns (create todos → execute → verify).
+          // Without this, the executor stops after the first response unless
+          // the user manually enabled auto-continue.
+          if (fsm && fsm.state.phase === 'execute' && !isContinuationEnabled(state, sessionID)) {
+            setContinuationEnabled(state, sessionID, true);
+            setConsecutiveContinuations(state, sessionID, 0);
+            log(`[${HOOK_NAME}] Loop: auto-enabled continuation for execute phase`, { sessionID });
+          }
+
           const kickstart = consumeLoopKickstart(sessionID);
           if (kickstart) {
-            const fsm = getLoopState();
             const targetAgent = fsm?.effectiveAgent ?? 'engineer';
             log(`[${HOOK_NAME}] Loop: injecting phase transition kickstart`, {
               sessionID,
