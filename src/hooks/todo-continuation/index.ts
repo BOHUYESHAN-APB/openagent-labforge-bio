@@ -1393,20 +1393,30 @@ export function createTodoContinuationHook(
       // (e.g. planner saved plan → executor needs to start working),
       // inject a kickstart prompt regardless of auto-continue state.
       // This is the automatic progression mechanism for Loop Engineering.
+      //
+      // CRITICAL: Must use plain text parts with explicit agent field,
+      // NOT createInternalAgentTextPart. OpenCode requires the agent
+      // field to route the message to the correct agent. Internal-only
+      // messages (without agent) are treated as system notifications
+      // and don't trigger AI responses.
       try {
-        const { consumeLoopKickstart, isLoopActive: checkLoop } = await import('../loop');
+        const { consumeLoopKickstart, isLoopActive: checkLoop, getLoop: getLoopState } = await import('../loop');
         if (checkLoop()) {
           const kickstart = consumeLoopKickstart(sessionID);
           if (kickstart) {
+            const fsm = getLoopState();
+            const targetAgent = fsm?.effectiveAgent ?? 'engineer';
             log(`[${HOOK_NAME}] Loop: injecting phase transition kickstart`, {
               sessionID,
+              targetAgent,
             });
             state.isAutoInjecting = true;
             try {
               await ctx.client.session.prompt({
                 path: { id: sessionID },
                 body: {
-                  parts: [createInternalAgentTextPart(kickstart)],
+                  agent: targetAgent,
+                  parts: [{ type: 'text', text: kickstart }],
                 },
               });
             } finally {
@@ -1433,7 +1443,8 @@ export function createTodoContinuationHook(
               await ctx.client.session.prompt({
                 path: { id: sessionID },
                 body: {
-                  parts: [createInternalAgentTextPart(reviewPrompt)],
+                  agent: 'reviewer',
+                  parts: [{ type: 'text', text: reviewPrompt }],
                 },
               });
             } finally {
@@ -1654,7 +1665,8 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
                       await ctx.client.session.prompt({
                         path: { id: sessionID },
                         body: {
-                          parts: [createInternalAgentTextPart(redesignPrompt)],
+                          agent: 'prometheus',
+                          parts: [{ type: 'text', text: redesignPrompt }],
                         },
                       });
                     } finally {
@@ -1665,9 +1677,10 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
                   if (nextPhase && nextPhase.phase === 'execute') {
                     // Route back to executor with fix instructions
                     // Use the agent returned by routeVerdict (which reads loop.executor_type)
+                    const executorAgent = nextPhase.agent || 'engineer';
                     injectPS(sessionID, {
                       phase: 'execute',
-                      agent: nextPhase.agent || '',
+                      agent: executorAgent,
                       think: 'inherit',
                       extras: { fixInstructions: findings },
                     });
@@ -1681,7 +1694,8 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
                       await ctx.client.session.prompt({
                         path: { id: sessionID },
                         body: {
-                          parts: [createInternalAgentTextPart(reworkPrompt)],
+                          agent: executorAgent,
+                          parts: [{ type: 'text', text: reworkPrompt }],
                         },
                       });
                     } finally {
