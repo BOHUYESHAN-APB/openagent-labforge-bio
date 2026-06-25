@@ -239,20 +239,31 @@ function getAgentToolPermissions(
   agentName: string,
 ): Record<string, 'ask' | 'allow' | 'deny'> {
   const level = AGENT_PERMISSION_LEVELS[agentName] ?? 'FULL';
+  const perms: Record<string, 'ask' | 'allow' | 'deny'> = {};
   switch (level) {
     case 'READ_ONLY':
-      return { write: 'deny', edit: 'deny', bash: 'deny' };
+      Object.assign(perms, { write: 'deny', edit: 'deny', bash: 'deny' });
+      break;
     case 'PLANNING':
-      // prometheus (planner) can only read/research — no file modifications
-      // enter_plan_mode is denied because prometheus is already in plan mode
-      return { write: 'deny', edit: 'deny', bash: 'deny', task: 'deny', enter_plan_mode: 'deny' };
+      // prometheus: read-only + sub-agents allowed (for Plan A/B research)
+      Object.assign(perms, { write: 'deny', edit: 'deny', bash: 'deny', task: 'allow', enter_plan_mode: 'deny' });
+      break;
     case 'COUNCIL':
-      return { write: 'deny', edit: 'deny', bash: 'deny' };
+      Object.assign(perms, { write: 'deny', edit: 'deny', bash: 'deny' });
+      break;
     case 'VISUAL':
-      return { write: 'deny', edit: 'deny', bash: 'deny' };
+      Object.assign(perms, { write: 'deny', edit: 'deny', bash: 'deny' });
+      break;
     default:
-      return {};
+      break;
   }
+
+  // switch_agent is an internal loop orchestration tool — hide from
+  // regular primary agents. Only reviewer and prometheus may use it.
+  if (agentName !== 'reviewer' && agentName !== 'prometheus') {
+    perms.switch_agent = 'deny';
+  }
+  return perms;
 }
 
 /**

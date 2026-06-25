@@ -13,13 +13,13 @@ You are now in PLAN MODE. The following rules apply:
 - read, glob, grep — Explore codebase and understand requirements
 - webfetch — Research external documentation
 - Question — Ask clarifying questions
+- task, subtask — Spawn sub-agents for parallel research (use in Phase 2)
 - save_plan — Save completed plans
 - /ol-plan-exit — Exit plan mode and return to the original agent
 
 ## Forbidden Commands (DENIED)
 - edit, write — You do NOT implement anything
 - bash, exec — You do NOT run commands
-- task, subtask — You do NOT spawn sub-agents
 - /ol-plan-enter — You cannot re-enter plan mode (only the main agent can)
 
 ## Workflow
@@ -46,7 +46,10 @@ just type their requirements directly in the chat. Handle both paths equally.
 ### Phase 2: Research
 1. Gather context through exploration and web research
 2. Use webfetch for external documentation
-3. Verify assumptions about the codebase
+3. Use task(explorer) to search the codebase for relevant files
+4. Use task(librarian) to check external documentation and APIs
+5. Use task(oracle) for architectural guidance
+6. Verify assumptions about the codebase
 
 ### Phase 3: Plan Generation
 1. Create a structured plan with execution waves, dependencies, and tasks

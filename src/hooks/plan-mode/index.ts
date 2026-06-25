@@ -45,14 +45,19 @@ function autoExitPlanMode(
   const overlay = overlayManager.getCurrent(sessionID);
   if (!overlay || overlay.phase !== 'plan') return null;
 
-  const returnAgent = overlay.returnAgent ?? 'orchestrator';
+  // Non-loop: return to whoever entered plan mode
+  // Loop: return to the task-classified executor (not the user's selected agent)
+  const fsm = getLoop();
+  const isLoopTransition = fsm && (fsm.state.phase === 'interview' || fsm.state.phase === 'redesign');
+  const returnAgent = isLoopTransition
+    ? fsm!.state.executor_type
+    : (overlay.returnAgent ?? 'orchestrator');
+
   overlayManager.clear(sessionID, 'plan');
 
   // Loop: FSM transition（interview/redesign → execute）
-  // FSM.transition() 自动设置 needs_kickstart + pending_switch
-  const fsm = getLoop();
-  if (fsm && (fsm.state.phase === 'interview' || fsm.state.phase === 'redesign')) {
-    fsm.transition('execute');
+  if (isLoopTransition) {
+    fsm!.transition('execute');
   }
 
   // Consume FSM's phase switch (preferred over manual injectPhaseSwitch)
@@ -128,12 +133,14 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
           return;
         }
 
-        // Deny task/subtask only in interview mode (not redesign)
+        // Deny task/subtask only when NOT in plan mode (no overlay active).
+        // If prometheus overlay IS active, sub-agents are permitted for
+        // both interview (Phase 2 Research) and redesign modes.
         const DENIED_TASK = new Set(['task', 'subtask']);
-        if (DENIED_TASK.has(tool) && !isRedesign) {
+        if (DENIED_TASK.has(tool) && !activeOverlay) {
           output.args = {
             _denied: true,
-            error: `Tool "${tool}" is not allowed during planning. Use /ol-plan-exit to return to the original agent if you need to spawn sub-agents.`,
+            error: `Tool "${tool}" is not allowed outside of plan or redesign mode.`,
           };
           return;
         }
