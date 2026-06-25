@@ -1511,9 +1511,24 @@ export function createTodoContinuationHook(
                 .join(' ');
               const { verdict, findings, scope } = parseReviewVerdict(text);
               if (verdict === 'approve') {
-                // Loop routing: if loop active, clean up
-                const { deleteLoop } = await import('../loop');
+                // Loop routing: if loop active, clean up and restore agent
+                const { deleteLoop, getLoop: getActiveLoop } = await import('../loop');
+                const currentLoop = getActiveLoop();
+                const { injectPhaseSwitch: injectPS2 } = await import('../phase-switch');
                 deleteLoop();
+
+                // Explicit agent recovery: inject phase switch to restore
+                // the original agent so the UI doesn't stay on reviewer (B9 fix)
+                const returnAgent = currentLoop?.return_agent
+                  || config?.overlayManager?.getCurrent(sessionID)?.returnAgent
+                  || 'orchestrator';
+                config?.overlayManager?.clear(sessionID, 'review');
+                injectPS2(sessionID, {
+                  phase: 'done',
+                  agent: returnAgent,
+                  think: 'inherit',
+                  extras: { returnAgent },
+                });
 
                 await config?.onBatchSummary?.({
                   sessionID,
@@ -1530,24 +1545,27 @@ export function createTodoContinuationHook(
               }
               if (verdict === 'reject') {
                 // Check if a loop is active for verdict routing
-                const { isLoopActive, routeVerdict } = await import('../loop');
+                const { isLoopActive, routeVerdict, getLoop } = await import('../loop');
                 const { injectPhaseSwitch: injectPS } = await import('../phase-switch');
                 if (isLoopActive()) {
                   const nextPhase = routeVerdict(verdict, scope, findings);
                   if (nextPhase && nextPhase.phase === 'redesign') {
                     // Route to planner: activate overlay + inject phase switch
                     // overlay is needed for system.transform (prompt) and chat.params (think)
+                    // Read return_agent from loop state (B6 fix: was hardcoded 'orchestrator')
+                    const loopState = getLoop();
+                    const returnAgent = loopState?.return_agent || 'orchestrator';
                     config?.overlayManager?.activate(sessionID, {
                       phase: 'plan',
                       agent: 'prometheus',
                       source: 'loop-redesign',
-                      returnAgent: 'orchestrator',
+                      returnAgent,
                     });
                     injectPS(sessionID, {
                       phase: 'redesign',
                       agent: 'prometheus',
                       think: 'max',
-                      extras: { returnAgent: 'orchestrator', fixInstructions: `Review feedback: ${findings}` },
+                      extras: { returnAgent, fixInstructions: `Review feedback: ${findings}` },
                     });
                     config?.overlayManager?.clear(sessionID, 'review');
                     log(`[${HOOK_NAME}] Loop: verdict routed to redesign`, { sessionID, findings });
@@ -1555,9 +1573,10 @@ export function createTodoContinuationHook(
                   }
                   if (nextPhase && nextPhase.phase === 'execute') {
                     // Route back to executor with fix instructions
+                    // Use the agent returned by routeVerdict (which reads loop.executor_type)
                     injectPS(sessionID, {
                       phase: 'execute',
-                      agent: '', // will be filled from loop state
+                      agent: nextPhase.agent || '',
                       think: 'inherit',
                       extras: { fixInstructions: findings },
                     });

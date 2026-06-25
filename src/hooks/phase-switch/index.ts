@@ -90,7 +90,8 @@ export interface ThinkRule {
 }
 
 const THINK_RULES: ThinkRule[] = [
-  // planner 始终 max
+  // planner 始终 max（覆盖 overlay phase='plan' 兜底）
+  { phase: 'plan', agent: 'prometheus', think: 'max' },
   { phase: 'interview', agent: 'prometheus', think: 'max' },
   { phase: 'redesign', agent: 'prometheus', think: 'max' },
   // executor 继承

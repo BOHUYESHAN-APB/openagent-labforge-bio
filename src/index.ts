@@ -138,6 +138,8 @@ import {
   createPresetManager,
   createSavePlanTool,
   createSubtaskTool,
+  createTaskCompleteTool,
+  createSwitchAgentTool,
   createWebfetchTool,
   loadAgentInstructionsTool,
 } from './tools';
@@ -639,6 +641,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
     compactionHook = createCompactionHook({
       enabled: config.compression?.enabled !== false,
       checkpointManager,
+      workspaceRoot: ctx.directory,
       getCurrentOverlay: (sessionID: string) =>
         effectiveAgentOverlayManager.getCurrent(sessionID) ?? null,
     });
@@ -891,6 +894,8 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       load_agent_instructions: loadAgentInstructionsTool,
       enter_plan_mode: createEnterPlanModeTool(),
       exit_plan_mode: createExitPlanModeTool(),
+      task_complete: createTaskCompleteTool(),
+      switch_agent: createSwitchAgentTool(),
       cancel_task: createCancelTaskTool({
         client: ctx.client,
         backgroundJobBoard: taskSessionManagerHook.backgroundJobBoard,
@@ -1845,6 +1850,17 @@ then create a detailed plan. After save_plan, the loop auto-transitions to execu
             output.options.reasoningEffort = effort;
           }
         }
+
+        // TODO(B14): Per-agent model switching for loop phases.
+        // When profile=custom, read config.modelPreferences?.perAgent[agentName]
+        // and set the model ID accordingly. Currently blocked on SDK support
+        // for model override in chat.params hook.
+        // const resolvedAgent = effectiveAgentOverlayManager.getCurrent(input.sessionID)?.agent
+        //   ?? sessionAgentMap.get(input.sessionID);
+        // if (config?.modelPreferences?.profile === 'custom' && resolvedAgent) {
+        //   const perAgentModel = config.modelPreferences.perAgent?.[resolvedAgent];
+        //   if (perAgentModel) { /* set output.model when SDK supports it */ }
+        // }
       }
     },
 

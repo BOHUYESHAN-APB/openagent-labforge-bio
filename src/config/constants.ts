@@ -102,7 +102,7 @@ export function getOrchestratableAgents(
 export const SUBAGENT_DELEGATION_RULES: Record<AgentName, readonly string[]> = {
   orchestrator: ORCHESTRATABLE_AGENTS,
   'deep-worker': ['explorer', 'librarian', 'oracle'],
-  prometheus: [], // Planner cannot spawn subagents
+  prometheus: [], // Planner cannot spawn subagents in interview mode
   atlas: ['explorer', 'librarian', 'oracle', 'fixer', 'bio-orchestrator'],
   'bio-orchestrator': ORCHESTRATABLE_AGENTS,
   'chem-orchestrator': ORCHESTRATABLE_AGENTS,
@@ -119,6 +119,31 @@ export const SUBAGENT_DELEGATION_RULES: Record<AgentName, readonly string[]> = {
   'multimodal-looker': [],
   reviewer: [],
 };
+
+/**
+ * Redesign-mode delegation rules for prometheus.
+ * In redesign (loop autonomous re-planning), the planner can spawn
+ * explorer, librarian, and oracle for autonomous research.
+ */
+export const PROMETHEUS_REDESIGN_AGENTS: readonly string[] = [
+  'explorer',
+  'librarian',
+  'oracle',
+];
+
+/**
+ * Get effective delegation rules for an agent, considering active loop phase.
+ * In redesign mode, prometheus gains access to research subagents.
+ */
+export function getEffectiveDelegationRules(
+  agentName: string,
+  isRedesign?: boolean,
+): readonly string[] {
+  if (agentName === 'prometheus' && isRedesign) {
+    return PROMETHEUS_REDESIGN_AGENTS;
+  }
+  return SUBAGENT_DELEGATION_RULES[agentName as AgentName] ?? [];
+}
 
 // Default models for each agent.
 // ALL undefined by default — sub-agents inherit the main agent's model

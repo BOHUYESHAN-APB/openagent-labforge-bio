@@ -391,9 +391,11 @@ export class CheckpointManager {
     if (!session) return null;
 
     // Check if there's already an active checkpoint created recently
+    // 5-second dedup window: prevents duplicate checkpoints from rapid compaction
+    // retries but still creates one per distinct compaction event
     const existing = this.getLatestCheckpoint(sessionID);
-    if (existing && Date.now() - existing.timestamp < 60_000) {
-      // Don't create another checkpoint if one was created in the last minute
+    if (existing && Date.now() - existing.timestamp < 5_000) {
+      // Don't create another checkpoint if one was created in the last 5 seconds
       return existing;
     }
 

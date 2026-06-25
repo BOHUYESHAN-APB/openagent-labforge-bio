@@ -120,21 +120,97 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
         }
       }
 
-      // save_plan in plan/redesign mode: auto-exit (plan is saved, time to execute)
+      // save_plan in interview plan mode: auto-exit (plan is saved, time to execute).
+      // In redesign mode (loop phase), save_plan is handled by the loop system
+      // and should NOT trigger auto-exit (B13 fix).
       if (
         tool === 'save_plan' &&
         activeOverlay &&
         (activeOverlay.phase === 'plan' || activeOverlay.agent === 'prometheus')
       ) {
-        autoExitPlanMode(
-          options.overlayManager,
-          sessionID,
-          'save_plan called — plan saved, auto-exiting',
-        );
+        const loop = isLoopActive() ? getLoop() : null;
+        const isRedesign = loop?.phase === 'redesign';
+        if (!isRedesign) {
+          autoExitPlanMode(
+            options.overlayManager,
+            sessionID,
+            'save_plan called — plan saved, auto-exiting',
+          );
+        }
         // Allow save_plan to proceed (don't deny)
       }
 
-      // Block manual selection of reviewer outside of loop context
+      // task_complete tool: executor declares work is done
+      // Route to reviewer if loop is active, otherwise trigger auto-review
+      if (tool === 'task_complete') {
+        const loop = isLoopActive() ? getLoop() : null;
+        if (loop) {
+          // Loop mode: activate reviewer overlay + inject review message
+          const priorOverlay = options.overlayManager.getCurrent(sessionID);
+          options.overlayManager.activate(sessionID, {
+            phase: 'review',
+            agent: 'reviewer',
+            source: 'task-complete-loop',
+            returnAgent: priorOverlay?.returnAgent ?? loop.return_agent,
+          });
+          // Allow task_complete to proceed (return value shown before switch)
+        }
+        // No loop: let the tool return normally, auto-review triggers via idle hook
+      }
+
+      // switch_agent tool: internal agent switching (reviewer ↔ executor ↔ planner)
+      if (tool === 'switch_agent') {
+        const args = output.args as {
+          target?: string;
+          mode?: string;
+          instructions?: string;
+        };
+        const { target, mode, instructions } = args;
+        if (!target || !mode) return; // let tool's own validation handle missing args
+
+        if (mode === 'fix' && target === 'executor') {
+          // Reviewer → executor (minor fix)
+          const loop = isLoopActive() ? getLoop() : null;
+          const returnAgent = loop?.return_agent ?? 'orchestrator';
+          options.overlayManager.clear(sessionID, 'review');
+          injectPhaseSwitch(sessionID, {
+            phase: 'execute',
+            agent: returnAgent,
+            think: 'inherit',
+            extras: { fixInstructions: instructions, returnAgent },
+          });
+        } else if (mode === 'redesign' && target === 'loop-planner') {
+          // Reviewer → internal planner (major redesign)
+          const loop = isLoopActive() ? getLoop() : null;
+          const returnAgent = loop?.return_agent ?? 'orchestrator';
+          options.overlayManager.activate(sessionID, {
+            phase: 'plan',
+            agent: 'prometheus',
+            source: 'loop-redesign-switch',
+            returnAgent,
+          });
+          options.overlayManager.clear(sessionID, 'review');
+          injectPhaseSwitch(sessionID, {
+            phase: 'redesign',
+            agent: 'prometheus',
+            think: 'max',
+            extras: { returnAgent, fixInstructions: instructions },
+          });
+        } else if (mode === 'complete' && target === 'executor') {
+          // Internal planner → executor (redesign complete)
+          const loop = isLoopActive() ? getLoop() : null;
+          const returnAgent = loop?.return_agent ?? 'orchestrator';
+          options.overlayManager.clear(sessionID, 'plan');
+          injectPhaseSwitch(sessionID, {
+            phase: 'execute',
+            agent: returnAgent,
+            think: 'inherit',
+            extras: { returnAgent },
+          });
+        }
+      }
+
+      // Block manual selection of reviewer and loop-managed agents
       // Reviewer is UI-visible but should only be activated by the loop system
       if (tool === 'select_agent') {
         const target = (output.args as { name?: string })?.name;
@@ -146,6 +222,22 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
               error:
                 'Reviewer is a loop-managed agent. ' +
                 'It can only be activated by /ol-loop-start or auto-review.',
+            };
+            return;
+          }
+        }
+        // Block manual selection of planner during redesign (B12 fix)
+        // Prometheus is user-selectable normally, but during autonomous redesign
+        // the loop system controls agent transitions.
+        if (target === 'prometheus' || target === 'planner') {
+          const loop = isLoopActive() ? getLoop() : null;
+          if (loop?.phase === 'redesign') {
+            output.args = {
+              _denied: true,
+              error:
+                'Planner is currently in autonomous redesign mode. ' +
+                'The loop system manages agent transitions during this phase. ' +
+                'Wait for the redesign to complete.',
             };
             return;
           }
@@ -187,13 +279,13 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
       }
 
       if (tool === 'exit_plan_mode') {
-        // Not in plan mode? Nothing to exit.
+        // Not in plan mode? Silently succeed (no-op).
+        // This handles the case where save_plan → autoExitPlanMode already
+        // cleared the overlay, and the AI then calls exit_plan_mode as
+        // instructed by PLAN_MODE_INSTRUCTIONS (double-exit bug B5).
         const currentOverlay = options.overlayManager.getCurrent(sessionID);
         if (currentOverlay?.phase !== 'plan') {
-          output.args = {
-            _denied: true,
-            error: 'Not in plan mode. Nothing to exit.',
-          };
+          // Silently succeed — overlay already cleared, nothing to do
           return;
         }
 

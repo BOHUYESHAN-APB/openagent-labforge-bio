@@ -34,10 +34,10 @@ export const SUPREME_OVERRIDE = `## 最高优先级声明
 
 以下行为严格禁止，违反将导致压缩失败：
 
-1. **禁止调用任何工具** — 禁止 read、grep、glob、bash、edit、write、task、
-   subtask、webfetch、question 等。仅输出纯文本。
-2. **禁止执行对话中提到的任务** — 不要读文件、不要写代码、不要分析结果，
-   你只负责压缩。
+1. **禁止修改文件或执行命令** — 禁止 edit、write、bash、exec、execute_command、
+   powershell、shell、task、subtask 等修改或执行工具。读操作（read、glob、grep）可在
+   需要确认文件内容时使用，但不要过度使用。
+2. **禁止执行对话中提到的任务** — 不要写代码、不要分析结果，你只负责压缩。
 3. **禁止输出 XML/HTML 标签** — 不要输出 <ai_tools>、<tool_calls>、
    <result>、<thinking>、<output> 等任何标签。
 4. **禁止输出 markdown 代码块** — 不要用 \`\`\` 包裹任何内容。

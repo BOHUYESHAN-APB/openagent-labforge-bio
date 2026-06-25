@@ -42,6 +42,8 @@ export interface CompactionHookOptions {
   customInstructions?: string;
   /** Checkpoint manager instance for auto-checkpoint creation */
   checkpointManager?: CheckpointManager;
+  /** Workspace root directory (needed for ensureSession before checkpoint) */
+  workspaceRoot?: string;
   /** 是否启用压缩后自动继续（默认 true） */
   autoContinueEnabled?: boolean;
   /** Get the current effective overlay for a session (phase + agent) */
@@ -98,6 +100,12 @@ export function createCompactionHook(options?: CompactionHookOptions): {
       // This is the key integration: checkpoint is the "reinforcement board" for compaction
       if (checkpointManager && input.sessionID) {
         try {
+          // Ensure session is registered in checkpoint memory before creating
+          // checkpoint. Without this, createPreCompactionCheckpoint silently
+          // returns null when the session hasn't been initialized yet (B1 fix).
+          const wsRoot = options?.workspaceRoot ?? process.cwd();
+          checkpointManager.ensureSession(input.sessionID, wsRoot);
+
           const overlay = options?.getCurrentOverlay?.(input.sessionID);
           const checkpoint = checkpointManager.createPreCompactionCheckpoint(
             input.sessionID,

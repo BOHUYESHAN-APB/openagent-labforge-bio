@@ -10,5 +10,7 @@ export { createPresetManager } from './preset-manager';
 export { createEnterPlanModeTool } from './enter-plan-mode';
 export { createExitPlanModeTool } from './exit-plan-mode';
 export { createSavePlanTool } from './save-plan';
+export { createTaskCompleteTool } from './task-complete';
+export { createSwitchAgentTool } from './switch-agent';
 export { createWebfetchTool } from './smartfetch';
 export { createSubtaskTool } from './subtask';
