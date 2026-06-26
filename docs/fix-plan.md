@@ -1,5 +1,9 @@
 # 修复计划：子 Agent 系统
 
+> **v1.3.5 更新**：subagentPolicy 系统已移除。本文档中所有关于 subagentPolicy
+> 切换指令的修复方案已不再适用。Agent 注册仅使用 `disabled_agents`。
+> 本文档保留作为历史参考。
+
 ## 问题总览
 
 ### 1. 指令系统 Bug

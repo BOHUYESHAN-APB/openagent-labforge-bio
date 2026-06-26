@@ -18,8 +18,7 @@ export const locales: Record<SupportedLocale, TranslationDict> = {
   },
   zh: {
     'toast.task_completed': '任务完成',
-    'toast.task_completion_message':
-      '"{{description}}" 在 {{duration}} 内完成',
+    'toast.task_completion_message': '"{{description}}" 在 {{duration}} 内完成',
     'toast.status_queued': '排队中',
     'toast.concurrency_info': ' [{{total}}/{{limit}}]',
   },

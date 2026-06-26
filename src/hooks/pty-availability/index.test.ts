@@ -10,7 +10,10 @@ describe('pty availability hook', () => {
     const hook = createPtyAvailabilityHook();
     const output = { system: [] as string[] };
 
-    await hook['experimental.chat.system.transform']({ sessionID: 's1' }, output);
+    await hook['experimental.chat.system.transform'](
+      { sessionID: 's1' },
+      output,
+    );
 
     expect(output.system).toContain(PTY_UNAVAILABLE_TEXT);
   });
@@ -23,7 +26,10 @@ describe('pty availability hook', () => {
       { toolID: 'pty_spawn' },
       { description: 'spawn', parameters: {} },
     );
-    await hook['experimental.chat.system.transform']({ sessionID: 's1' }, output);
+    await hook['experimental.chat.system.transform'](
+      { sessionID: 's1' },
+      output,
+    );
 
     expect(output.system).toContain(PTY_AVAILABLE_TEXT);
   });
@@ -34,7 +40,9 @@ describe('pty availability hook', () => {
 
     await hook['tool.definition']({ toolID: 'bash' }, output);
 
-    expect(output.description).toContain('Persistent PTY terminal tools are NOT available');
+    expect(output.description).toContain(
+      'Persistent PTY terminal tools are NOT available',
+    );
   });
 
   test('augments bash tool description when pty is available', async () => {
@@ -47,7 +55,9 @@ describe('pty availability hook', () => {
     );
     await hook['tool.definition']({ toolID: 'bash' }, output);
 
-    expect(output.description).toContain('Persistent PTY terminal tools are available');
+    expect(output.description).toContain(
+      'Persistent PTY terminal tools are available',
+    );
   });
 
   test('blocks pty-required bash commands when pty is available', async () => {
@@ -64,7 +74,9 @@ describe('pty availability hook', () => {
     );
     await hook['tool.execute.before']({ tool: 'bash' }, output);
 
-    expect(String(output.args?.command)).toContain('This bash command matches the PTY-required class');
+    expect(String(output.args?.command)).toContain(
+      'This bash command matches the PTY-required class',
+    );
   });
 
   test('does not block short-sync bash commands when pty is available', async () => {
@@ -92,8 +104,14 @@ describe('pty availability hook', () => {
       { toolID: 'pty_spawn' },
       { description: 'spawn', parameters: {} },
     );
-    await hook['experimental.chat.system.transform']({ sessionID: 's1' }, output);
-    await hook['experimental.chat.system.transform']({ sessionID: 's1' }, output);
+    await hook['experimental.chat.system.transform'](
+      { sessionID: 's1' },
+      output,
+    );
+    await hook['experimental.chat.system.transform'](
+      { sessionID: 's1' },
+      output,
+    );
 
     expect(output.system).toHaveLength(1);
   });

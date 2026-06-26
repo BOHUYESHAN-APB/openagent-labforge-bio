@@ -246,7 +246,13 @@ function getAgentToolPermissions(
       break;
     case 'PLANNING':
       // prometheus: read-only + sub-agents allowed (for Plan A/B research)
-      Object.assign(perms, { write: 'deny', edit: 'deny', bash: 'deny', task: 'allow', enter_plan_mode: 'deny' });
+      Object.assign(perms, {
+        write: 'deny',
+        edit: 'deny',
+        bash: 'deny',
+        task: 'allow',
+        enter_plan_mode: 'deny',
+      });
       break;
     case 'COUNCIL':
       Object.assign(perms, { write: 'deny', edit: 'deny', bash: 'deny' });
@@ -632,8 +638,7 @@ export function getAgentConfigs(
     }
   };
 
-  const isInternalOnly = (name: string): boolean =>
-    name === 'councillor';
+  const isInternalOnly = (name: string): boolean => name === 'councillor';
 
   const entries: Array<[string, SDKAgentConfig]> = [];
 

@@ -136,10 +136,16 @@ describe('bio skills catalog metadata', () => {
       },
     ]);
 
-    expect(loadedText).toContain('File path: /tmp/pathway-analysis/gsea/SKILL.md');
+    expect(loadedText).toContain(
+      'File path: /tmp/pathway-analysis/gsea/SKILL.md',
+    );
     expect(loadedText).toContain('Reusable resources:');
-    expect(loadedText).toContain('[example|adapt] /tmp/pathway-analysis/gsea/examples/run_gsea.R (r)');
-    expect(loadedText).toContain('Use the read tool to load specific skill instructions');
+    expect(loadedText).toContain(
+      '[example|adapt] /tmp/pathway-analysis/gsea/examples/run_gsea.R (r)',
+    );
+    expect(loadedText).toContain(
+      'Use the read tool to load specific skill instructions',
+    );
   });
 
   it('builds and reads a machine-readable catalog file', () => {

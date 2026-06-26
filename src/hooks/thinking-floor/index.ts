@@ -16,13 +16,9 @@
  * model family capabilities. Default floor is "high".
  */
 
+import { detectHeuristicModelFamily } from '../../shared/model-core/model-capability-heuristics';
+import { resolveCompatibleModelSettings } from '../../shared/model-core/model-settings-compatibility';
 import { log } from '../../utils/logger';
-import {
-  detectHeuristicModelFamily,
-} from '../../shared/model-core/model-capability-heuristics';
-import {
-  resolveCompatibleModelSettings,
-} from '../../shared/model-core/model-settings-compatibility';
 
 const HOOK_NAME = 'thinking-floor';
 
@@ -83,7 +79,9 @@ function meetsFloor(current: string, floor: string): boolean {
 function resolveFloorForModel(
   modelID: string,
   floor: string,
-): { reasoningEffort?: string; thinking?: Record<string, unknown> } | undefined {
+):
+  | { reasoningEffort?: string; thinking?: Record<string, unknown> }
+  | undefined {
   const family = detectHeuristicModelFamily(modelID);
 
   // If we can't detect the family, try to apply the floor directly
@@ -162,9 +160,7 @@ export interface ThinkingFloorOptions {
 /**
  * Create the thinking floor hook
  */
-export function createThinkingFloorHook(
-  options?: ThinkingFloorOptions,
-): {
+export function createThinkingFloorHook(options?: ThinkingFloorOptions): {
   'chat.params': (
     input: {
       model?: { providerID?: string; id?: string };
@@ -191,7 +187,9 @@ export function createThinkingFloorHook(
 
   function getResolvedFloor(
     modelID: string,
-  ): { reasoningEffort?: string; thinking?: Record<string, unknown> } | undefined {
+  ):
+    | { reasoningEffort?: string; thinking?: Record<string, unknown> }
+    | undefined {
     const cached = resolvedFloorCache.get(modelID);
     if (cached) return cached;
 
@@ -271,16 +269,13 @@ export function createThinkingFloorHook(
             budgetTokens: minBudgetTokens,
           };
 
-          log(
-            `[${HOOK_NAME}] Enforced Anthropic thinking floor`,
-            {
-              sessionID: input.sessionID,
-              modelID,
-              floor,
-              previousThinking,
-              newThinking: JSON.stringify(options.thinking),
-            },
-          );
+          log(`[${HOOK_NAME}] Enforced Anthropic thinking floor`, {
+            sessionID: input.sessionID,
+            modelID,
+            floor,
+            previousThinking,
+            newThinking: JSON.stringify(options.thinking),
+          });
         }
       }
     },

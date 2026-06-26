@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { getPlanProgress } from '../boulder';
 import type { CheckpointCleanupConfig } from '../config/schema';
 import { getProjectBoulderFile } from '../paths/plugin-paths';
@@ -33,6 +34,41 @@ import type {
 } from './types';
 import { WorkingMemoryStore } from './working-memory';
 import { WorkspaceMemoryStore } from './workspace-memory';
+
+/**
+ * Read Loop FSM state for checkpoint integration.
+ * If an active loop is running, captures its phase, iteration, and verdict
+ * history so the checkpoint can restore loop context after compaction.
+ */
+function readLoopFSMState(workspaceRoot: string): {
+  loop_id: string;
+  phase: string;
+  iteration: number;
+  max_iterations: number;
+  verdict_history: Array<{ phase: string; verdict: string; timestamp: number }>;
+} | null {
+  try {
+    const loopPath = join(workspaceRoot, '.opencode', 'loops', 'active.json');
+    if (!existsSync(loopPath)) return null;
+    const data = JSON.parse(readFileSync(loopPath, 'utf-8')) as {
+      loop_id: string;
+      phase: string;
+      iteration: number;
+      max_iterations: number;
+      verdict_history: Array<{
+        phase: string;
+        verdict: string;
+        timestamp: number;
+      }>;
+    };
+    if (!data.loop_id || data.phase === 'done' || data.phase === 'idle') {
+      return null;
+    }
+    return data;
+  } catch {
+    return null;
+  }
+}
 
 function readActiveExecutionState(workspaceRoot: string): {
   planName: string;
@@ -292,25 +328,6 @@ export class CheckpointManager {
   }
 
   /**
-   * Mark a checkpoint as consumed (used by a resume).
-   */
-  consumeCheckpoint(checkpointID: string, consumedBySession: string): boolean {
-    for (const session of Array.from(this.storage.sessionMemory.values())) {
-      const checkpoint = session.checkpoints.find(
-        (cp: ContextCheckpoint) => cp.id === checkpointID,
-      );
-      if (checkpoint) {
-        checkpoint.status = 'consumed';
-        checkpoint.consumedBySession = consumedBySession;
-        checkpoint.consumedAt = Date.now();
-        this.persist();
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Get the latest active checkpoint for a session.
    */
   getLatestCheckpoint(sessionID: string): ContextCheckpoint | undefined {
@@ -400,9 +417,52 @@ export class CheckpointManager {
     }
 
     const executionState = readActiveExecutionState(session.workspaceRoot);
-    const summary = executionState
-      ? `Pre-compaction checkpoint: ${currentContext.goal} | Active plan ${executionState.planName} (${executionState.remainingTasks} remaining)`
-      : `Pre-compaction checkpoint: ${currentContext.goal}`;
+    const loopState = readLoopFSMState(session.workspaceRoot);
+
+    // Build summary and context including loop state if active
+    const hasLoop = loopState !== null;
+    const summary = hasLoop
+      ? `Pre-compaction checkpoint: ${currentContext.goal} | Loop ${loopState!.loop_id} (${loopState!.phase}, iteration ${loopState!.iteration}/${loopState!.max_iterations})`
+      : executionState
+        ? `Pre-compaction checkpoint: ${currentContext.goal} | Active plan ${executionState.planName} (${executionState.remainingTasks} remaining)`
+        : `Pre-compaction checkpoint: ${currentContext.goal}`;
+
+    const pendingTasks = [
+      ...(executionState
+        ? [
+            `Active execution plan: ${executionState.planName}`,
+            `Top-level plan tasks remaining: ${executionState.remainingTasks}`,
+          ]
+        : []),
+      ...(hasLoop
+        ? [
+            `Active Loop: ${loopState!.loop_id}`,
+            `Loop phase: ${loopState!.phase} (iteration ${loopState!.iteration}/${loopState!.max_iterations})`,
+          ]
+        : []),
+      ...currentContext.pendingTasks,
+    ];
+
+    const keyFiles = [
+      ...(executionState ? [executionState.planPath] : []),
+      ...(hasLoop ? ['.opencode/loops/active.json'] : []),
+      ...currentContext.keyFiles,
+    ];
+
+    const resumeInstructions =
+      executionState || hasLoop
+        ? `Resume from this checkpoint to recover context lost during compaction.
+${
+  executionState
+    ? `Active execution plan: ${executionState.planName} (path: ${executionState.planPath})
+Top-level plan tasks remaining: ${executionState.remainingTasks}`
+    : ''
+}
+${hasLoop ? `Active Loop: ${loopState!.loop_id} (phase: ${loopState!.phase}, iteration ${loopState!.iteration}/${loopState!.max_iterations})` : ''}
+Prior phase: ${currentContext.currentPhase ?? 'execute'} (${currentContext.currentAgent ?? 'atlas'})
+Re-read the plan and loop state, rebuild todos from current top-level checkboxes if needed, and continue until the active boulder plan is complete.`
+        : 'Resume from this checkpoint to recover context lost during compaction.';
+
     const checkpoint = this.createVersionedCheckpoint(
       sessionID,
       {
@@ -410,26 +470,9 @@ export class CheckpointManager {
         goal: currentContext.goal,
         keyDecisions: currentContext.recentDecisions,
         openIssues: [],
-        pendingTasks: executionState
-          ? [
-              `Active execution plan: ${executionState.planName}`,
-              `Top-level plan tasks remaining: ${executionState.remainingTasks}`,
-              ...currentContext.pendingTasks,
-            ]
-          : currentContext.pendingTasks,
-        keyFiles: executionState
-          ? Array.from(
-              new Set([executionState.planPath, ...currentContext.keyFiles]),
-            )
-          : currentContext.keyFiles,
-        resumeInstructions: executionState
-          ? `Resume from this checkpoint to recover context lost during compaction.
-Active execution plan name: ${executionState.planName}
-Active execution plan path: ${executionState.planPath}
-Top-level plan tasks remaining: ${executionState.remainingTasks}
-Prior phase: ${currentContext.currentPhase ?? 'execute'} (${currentContext.currentAgent ?? 'atlas'})
-Re-read the plan, rebuild todos from current top-level checkboxes if needed, and continue until the active boulder plan is complete.`
-          : 'Resume from this checkpoint to recover context lost during compaction.',
+        pendingTasks,
+        keyFiles: Array.from(new Set(keyFiles)),
+        resumeInstructions,
       },
       {
         level: 'light',

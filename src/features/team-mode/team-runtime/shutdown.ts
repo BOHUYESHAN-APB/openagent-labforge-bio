@@ -1,28 +1,35 @@
 // Team runtime shutdown — supports both legacy (teamName) and new (teamRunId + config) interfaces
-import type { PluginInput } from "@opencode-ai/plugin"
-import type { TeamModeConfig } from "../../../config/schema/team-mode"
-import type { RuntimeState } from "../types"
-import { loadRuntimeState as loadByTeamName, saveRuntimeState as saveByTeamName, deleteRuntimeState } from "../team-state-store/index"
-import { unregisterTeamSessionsByTeam } from "../team-session-registry"
-import { log } from "../../../shared/logger"
+import type { PluginInput } from '@opencode-ai/plugin';
+import type { TeamModeConfig } from '../../../config/schema/team-mode';
+import { log } from '../../../shared/logger';
+import { unregisterTeamSessionsByTeam } from '../team-session-registry';
+import {
+  deleteRuntimeState,
+  loadRuntimeState as loadByTeamName,
+  saveRuntimeState as saveByTeamName,
+} from '../team-state-store/index';
+import type { RuntimeState } from '../types';
 
 // --- Legacy interface (teamName-based, for backward compat) ---
 
-export async function deleteTeam(teamName: string, client?: PluginInput["client"]): Promise<void> {
-  const state = await loadByTeamName(teamName)
+export async function deleteTeam(
+  teamName: string,
+  client?: PluginInput['client'],
+): Promise<void> {
+  const state = await loadByTeamName(teamName);
 
   if (state && client) {
     // Abort all member sessions
-    await abortAllMemberSessions(state, client)
+    await abortAllMemberSessions(state, client);
   }
 
   // Unregister all team sessions
   if (state) {
-    unregisterTeamSessionsByTeam(state.teamRunId)
+    unregisterTeamSessionsByTeam(state.teamRunId);
   }
 
   // Delete runtime state
-  await deleteRuntimeState(teamName)
+  await deleteRuntimeState(teamName);
 }
 
 /**
@@ -30,9 +37,9 @@ export async function deleteTeam(teamName: string, client?: PluginInput["client"
  */
 async function abortAllMemberSessions(
   state: RuntimeState,
-  client: PluginInput["client"],
+  client: PluginInput['client'],
 ): Promise<void> {
-  const directory = process.cwd()
+  const directory = process.cwd();
 
   for (const member of state.members) {
     if (member.sessionId) {
@@ -40,19 +47,19 @@ async function abortAllMemberSessions(
         await client.session.abort({
           path: { id: member.sessionId },
           query: { directory },
-        })
-        log("[team-shutdown] Aborted member session", {
+        });
+        log('[team-shutdown] Aborted member session', {
           teamRunId: state.teamRunId,
           memberName: member.name,
           sessionId: member.sessionId,
-        })
+        });
       } catch (error) {
-        log("[team-shutdown] Failed to abort member session", {
+        log('[team-shutdown] Failed to abort member session', {
           teamRunId: state.teamRunId,
           memberName: member.name,
           sessionId: member.sessionId,
           error: error instanceof Error ? error.message : String(error),
-        })
+        });
       }
     }
   }
@@ -61,20 +68,20 @@ async function abortAllMemberSessions(
 export async function requestShutdown(
   teamName: string,
   memberId: string,
-  requesterName: string
+  requesterName: string,
 ): Promise<RuntimeState | null> {
-  const state = await loadByTeamName(teamName)
-  if (!state) return null
+  const state = await loadByTeamName(teamName);
+  if (!state) return null;
 
   state.shutdownRequests.push({
     memberId,
     requesterName,
     requestedAt: Date.now(),
-  })
+  });
 
-  state.status = "shutdown_requested"
-  await saveByTeamName(teamName, state)
-  return state
+  state.status = 'shutdown_requested';
+  await saveByTeamName(teamName, state);
+  return state;
 }
 
 export async function approveShutdown(
@@ -82,42 +89,42 @@ export async function approveShutdown(
   memberId: string,
   _approverName?: string,
   _config?: TeamModeConfig,
-  client?: PluginInput["client"],
+  client?: PluginInput['client'],
 ): Promise<RuntimeState | null> {
-  const state = await loadByTeamName(teamName)
-  if (!state) return null
+  const state = await loadByTeamName(teamName);
+  if (!state) return null;
 
-  const request = state.shutdownRequests.find(r => r.memberId === memberId)
+  const request = state.shutdownRequests.find((r) => r.memberId === memberId);
   if (request) {
-    request.approvedAt = Date.now()
+    request.approvedAt = Date.now();
   }
 
   // Find and abort the member's session
-  const member = state.members.find(m => m.name === memberId)
+  const member = state.members.find((m) => m.name === memberId);
   if (member?.sessionId && client) {
-    const directory = process.cwd()
+    const directory = process.cwd();
     try {
       await client.session.abort({
         path: { id: member.sessionId },
         query: { directory },
-      })
-      member.status = "shutdown_approved"
-      log("[team-shutdown] Approved shutdown and aborted member session", {
+      });
+      member.status = 'shutdown_approved';
+      log('[team-shutdown] Approved shutdown and aborted member session', {
         teamRunId: state.teamRunId,
         memberName: memberId,
         sessionId: member.sessionId,
-      })
+      });
     } catch (error) {
-      log("[team-shutdown] Failed to abort member session on approval", {
+      log('[team-shutdown] Failed to abort member session on approval', {
         teamRunId: state.teamRunId,
         memberName: memberId,
         error: error instanceof Error ? error.message : String(error),
-      })
+      });
     }
   }
 
-  await saveByTeamName(teamName, state)
-  return state
+  await saveByTeamName(teamName, state);
+  return state;
 }
 
 export async function rejectShutdown(
@@ -126,15 +133,15 @@ export async function rejectShutdown(
   reason: string,
   _config?: TeamModeConfig,
 ): Promise<RuntimeState | null> {
-  const state = await loadByTeamName(teamName)
-  if (!state) return null
+  const state = await loadByTeamName(teamName);
+  if (!state) return null;
 
-  const request = state.shutdownRequests.find(r => r.memberId === memberId)
+  const request = state.shutdownRequests.find((r) => r.memberId === memberId);
   if (request) {
-    request.rejectedReason = reason
-    request.rejectedAt = Date.now()
+    request.rejectedReason = reason;
+    request.rejectedAt = Date.now();
   }
 
-  await saveByTeamName(teamName, state)
-  return state
+  await saveByTeamName(teamName, state);
+  return state;
 }

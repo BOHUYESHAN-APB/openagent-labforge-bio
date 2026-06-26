@@ -21,14 +21,14 @@ window.addEventListener('scroll', () => {
 // Counter animation
 function animateCounters() {
   const counters = document.querySelectorAll('.stat-number');
-  
-  counters.forEach(counter => {
+
+  counters.forEach((counter) => {
     const target = parseInt(counter.dataset.target);
     const duration = 2000;
     const start = 0;
     const increment = target / (duration / 16);
     let current = start;
-    
+
     const timer = setInterval(() => {
       current += increment;
       if (current >= target) {
@@ -44,14 +44,14 @@ function animateCounters() {
 // Intersection Observer for animations
 const observerOptions = {
   threshold: 0.1,
-  rootMargin: '0px 0px -50px 0px'
+  rootMargin: '0px 0px -50px 0px',
 };
 
 const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
+  entries.forEach((entry) => {
     if (entry.isIntersecting) {
       entry.target.classList.add('animate');
-      
+
       // Trigger counter animation
       if (entry.target.classList.contains('hero-stats')) {
         animateCounters();
@@ -61,19 +61,21 @@ const observer = new IntersectionObserver((entries) => {
 }, observerOptions);
 
 // Observe elements
-document.querySelectorAll('.feature-card, .hero-stats, .section-header').forEach(el => {
-  observer.observe(el);
-});
+document
+  .querySelectorAll('.feature-card, .hero-stats, .section-header')
+  .forEach((el) => {
+    observer.observe(el);
+  });
 
 // Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener('click', function (e) {
     e.preventDefault();
     const target = document.querySelector(this.getAttribute('href'));
     if (target) {
       target.scrollIntoView({
         behavior: 'smooth',
-        block: 'start'
+        block: 'start',
       });
     }
   });
@@ -84,7 +86,7 @@ document.addEventListener('mousemove', (e) => {
   const bioElements = document.querySelectorAll('.bio-el');
   const x = e.clientX / window.innerWidth;
   const y = e.clientY / window.innerHeight;
-  
+
   bioElements.forEach((el, i) => {
     const speed = (i + 1) * 0.5;
     const offsetX = (x - 0.5) * speed * 20;
@@ -97,7 +99,7 @@ document.addEventListener('mousemove', (e) => {
 function typeWriter(element, text, speed = 50) {
   let i = 0;
   element.textContent = '';
-  
+
   function type() {
     if (i < text.length) {
       element.textContent += text.charAt(i);
@@ -105,7 +107,7 @@ function typeWriter(element, text, speed = 50) {
       setTimeout(type, speed);
     }
   }
-  
+
   type();
 }
 
@@ -122,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('scroll', () => {
   const scrolled = window.pageYOffset;
   const sections = document.querySelectorAll('.section');
-  
+
   sections.forEach((section, index) => {
     const speed = 0.5;
     const yPos = -(scrolled * speed);
@@ -168,7 +170,8 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Console Easter egg
-console.log(`
+console.log(
+  `
 %c🧬 ExtendAI Lab %cv1.2.3
 %c─────────────────────────────
 %cAI-Powered Bioinformatics
@@ -178,5 +181,5 @@ https://github.com/BOHUYESHAN-APB/openagent-labforge-bio
   'color: #00d4ff; font-size: 24px; font-weight: bold;',
   'color: #7b61ff; font-size: 14px;',
   'color: #8888aa;',
-  'color: #00ff88; font-size: 12px;'
+  'color: #00ff88; font-size: 12px;',
 );

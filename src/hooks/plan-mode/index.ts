@@ -30,8 +30,8 @@
 import { PLAN_MODE_INSTRUCTIONS } from '../../agents/prompts/prometheus/plan-mode-instructions';
 import { REDESIGN_INSTRUCTIONS } from '../../agents/prompts/prometheus/redesign-instructions';
 import type { EffectiveAgentOverlayManager } from '../../utils/effective-agent-overlay';
-import { injectPhaseSwitch } from '../phase-switch';
 import { getLoop, isLoopActive, LoopStateMachine } from '../loop';
+import { injectPhaseSwitch } from '../phase-switch';
 
 /**
  * 自动退出 plan mode
@@ -48,7 +48,8 @@ function autoExitPlanMode(
   // Non-loop: return to whoever entered plan mode
   // Loop: return to the task-classified executor (not the user's selected agent)
   const fsm = getLoop();
-  const isLoopTransition = fsm && (fsm.state.phase === 'interview' || fsm.state.phase === 'redesign');
+  const isLoopTransition =
+    fsm && (fsm.state.phase === 'interview' || fsm.state.phase === 'redesign');
   const returnAgent = isLoopTransition
     ? fsm!.state.executor_type
     : (overlay.returnAgent ?? 'orchestrator');
@@ -64,7 +65,12 @@ function autoExitPlanMode(
   const sw = fsm?.consumePhaseSwitch();
   if (sw) {
     injectPhaseSwitch(sessionID, {
-      phase: sw.phase as 'execute' | 'redesign' | 'review' | 'interview' | 'done',
+      phase: sw.phase as
+        | 'execute'
+        | 'redesign'
+        | 'review'
+        | 'interview'
+        | 'done',
       agent: sw.agent,
       think: (sw.think as 'inherit' | 'max' | 'high') ?? 'inherit',
       extras: { returnAgent, fixInstructions: `auto-exit: ${reason}` },
@@ -99,7 +105,10 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
       // If plan overlay is active, deny dangerous tools
       const activeOverlay = options.overlayManager.getCurrent(sessionID);
 
-      if (activeOverlay?.phase === 'plan' || activeOverlay?.agent === 'prometheus') {
+      if (
+        activeOverlay?.phase === 'plan' ||
+        activeOverlay?.agent === 'prometheus'
+      ) {
         // Check if loop redesign mode — different permission model
         const loop = isLoopActive() ? getLoop() : null;
         const isRedesign = loop?.state.phase === 'redesign';
@@ -108,20 +117,27 @@ export function createPlanModeHook(options: PlanModeHookOptions) {
           // Redesign mode: deny question tool
           output.args = {
             _denied: true,
-            error: 'Redesign mode: you cannot ask the user. Use sub-agents (task/subtask) to investigate autonomously.',
+            error:
+              'Redesign mode: you cannot ask the user. Use sub-agents (task/subtask) to investigate autonomously.',
           };
           return;
         }
 
         // Deny write/edit/bash in all plan/redesign modes
         const DENIED_WRITE = new Set([
-          'write', 'edit', 'bash', 'exec', 'execute_command',
-          'powershell', 'shell',
+          'write',
+          'edit',
+          'bash',
+          'exec',
+          'execute_command',
+          'powershell',
+          'shell',
         ]);
         if (DENIED_WRITE.has(tool)) {
           // Auto-exit plan mode
           const exit = autoExitPlanMode(
-            options.overlayManager, sessionID,
+            options.overlayManager,
+            sessionID,
             `${tool} attempted in plan mode — auto-exiting`,
           );
           output.args = {

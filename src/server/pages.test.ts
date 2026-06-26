@@ -27,7 +27,9 @@ describe('renderHtmlViewer', () => {
     expect(html).toContain('report-a.html');
     expect(html).toContain('report-b.html');
     expect(html).toContain('summary.html');
-    expect(html).toContain('/api/html-open?workspace=D%3A%2Frepo-b&path=report-b.html');
+    expect(html).toContain(
+      '/api/html-open?workspace=D%3A%2Frepo-b&path=report-b.html',
+    );
     expect(html).toContain('<details class="workspace-group" open>');
   });
 

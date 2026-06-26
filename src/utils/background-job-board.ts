@@ -1,7 +1,4 @@
-import {
-  parseTaskStatusOutput,
-  type TaskOutputState,
-} from './task';
+import { parseTaskStatusOutput, type TaskOutputState } from './task';
 
 interface ContextFile {
   path: string;
@@ -376,7 +373,9 @@ export class BackgroundJobBoard {
       'Do not poll running jobs. Wait for hook-driven completion, or use cancel_task only for explicit cancellation. Reconcile terminal jobs before final response. Reuse only completed sessions for the same specialist/context; never reuse cancelled or errored sessions.',
       '',
       '#### Active / Unreconciled',
-      ...(active.length > 0 ? active.map((job) => formatJob(job, now)) : ['- none']),
+      ...(active.length > 0
+        ? active.map((job) => formatJob(job, now))
+        : ['- none']),
       '',
       '#### Reusable Sessions',
       ...(reusable.length > 0
@@ -399,7 +398,9 @@ export class BackgroundJobBoard {
     const job = this.jobs.get(taskID);
     if (!job || !isReusable(job)) return;
     const reusable = this.list(job.parentSessionID)
-      .filter((candidate) => candidate.agent === job.agent && isReusable(candidate))
+      .filter(
+        (candidate) => candidate.agent === job.agent && isReusable(candidate),
+      )
       .sort((a, b) => b.lastUsedAt - a.lastUsedAt);
     for (const stale of reusable.slice(this.maxReusablePerAgent)) {
       this.jobs.delete(stale.taskID);
@@ -408,12 +409,17 @@ export class BackgroundJobBoard {
 
   private formatReusableJob(job: BackgroundJobRecord): string {
     const terminal = job.terminalState ?? terminalStateOf(job.state);
-    const reconciliation = job.terminalUnreconciled ? 'unreconciled' : 'reconciled';
+    const reconciliation = job.terminalUnreconciled
+      ? 'unreconciled'
+      : 'reconciled';
     const lines = [
       `- ${job.alias} / ${job.taskID} / ${job.agent} / ${terminal ?? job.state}, ${reconciliation}`,
       `  Objective: ${job.objective || job.description}`,
     ];
-    const context = formatContextFiles(job.contextFiles, this.readContextMaxFiles);
+    const context = formatContextFiles(
+      job.contextFiles,
+      this.readContextMaxFiles,
+    );
     if (context) lines.push(`  Context read by ${job.alias}: ${context}`);
     return lines.join('\n');
   }
@@ -445,7 +451,9 @@ function formatContextFiles(files: ContextFile[], maxFiles: number): string {
   if (maxFiles === 0) return '';
   const shown = files.slice(0, maxFiles);
   const rest = files.length - shown.length;
-  const rendered = shown.map((file) => `${file.path} (${file.lineCount} lines)`);
+  const rendered = shown.map(
+    (file) => `${file.path} (${file.lineCount} lines)`,
+  );
   return `${rendered.join(', ')}${rest > 0 ? ` (+${rest} more)` : ''}`;
 }
 

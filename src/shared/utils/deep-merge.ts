@@ -1,12 +1,14 @@
-const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 const MAX_DEPTH = 50;
 
-export function isPlainObject(value: unknown): value is Record<string, unknown> {
+export function isPlainObject(
+  value: unknown,
+): value is Record<string, unknown> {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
     !Array.isArray(value) &&
-    Object.prototype.toString.call(value) === "[object Object]"
+    Object.prototype.toString.call(value) === '[object Object]'
   );
 }
 
@@ -20,12 +22,20 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
  * deepMerge({ a: 1, b: { c: 2, d: 3 } }, { b: { c: 10 }, e: 5 })
  * // => { a: 1, b: { c: 10, d: 3 }, e: 5 }
  */
-export function deepMerge<T extends Record<string, unknown>>(base: T, override: Partial<T>, depth?: number): T;
-export function deepMerge<T extends Record<string, unknown>>(base: T | undefined, override: T | undefined, depth?: number): T | undefined;
+export function deepMerge<T extends Record<string, unknown>>(
+  base: T,
+  override: Partial<T>,
+  depth?: number,
+): T;
 export function deepMerge<T extends Record<string, unknown>>(
   base: T | undefined,
   override: T | undefined,
-  depth = 0
+  depth?: number,
+): T | undefined;
+export function deepMerge<T extends Record<string, unknown>>(
+  base: T | undefined,
+  override: T | undefined,
+  depth = 0,
 ): T | undefined {
   if (!base && !override) return undefined;
   if (!base) return override;

@@ -1,86 +1,98 @@
-import type { TeamModeConfig } from "../../config/schema/team-mode"
-import { lookupTeamSession } from "../../features/team-mode/team-session-registry"
-import { loadRuntimeState, listActiveTeams, transitionRuntimeState } from "../../features/team-mode/team-state-store/store"
-import { resolveSessionEventID } from "../../shared/event-session-id"
-import { log } from "../../shared/logger"
+import type { TeamModeConfig } from '../../config/schema/team-mode';
+import { lookupTeamSession } from '../../features/team-mode/team-session-registry';
+import {
+  listActiveTeams,
+  loadRuntimeState,
+  transitionRuntimeState,
+} from '../../features/team-mode/team-state-store/store';
+import { resolveSessionEventID } from '../../shared/event-session-id';
+import { log } from '../../shared/logger';
 
-type HookInput = { event: { type: string; properties?: unknown } }
-export type HookImpl = (input: HookInput) => Promise<void>
+type HookInput = { event: { type: string; properties?: unknown } };
+export type HookImpl = (input: HookInput) => Promise<void>;
 
 async function findLeadTeamRunId(
   deletedSessionID: string,
   config: TeamModeConfig,
 ): Promise<string | null> {
-  const registryEntry = lookupTeamSession(deletedSessionID)
-  if (registryEntry?.role === "lead") {
+  const registryEntry = lookupTeamSession(deletedSessionID);
+  if (registryEntry?.role === 'lead') {
     try {
-      const runtimeState = await loadRuntimeState(registryEntry.teamRunId, config)
-      if (runtimeState.leadSessionId === undefined || runtimeState.leadSessionId === deletedSessionID) {
-        return runtimeState.teamRunId
+      const runtimeState = await loadRuntimeState(
+        registryEntry.teamRunId,
+        config,
+      );
+      if (
+        runtimeState.leadSessionId === undefined ||
+        runtimeState.leadSessionId === deletedSessionID
+      ) {
+        return runtimeState.teamRunId;
       }
     } catch (error) {
-      log("team lead orphan handler registry lookup failed", {
-        event: "team-mode-lead-orphan-handler-registry-error",
+      log('team lead orphan handler registry lookup failed', {
+        event: 'team-mode-lead-orphan-handler-registry-error',
         teamRunId: registryEntry.teamRunId,
         deletedSessionID,
         error: error instanceof Error ? error.message : String(error),
-      })
+      });
     }
   }
 
-  const activeTeams = await listActiveTeams(config)
+  const activeTeams = await listActiveTeams(config);
   for (const activeTeam of activeTeams) {
     try {
-      const runtimeState = await loadRuntimeState(activeTeam.teamRunId, config)
+      const runtimeState = await loadRuntimeState(activeTeam.teamRunId, config);
       if (runtimeState.leadSessionId === deletedSessionID) {
-        return runtimeState.teamRunId
+        return runtimeState.teamRunId;
       }
     } catch (error) {
-      log("team lead orphan handler skipped runtime", {
-        event: "team-mode-lead-orphan-handler-runtime-error",
+      log('team lead orphan handler skipped runtime', {
+        event: 'team-mode-lead-orphan-handler-runtime-error',
         teamRunId: activeTeam.teamRunId,
         deletedSessionID,
         error: error instanceof Error ? error.message : String(error),
-      })
+      });
     }
   }
 
-  return null
+  return null;
 }
 
-export function createTeamLeadOrphanHandler(
-  config: TeamModeConfig,
-): HookImpl {
+export function createTeamLeadOrphanHandler(config: TeamModeConfig): HookImpl {
   return async ({ event }: HookInput): Promise<void> => {
-    if (event.type !== "session.deleted") return
+    if (event.type !== 'session.deleted') return;
 
-    const deletedSessionID = resolveSessionEventID(event.properties)
-    if (!deletedSessionID) return
+    const deletedSessionID = resolveSessionEventID(event.properties);
+    if (!deletedSessionID) return;
 
     try {
-      const teamRunId = await findLeadTeamRunId(deletedSessionID, config)
-      if (teamRunId === null) return
+      const teamRunId = await findLeadTeamRunId(deletedSessionID, config);
+      if (teamRunId === null) return;
 
-      const runtimeState = await loadRuntimeState(teamRunId, config)
-      await transitionRuntimeState(runtimeState.teamRunId, (currentRuntimeState) => ({
-        ...currentRuntimeState,
-        status: "orphaned",
-      }), config)
+      const runtimeState = await loadRuntimeState(teamRunId, config);
+      await transitionRuntimeState(
+        runtimeState.teamRunId,
+        (currentRuntimeState) => ({
+          ...currentRuntimeState,
+          status: 'orphaned',
+        }),
+        config,
+      );
 
-      log("team lead session deleted", {
-        event: "team-mode-lead-orphaned",
+      log('team lead session deleted', {
+        event: 'team-mode-lead-orphaned',
         teamRunId: runtimeState.teamRunId,
         teamName: runtimeState.teamName,
         deletedSessionID,
         previousStatus: runtimeState.status,
-        nextStatus: "orphaned",
-      })
+        nextStatus: 'orphaned',
+      });
     } catch (error) {
-      log("team lead orphan handler failed", {
-        event: "team-mode-lead-orphan-handler-error",
+      log('team lead orphan handler failed', {
+        event: 'team-mode-lead-orphan-handler-error',
         deletedSessionID,
         error: error instanceof Error ? error.message : String(error),
-      })
+      });
     }
-  }
+  };
 }

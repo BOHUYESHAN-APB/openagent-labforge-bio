@@ -29,19 +29,31 @@
     "xiaomi-token-plan-cn/mimo-v2.5-flash",
     "deepseek/deepseek-v4-flash"
   ],
-  "fixer": ["xiaomi-token-plan-cn/mimo-v2.5-flash", "deepseek/deepseek-v4-flash"],
-  "council": ["xiaomi-token-plan-cn/mimo-v2.5-flash", "deepseek/deepseek-v4-flash"],
+  "fixer": [
+    "xiaomi-token-plan-cn/mimo-v2.5-flash",
+    "deepseek/deepseek-v4-flash"
+  ],
+  "council": [
+    "xiaomi-token-plan-cn/mimo-v2.5-flash",
+    "deepseek/deepseek-v4-flash"
+  ],
   "councillor": [
     "xiaomi-token-plan-cn/mimo-v2.5-flash",
     "deepseek/deepseek-v4-flash"
   ],
-  "metis": ["xiaomi-token-plan-cn/mimo-v2.5-flash", "deepseek/deepseek-v4-flash"],
+  "metis": [
+    "xiaomi-token-plan-cn/mimo-v2.5-flash",
+    "deepseek/deepseek-v4-flash"
+  ],
   "momus": ["xiaomi-token-plan-cn/mimo-v2.5-pro", "deepseek/deepseek-v4-pro"],
   "multimodal-looker": [
     "xiaomi-token-plan-cn/mimo-v2.5-flash",
     "deepseek/deepseek-v4-flash"
   ],
-  "reviewer": ["xiaomi-token-plan-cn/mimo-v2.5-pro", "deepseek/deepseek-v4-pro"],
+  "reviewer": [
+    "xiaomi-token-plan-cn/mimo-v2.5-pro",
+    "deepseek/deepseek-v4-pro"
+  ],
   "team_mode": {
     "enabled": false,
     "max_members": 8,

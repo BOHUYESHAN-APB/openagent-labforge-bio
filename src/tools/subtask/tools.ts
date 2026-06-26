@@ -72,7 +72,9 @@ export function createSubtaskTool(
       background: tool.schema
         .boolean()
         .optional()
-        .describe('Execution mode: false (default) = blocking, main agent waits for result. true = fire-and-forget, main agent continues immediately.'),
+        .describe(
+          'Execution mode: false (default) = blocking, main agent waits for result. true = fire-and-forget, main agent continues immediately.',
+        ),
     },
     async execute(args, context) {
       const runInBackground = args.background === true;
@@ -113,7 +115,11 @@ export function createSubtaskTool(
             path: { id: sessionID },
             query: { directory },
           });
-          const session = (sessionData as { data?: { model?: { providerID: string; id: string } } })?.data;
+          const session = (
+            sessionData as {
+              data?: { model?: { providerID: string; id: string } };
+            }
+          )?.data;
           if (session?.model) {
             inheritedModel = {
               providerID: session.model.providerID,
@@ -175,23 +181,25 @@ Do not spawn another subtask.`;
         // Background mode: fire and forget
         if (runInBackground) {
           shouldCleanupChildSession = false;
-          void client.session.prompt({
-            responseStyle: 'data',
-            throwOnError: true,
-            query: { directory },
-            path: { id: childSessionID },
-            body: {
-              agent: 'orchestrator',
-              parts: [
-                {
-                  type: 'text',
-                  text: `${fullPrompt}\n\nInstructions:\n1. Understand the task and relevant file context.\n2. Make only necessary changes.\n3. Run the most relevant validation checks when practical.\n4. Stop when the requested task is done.\n\nReturn your final response in this format:\n\n<subtask_summary>\nStatus: completed | blocked | partial\n\nWhat changed:\n- ...\n\nFiles touched:\n- ...\n\nValidation:\n- ...\n\nRisks / follow-up:\n- ...\n</subtask_summary>`,
-                },
-                ...(await buildSyntheticFileParts(directory, files)),
-              ],
-              ...(inheritedModel ? { model: inheritedModel } : {}),
-            },
-          }).catch(() => {});
+          void client.session
+            .prompt({
+              responseStyle: 'data',
+              throwOnError: true,
+              query: { directory },
+              path: { id: childSessionID },
+              body: {
+                agent: 'orchestrator',
+                parts: [
+                  {
+                    type: 'text',
+                    text: `${fullPrompt}\n\nInstructions:\n1. Understand the task and relevant file context.\n2. Make only necessary changes.\n3. Run the most relevant validation checks when practical.\n4. Stop when the requested task is done.\n\nReturn your final response in this format:\n\n<subtask_summary>\nStatus: completed | blocked | partial\n\nWhat changed:\n- ...\n\nFiles touched:\n- ...\n\nValidation:\n- ...\n\nRisks / follow-up:\n- ...\n</subtask_summary>`,
+                  },
+                  ...(await buildSyntheticFileParts(directory, files)),
+                ],
+                ...(inheritedModel ? { model: inheritedModel } : {}),
+              },
+            })
+            .catch(() => {});
 
           return [
             `task_id: ${childSessionID}`,

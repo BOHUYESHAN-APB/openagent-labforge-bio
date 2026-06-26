@@ -3,9 +3,10 @@
  *
  * 注意：FSM 使用文件系统持久化，通过临时目录隔离测试。
  */
+
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import {
   classifyTaskExecutor,
   createLoop,
@@ -23,8 +24,11 @@ let testDir = '';
 beforeEach(() => {
   testDir = join(
     import.meta.dirname,
-    '..', '..', '..',
-    '.opencode', 'test-tmp',
+    '..',
+    '..',
+    '..',
+    '.opencode',
+    'test-tmp',
     `loop-test-${Date.now()}`,
   );
   mkdirSync(join(testDir, TEST_LOOP_DIR), { recursive: true });
@@ -149,8 +153,8 @@ describe('LoopStateMachine: kickstart', () => {
   test('consumeKickstart is idempotent (same seq only once)', () => {
     const fsm = createLoop('Test', 'engineer', 'engineer');
     fsm.transition('execute');
-    expect(fsm.consumeKickstart()).not.toBeNull();  // first call
-    expect(fsm.consumeKickstart()).toBeNull();       // second call → null
+    expect(fsm.consumeKickstart()).not.toBeNull(); // first call
+    expect(fsm.consumeKickstart()).toBeNull(); // second call → null
   });
 
   test('consumeKickstart returns redesign prompt', () => {

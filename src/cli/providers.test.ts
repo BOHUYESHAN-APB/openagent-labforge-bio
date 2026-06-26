@@ -6,7 +6,13 @@ import { generateLiteConfig, MODEL_MAPPINGS } from './providers';
 describe('providers', () => {
   test('MODEL_MAPPINGS includes supported providers', () => {
     const keys = Object.keys(MODEL_MAPPINGS);
-    expect(keys.sort()).toEqual(['3-mix', 'ds-first', 'ds-mimo', 'openai', 'openai-go']);
+    expect(keys.sort()).toEqual([
+      '3-mix',
+      'ds-first',
+      'ds-mimo',
+      'openai',
+      'openai-go',
+    ]);
   });
 
   test('generateLiteConfig defaults to free and includes all presets', () => {

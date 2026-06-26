@@ -4,8 +4,8 @@
  * 测试 auto-exit、agent 切换注入、deny 逻辑
  */
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { createPlanModeHook } from './index';
 import type { EffectiveAgentOverlayManager } from '../../utils/effective-agent-overlay';
+import { createPlanModeHook } from './index';
 
 // ──────────────────────────────────────────
 // Mock overlay manager
@@ -57,10 +57,7 @@ describe('plan-mode auto-exit', () => {
     });
 
     const output: { args?: Record<string, unknown> } = {};
-    hook['tool.execute.before'](
-      { tool: 'write', sessionID: 's1' },
-      output,
-    );
+    hook['tool.execute.before']({ tool: 'write', sessionID: 's1' }, output);
 
     expect(output.args).toBeDefined();
     expect(output.args!._denied).toBe(true);
@@ -84,13 +81,10 @@ describe('plan-mode auto-exit', () => {
     });
 
     const output: { args?: Record<string, unknown> } = {};
-    hook['tool.execute.before'](
-      { tool: 'edit', sessionID: 's1' },
-      output,
-    );
+    hook['tool.execute.before']({ tool: 'edit', sessionID: 's1' }, output);
 
     expect(output.args!._denied).toBe(true);
-    expect((output.args!.error as string)).toContain('bio-orchestrator');
+    expect(output.args!.error as string).toContain('bio-orchestrator');
   });
 
   test('bash in plan mode triggers auto-exit', () => {
@@ -105,10 +99,7 @@ describe('plan-mode auto-exit', () => {
     });
 
     const output: { args?: Record<string, unknown> } = {};
-    hook['tool.execute.before'](
-      { tool: 'bash', sessionID: 's1' },
-      output,
-    );
+    hook['tool.execute.before']({ tool: 'bash', sessionID: 's1' }, output);
 
     expect(output.args!._denied).toBe(true);
   });
@@ -121,10 +112,7 @@ describe('plan-mode auto-exit', () => {
     });
 
     const output: { args?: Record<string, unknown> } = {};
-    hook['tool.execute.before'](
-      { tool: 'write', sessionID: 's1' },
-      output,
-    );
+    hook['tool.execute.before']({ tool: 'write', sessionID: 's1' }, output);
 
     // No denial - write proceeds normally
     expect(output.args).toBeUndefined();
@@ -189,14 +177,16 @@ describe('select_agent interception', () => {
       getCurrentAgent: createMockGetCurrentAgent(),
     });
 
-    const output: { args?: Record<string, unknown> } = { args: { name: 'reviewer' } };
+    const output: { args?: Record<string, unknown> } = {
+      args: { name: 'reviewer' },
+    };
     hook['tool.execute.before'](
       { tool: 'select_agent', sessionID: 's1' },
       output,
     );
 
     expect(output.args!._denied).toBe(true);
-    expect((output.args!.error as string)).toContain('loop-managed');
+    expect(output.args!.error as string).toContain('loop-managed');
   });
 
   test('allows non-reviewer agent selection', () => {
@@ -206,7 +196,9 @@ describe('select_agent interception', () => {
       getCurrentAgent: createMockGetCurrentAgent(),
     });
 
-    const output: { args?: Record<string, unknown> } = { args: { name: 'explorer' } };
+    const output: { args?: Record<string, unknown> } = {
+      args: { name: 'explorer' },
+    };
     hook['tool.execute.before'](
       { tool: 'select_agent', sessionID: 's1' },
       output,

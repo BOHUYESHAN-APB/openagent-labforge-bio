@@ -1,7 +1,4 @@
-import type {
-  PluginInput,
-  ToolDefinition,
-} from '@opencode-ai/plugin';
+import type { PluginInput, ToolDefinition } from '@opencode-ai/plugin';
 import { tool } from '@opencode-ai/plugin';
 import type {
   BackgroundJobBoard,
@@ -38,15 +35,23 @@ Use only for obsolete, wrong, conflicting, or user-requested cancellation. Accep
         throw new Error('cancel_task can only be used by orchestrator');
       }
       if (!options.shouldManageSession(parentSessionID)) {
-        throw new Error('cancel_task can only be used in orchestrator sessions');
+        throw new Error(
+          'cancel_task can only be used in orchestrator sessions',
+        );
       }
 
       const requested = args.task_id.trim();
       if (!requested) throw new Error('cancel_task requires task_id');
 
-      const job = options.backgroundJobBoard.resolve(parentSessionID, requested);
+      const job = options.backgroundJobBoard.resolve(
+        parentSessionID,
+        requested,
+      );
       if (!job) {
-        return unknownTaskOutput(requested, 'unknown or unowned background task');
+        return unknownTaskOutput(
+          requested,
+          'unknown or unowned background task',
+        );
       }
 
       try {

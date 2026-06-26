@@ -14,14 +14,40 @@ exposure: standard
 - `playwright-cli` — uses playwright-cli commands (no MCP)
 - `dev-browser` — persistent page state with Node.js scripts (needs server startup)
 
+## ⚠️ 不要用 bash 做浏览器任务
+
+**OpenCode 自带的 bash 工具是不可交互的**。它发出一条命令，等执行完返回结果——不支持持续对话、不支持传回中间信息、不支持传出下一步指令。浏览器任务恰恰需要多步交互（打开→截图→点击→截图→关闭），bash 一次超时就卡死整个线程。
+
+**解决方式（优先级从高到低）：**
+
+1. **启用 MCP 浏览器工具（推荐）**
+   执行 `mcp_toggle enable chrome_devtools_mcp` 启用 Chrome DevTools 协议。
+   这些 MCP 工具有原生交互能力，没有超时问题。
+   备用：`mcp_toggle enable browser_puppeteer`
+
+2. **用 `pty_spawn` 做单次简单浏览器任务**
+   我们的插件提供了可交互终端：
+   - `pty_spawn({ command: "agent-browser", args: ["open", "<url>"] })`
+   - `pty_write({ data: "agent-browser snapshot -i\n" })`
+   - `pty_read` 获取结果
+   - 最后 `pty_write({ data: "agent-browser close\n" })` + `pty_kill`
+
+3. **永远不要用 bash 做浏览器任务**——bash 是同步的，等不起浏览器交互。
+
 ## Quick start
 
 ```bash
-agent-browser open <url>        # Navigate to page
-agent-browser snapshot -i       # Get interactive elements with refs
-agent-browser click @e1         # Click element by ref
-agent-browser fill @e2 "text"   # Fill input by ref
-agent-browser close             # Close browser
+# ✅ CORRECT: Use PTY for browser tasks
+pty_spawn: agent-browser open <url>
+pty_read: get output
+pty_write: agent-browser snapshot -i
+pty_read: get snapshot
+# ... interactions ...
+pty_write: agent-browser close
+pty_kill: cleanup
+
+# ❌ WRONG: Do NOT use bash for multi-step browser tasks
+# bash: agent-browser open <url>  ← will timeout!
 ```
 
 ## MANDATORY workflow (follow this exact sequence)

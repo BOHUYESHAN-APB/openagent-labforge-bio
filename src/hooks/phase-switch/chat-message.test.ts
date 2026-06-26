@@ -51,10 +51,14 @@ describe('chat.message integration (synthetic message prepend)', () => {
     const userText = 'I want to analyze the RNA-seq data';
     const modifiedText = `${switchText}\n\n${userText}`;
 
-    expect(modifiedText).toContain('[phase:interview|agent:prometheus|think:max]');
+    expect(modifiedText).toContain(
+      '[phase:interview|agent:prometheus|think:max]',
+    );
     expect(modifiedText).toContain('I want to analyze the RNA-seq data');
     // The synthetic message comes first
-    expect(modifiedText.startsWith('[phase:interview|agent:prometheus|think:max]')).toBe(true);
+    expect(
+      modifiedText.startsWith('[phase:interview|agent:prometheus|think:max]'),
+    ).toBe(true);
   });
 
   test('no pending switch means no modification', () => {

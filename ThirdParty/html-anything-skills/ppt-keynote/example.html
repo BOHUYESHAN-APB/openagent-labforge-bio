@@ -8,19 +8,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   body { margin:0; background:#0a0a0a; font-family:'Inter Tight','Noto Sans SC',sans-serif; }
-      .deck { display:flex; flex-direction:column; align-items:center; gap:32px; padding:40px 0; }
-      .slide { position:relative; width:1280px; max-width:96vw; aspect-ratio:16/9; border-radius:18px; overflow:hidden; box-shadow:0 30px 80px -20px rgba(0,0,0,0.7); display:flex; flex-direction:column; padding:64px 80px; color:#0a0a0a; background:#fafaf7; }
-      .slide.dark { background:#15140f; color:#fafaf7; }
-      .slide.brand { background:linear-gradient(135deg,#c96442 0%,#e9b94a 100%); color:#fff; }
-      .slide .num { position:absolute; top:24px; right:32px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; opacity:0.55; }
-      .slide .eyebrow { font-size:12px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; opacity:0.65; margin-bottom:20px; }
-      .slide h1 { font-size:84px; font-weight:800; line-height:1.05; letter-spacing:-0.025em; margin:0; }
-      .slide h2 { font-size:64px; font-weight:700; line-height:1.1; letter-spacing:-0.02em; margin:0 0 24px; }
-      .slide p { font-size:24px; line-height:1.5; opacity:0.78; max-width:65ch; }
-      .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:auto; }
-      .card { padding:28px; border-radius:14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); }
-      .card .k { font-size:48px; font-weight:700; letter-spacing:-0.02em; margin-bottom:8px; }
-      .card .l { font-size:14px; opacity:0.65; }
+          .deck { display:flex; flex-direction:column; align-items:center; gap:32px; padding:40px 0; }
+          .slide { position:relative; width:1280px; max-width:96vw; aspect-ratio:16/9; border-radius:18px; overflow:hidden; box-shadow:0 30px 80px -20px rgba(0,0,0,0.7); display:flex; flex-direction:column; padding:64px 80px; color:#0a0a0a; background:#fafaf7; }
+          .slide.dark { background:#15140f; color:#fafaf7; }
+          .slide.brand { background:linear-gradient(135deg,#c96442 0%,#e9b94a 100%); color:#fff; }
+          .slide .num { position:absolute; top:24px; right:32px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.18em; opacity:0.55; }
+          .slide .eyebrow { font-size:12px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; opacity:0.65; margin-bottom:20px; }
+          .slide h1 { font-size:84px; font-weight:800; line-height:1.05; letter-spacing:-0.025em; margin:0; }
+          .slide h2 { font-size:64px; font-weight:700; line-height:1.1; letter-spacing:-0.02em; margin:0 0 24px; }
+          .slide p { font-size:24px; line-height:1.5; opacity:0.78; max-width:65ch; }
+          .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:auto; }
+          .card { padding:28px; border-radius:14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); }
+          .card .k { font-size:48px; font-weight:700; letter-spacing:-0.02em; margin-bottom:8px; }
+          .card .l { font-size:14px; opacity:0.65; }
 </style>
 </head>
 <body>
@@ -117,14 +117,14 @@
 </div>
 <script>
   // ←/→ scroll between slides; current implementation just smooth-scrolls
-      const slides=document.querySelectorAll('.slide');
-      let i=0;
-      document.addEventListener('keydown', e=>{
-        if(e.key==='ArrowRight') i=Math.min(i+1, slides.length-1);
-        else if(e.key==='ArrowLeft') i=Math.max(i-1,0);
-        else return;
-        slides[i].scrollIntoView({behavior:'smooth', block:'center'});
-      });
+          const slides=document.querySelectorAll('.slide');
+          let i=0;
+          document.addEventListener('keydown', e=>{
+            if(e.key==='ArrowRight') i=Math.min(i+1, slides.length-1);
+            else if(e.key==='ArrowLeft') i=Math.max(i-1,0);
+            else return;
+            slides[i].scrollIntoView({behavior:'smooth', block:'center'});
+          });
 </script>
 </body>
 </html>

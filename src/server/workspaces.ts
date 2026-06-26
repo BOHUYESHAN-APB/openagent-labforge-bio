@@ -21,7 +21,8 @@ function isNestedUnderAny(candidate: string, roots: string[]): boolean {
   const normalizedCandidate = normalizeWorkspaceDirectory(candidate);
   return roots.some(
     (root) =>
-      normalizedCandidate !== root && normalizedCandidate.startsWith(`${root}/`),
+      normalizedCandidate !== root &&
+      normalizedCandidate.startsWith(`${root}/`),
   );
 }
 

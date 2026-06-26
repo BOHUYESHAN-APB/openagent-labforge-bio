@@ -29,18 +29,9 @@
     "csv_rows": 108
   },
   "covariates": {
-    "dynamic_numerical": [
-      "price"
-    ],
-    "dynamic_categorical": [
-      "promotion",
-      "holiday",
-      "day_of_week"
-    ],
-    "static_categorical": [
-      "store_type",
-      "region"
-    ]
+    "dynamic_numerical": ["price"],
+    "dynamic_categorical": ["promotion", "holiday", "day_of_week"],
+    "static_categorical": ["store_type", "region"]
   },
   "effect_magnitudes": {
     "holiday": "+200 units per holiday week",

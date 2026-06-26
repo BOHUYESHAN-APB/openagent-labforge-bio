@@ -6,115 +6,115 @@
 <title>Lull · Mobile onboarding</title>
 <style>
   :root {
-        --canvas: #efece4;
-        --ink: #232118;
-        --muted: #76715f;
-        --accent: #c66e3a;
-        --warm: #e8a76e;
-        --display: 'Iowan Old Style', 'Charter', Georgia, serif;
-        --body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
-      }
-      * { box-sizing: border-box; }
-      body { margin: 0; background: var(--canvas); font-family: var(--body); color: var(--ink); }
-      .stage {
-        min-height: 100vh;
-        padding: 56px 32px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 32px;
-        background:
-          radial-gradient(ellipse 80% 60% at 50% -10%, rgba(232,167,110,0.35), transparent 70%),
-          radial-gradient(ellipse 80% 50% at 50% 110%, rgba(198,110,58,0.16), transparent 70%),
-          var(--canvas);
-      }
-      .stage h1 {
-        font-family: var(--display);
-        font-size: 28px;
-        margin: 0;
-        letter-spacing: -0.005em;
-      }
-      .stage p.lede { color: var(--muted); margin: 0; max-width: 50ch; text-align: center; }
-    
-      .phones {
-        display: grid;
-        grid-template-columns: repeat(3, auto);
-        gap: 36px;
-        align-items: center;
-      }
-      .phone {
-        width: 320px;
-        aspect-ratio: 9 / 19.5;
-        background: #fff;
-        border-radius: 44px;
-        border: 8px solid #1a1814;
-        overflow: hidden;
-        position: relative;
-        box-shadow:
-          0 32px 60px rgba(28,27,26,0.18),
-          0 12px 18px rgba(28,27,26,0.08);
-        display: flex;
-        flex-direction: column;
-      }
-      .phone .notch {
-        position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-        width: 100px; height: 22px;
-        background: #1a1814;
-        border-bottom-left-radius: 14px;
-        border-bottom-right-radius: 14px;
-        z-index: 5;
-      }
-      .statusbar {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 14px 24px 4px;
-        font-size: 12.5px; font-weight: 600; color: var(--ink);
-      }
-      .statusbar .right { display: flex; gap: 6px; align-items: center; font-size: 11px; }
-      .status-icon { display: inline-block; width: 14px; height: 8px; background: var(--ink); border-radius: 2px; }
-    
-      .phone-body {
-        flex: 1;
-        padding: 18px 24px 24px;
-        display: flex;
-        flex-direction: column;
-      }
-      .phone-top { display: flex; justify-content: flex-end; align-items: center; }
-      .skip { font-size: 13px; color: var(--muted); }
-    
-      .hero { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 0; }
-      .hero .art { width: 220px; height: 220px; }
-    
-      .copy { display: flex; flex-direction: column; gap: 10px; padding: 14px 4px; }
-      .copy h2 { font-family: var(--display); font-size: 30px; line-height: 1.1; margin: 0; letter-spacing: -0.01em; font-weight: 700; }
-      .copy p { color: var(--muted); margin: 0; font-size: 15px; line-height: 1.5; }
-    
-      .pager { display: flex; justify-content: center; gap: 6px; padding: 14px 0 8px; }
-      .pager span { width: 6px; height: 6px; border-radius: 50%; background: rgba(35,33,24,0.18); }
-      .pager span.active { width: 22px; background: var(--accent); border-radius: 999px; }
-    
-      .cta {
-        background: var(--ink); color: #fef9ee;
-        padding: 16px 22px; border-radius: 999px;
-        text-align: center; font-weight: 600; font-size: 15px;
-      }
-      .alt { text-align: center; color: var(--muted); padding-top: 12px; font-size: 13px; }
-      .alt a { color: var(--accent); font-weight: 600; }
-    
-      /* Phone 3 — sign-in */
-      .signin-options { display: flex; flex-direction: column; gap: 10px; }
-      .opt { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 1px solid rgba(35,33,24,0.12); border-radius: 14px; font-weight: 500; font-size: 14.5px; }
-      .opt .glyph { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
-      .opt.apple .glyph { background: #000; }
-      .opt.google .glyph { background: linear-gradient(135deg, #ea4335, #fbbc05, #34a853, #4285f4); }
-      .opt.email .glyph { background: var(--accent); }
-    
-      .terms { font-size: 11px; color: var(--muted); text-align: center; padding-top: 14px; line-height: 1.5; }
-      .terms a { color: var(--accent); }
-    
-      @media (max-width: 1100px) {
-        .phones { grid-template-columns: 1fr; }
-        .phone { width: 92vw; max-width: 360px; }
-      }
+            --canvas: #efece4;
+            --ink: #232118;
+            --muted: #76715f;
+            --accent: #c66e3a;
+            --warm: #e8a76e;
+            --display: 'Iowan Old Style', 'Charter', Georgia, serif;
+            --body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+          }
+          * { box-sizing: border-box; }
+          body { margin: 0; background: var(--canvas); font-family: var(--body); color: var(--ink); }
+          .stage {
+            min-height: 100vh;
+            padding: 56px 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 32px;
+            background:
+              radial-gradient(ellipse 80% 60% at 50% -10%, rgba(232,167,110,0.35), transparent 70%),
+              radial-gradient(ellipse 80% 50% at 50% 110%, rgba(198,110,58,0.16), transparent 70%),
+              var(--canvas);
+          }
+          .stage h1 {
+            font-family: var(--display);
+            font-size: 28px;
+            margin: 0;
+            letter-spacing: -0.005em;
+          }
+          .stage p.lede { color: var(--muted); margin: 0; max-width: 50ch; text-align: center; }
+        
+          .phones {
+            display: grid;
+            grid-template-columns: repeat(3, auto);
+            gap: 36px;
+            align-items: center;
+          }
+          .phone {
+            width: 320px;
+            aspect-ratio: 9 / 19.5;
+            background: #fff;
+            border-radius: 44px;
+            border: 8px solid #1a1814;
+            overflow: hidden;
+            position: relative;
+            box-shadow:
+              0 32px 60px rgba(28,27,26,0.18),
+              0 12px 18px rgba(28,27,26,0.08);
+            display: flex;
+            flex-direction: column;
+          }
+          .phone .notch {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100px; height: 22px;
+            background: #1a1814;
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 14px;
+            z-index: 5;
+          }
+          .statusbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 24px 4px;
+            font-size: 12.5px; font-weight: 600; color: var(--ink);
+          }
+          .statusbar .right { display: flex; gap: 6px; align-items: center; font-size: 11px; }
+          .status-icon { display: inline-block; width: 14px; height: 8px; background: var(--ink); border-radius: 2px; }
+        
+          .phone-body {
+            flex: 1;
+            padding: 18px 24px 24px;
+            display: flex;
+            flex-direction: column;
+          }
+          .phone-top { display: flex; justify-content: flex-end; align-items: center; }
+          .skip { font-size: 13px; color: var(--muted); }
+        
+          .hero { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 0; }
+          .hero .art { width: 220px; height: 220px; }
+        
+          .copy { display: flex; flex-direction: column; gap: 10px; padding: 14px 4px; }
+          .copy h2 { font-family: var(--display); font-size: 30px; line-height: 1.1; margin: 0; letter-spacing: -0.01em; font-weight: 700; }
+          .copy p { color: var(--muted); margin: 0; font-size: 15px; line-height: 1.5; }
+        
+          .pager { display: flex; justify-content: center; gap: 6px; padding: 14px 0 8px; }
+          .pager span { width: 6px; height: 6px; border-radius: 50%; background: rgba(35,33,24,0.18); }
+          .pager span.active { width: 22px; background: var(--accent); border-radius: 999px; }
+        
+          .cta {
+            background: var(--ink); color: #fef9ee;
+            padding: 16px 22px; border-radius: 999px;
+            text-align: center; font-weight: 600; font-size: 15px;
+          }
+          .alt { text-align: center; color: var(--muted); padding-top: 12px; font-size: 13px; }
+          .alt a { color: var(--accent); font-weight: 600; }
+        
+          /* Phone 3 — sign-in */
+          .signin-options { display: flex; flex-direction: column; gap: 10px; }
+          .opt { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 1px solid rgba(35,33,24,0.12); border-radius: 14px; font-weight: 500; font-size: 14.5px; }
+          .opt .glyph { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+          .opt.apple .glyph { background: #000; }
+          .opt.google .glyph { background: linear-gradient(135deg, #ea4335, #fbbc05, #34a853, #4285f4); }
+          .opt.email .glyph { background: var(--accent); }
+        
+          .terms { font-size: 11px; color: var(--muted); text-align: center; padding-top: 14px; line-height: 1.5; }
+          .terms a { color: var(--accent); }
+        
+          @media (max-width: 1100px) {
+            .phones { grid-template-columns: 1fr; }
+            .phone { width: 92vw; max-width: 360px; }
+          }
 </style>
 </head>
 <body>

@@ -146,7 +146,9 @@ describe('resolveThinkingEffort', () => {
   });
 
   test('max on claude → max', () => {
-    expect(resolveThinkingEffort('max', 'anthropic/claude-sonnet-4-20250514')).toBe('max');
+    expect(
+      resolveThinkingEffort('max', 'anthropic/claude-sonnet-4-20250514'),
+    ).toBe('max');
   });
 
   test('max on default → max', () => {

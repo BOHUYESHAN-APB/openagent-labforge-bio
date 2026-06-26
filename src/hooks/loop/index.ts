@@ -19,14 +19,27 @@
  *   .opencode/loops/plans/{id}/       — 内部 plan (redesign 用)
  */
 
-import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, join } from 'node:path';
 
 // ──────────────────────────────────────────
 // 类型
 // ──────────────────────────────────────────
 
-export type LoopPhase = 'idle' | 'interview' | 'execute' | 'review' | 'redesign' | 'done';
+export type LoopPhase =
+  | 'idle'
+  | 'interview'
+  | 'execute'
+  | 'review'
+  | 'redesign'
+  | 'done';
 
 export interface LoopVerdictEntry {
   phase: string;
@@ -63,12 +76,12 @@ export interface LoopStateData {
 // ──────────────────────────────────────────
 
 const VALID_TRANSITIONS: Record<LoopPhase, LoopPhase[]> = {
-  idle:      ['interview'],
+  idle: ['interview'],
   interview: ['execute', 'done'],
-  execute:   ['review', 'done'],
-  review:    ['execute', 'redesign', 'done'],
-  redesign:  ['execute', 'done'],
-  done:      [],
+  execute: ['review', 'done'],
+  review: ['execute', 'redesign', 'done'],
+  redesign: ['execute', 'done'],
+  done: [],
 };
 
 // ──────────────────────────────────────────
@@ -172,7 +185,11 @@ export class LoopStateMachine {
       } catch {
         // Windows fallback
         writeFileSync(path, JSON.stringify(this.state, null, 2), 'utf-8');
-        try { unlinkSync(tmpPath); } catch { /* ignore */ }
+        try {
+          unlinkSync(tmpPath);
+        } catch {
+          /* ignore */
+        }
       }
     } catch (err) {
       console.error('[LoopFSM] persist failed:', path, err);
@@ -184,7 +201,9 @@ export class LoopStateMachine {
     const path = getStatePath(this.workspaceRoot);
     try {
       if (existsSync(path)) unlinkSync(path);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // ── 转换 ──
@@ -203,7 +222,7 @@ export class LoopStateMachine {
     this.state.transition_seq++;
 
     // 自动设置 kickstart 标志
-    this.state.needs_kickstart = (to === 'execute' || to === 'redesign');
+    this.state.needs_kickstart = to === 'execute' || to === 'redesign';
 
     // 设置 phase switch（供 chat.message hook 消费）
     this.state.pending_switch = {
@@ -221,29 +240,41 @@ export class LoopStateMachine {
   /** 当前阶段对应的有效 agent */
   get effectiveAgent(): string {
     switch (this.state.phase) {
-      case 'interview': return 'prometheus';
-      case 'redesign':  return 'prometheus';
-      case 'review':    return 'reviewer';
-      case 'execute':   return this.state.executor_type;
-      default:          return this.state.return_agent;
+      case 'interview':
+        return 'prometheus';
+      case 'redesign':
+        return 'prometheus';
+      case 'review':
+        return 'reviewer';
+      case 'execute':
+        return this.state.executor_type;
+      default:
+        return this.state.return_agent;
     }
   }
 
   /** 当前阶段对应的 overlay phase */
   get overlayPhase(): string {
     switch (this.state.phase) {
-      case 'interview': return 'plan';
-      case 'redesign':  return 'plan';
-      case 'review':    return 'review';
-      case 'execute':   return 'execute';
-      default:          return 'execute';
+      case 'interview':
+        return 'plan';
+      case 'redesign':
+        return 'plan';
+      case 'review':
+        return 'review';
+      case 'execute':
+        return 'execute';
+      default:
+        return 'execute';
     }
   }
 
   /** 是否需要注入 kickstart 提示词（消费后清除） */
   get needsKickstart(): boolean {
-    return this.state.needs_kickstart &&
-      this.state.last_kickstart_seq < this.state.transition_seq;
+    return (
+      this.state.needs_kickstart &&
+      this.state.last_kickstart_seq < this.state.transition_seq
+    );
   }
 
   // ── Kickstart ──
@@ -294,7 +325,11 @@ Loop ID: ${this.state.loop_id} | Iteration: ${this.state.iteration}/${this.state
   // ── Phase Switch ──
 
   /** 消费 phase switch（供 chat.message hook 调用） */
-  consumePhaseSwitch(): { phase: string; agent: string; think?: string } | null {
+  consumePhaseSwitch(): {
+    phase: string;
+    agent: string;
+    think?: string;
+  } | null {
     const sw = this.state.pending_switch;
     if (!sw) return null;
     this.state.pending_switch = null;
@@ -327,7 +362,11 @@ Loop ID: ${this.state.loop_id} | Iteration: ${this.state.iteration}/${this.state
         const next = this.state.iteration + 1;
         if (next > this.state.max_iterations) {
           this.transition('done');
-          return { phase: 'done', agent: this.state.return_agent, message: 'Max iterations reached' };
+          return {
+            phase: 'done',
+            agent: this.state.return_agent,
+            message: 'Max iterations reached',
+          };
         }
         this.state.iteration = next;
         this.transition('redesign');
@@ -335,7 +374,11 @@ Loop ID: ${this.state.loop_id} | Iteration: ${this.state.iteration}/${this.state
       }
       // scope=executor: 回到 execute
       this.transition('execute');
-      return { phase: 'execute', agent: this.state.executor_type, message: findings };
+      return {
+        phase: 'execute',
+        agent: this.state.executor_type,
+        message: findings,
+      };
     }
 
     return null;
@@ -379,8 +422,16 @@ export function resetLoopModule(): void {
   _activeFsm = null;
 }
 
-export function createLoop(description: string, executor_type: string, return_agent: string): LoopStateMachine {
-  _activeFsm = LoopStateMachine.create(description, executor_type, return_agent);
+export function createLoop(
+  description: string,
+  executor_type: string,
+  return_agent: string,
+): LoopStateMachine {
+  _activeFsm = LoopStateMachine.create(
+    description,
+    executor_type,
+    return_agent,
+  );
   return _activeFsm;
 }
 
@@ -449,20 +500,40 @@ export function routeVerdict(
   if (!fsm) return null;
   const result = fsm.handleVerdict(verdict, scope, fixInstructions);
   if (!result) return null;
-  return { phase: result.phase, agent: result.agent, fixInstructions: result.message };
+  return {
+    phase: result.phase,
+    agent: result.agent,
+    fixInstructions: result.message,
+  };
 }
 
 export function classifyTaskExecutor(description: string): string {
   const lower = description.toLowerCase();
-  if (lower.includes('rna') || lower.includes('基因') || lower.includes('dna') ||
-      lower.includes('蛋白') || lower.includes('生物') || lower.includes('genome') ||
-      lower.includes('seq') || lower.includes('转录') || lower.includes('pca') ||
-      lower.includes('聚类')) {
+  if (
+    lower.includes('rna') ||
+    lower.includes('基因') ||
+    lower.includes('dna') ||
+    lower.includes('蛋白') ||
+    lower.includes('生物') ||
+    lower.includes('genome') ||
+    lower.includes('seq') ||
+    lower.includes('转录') ||
+    lower.includes('pca') ||
+    lower.includes('聚类')
+  ) {
     return 'bio-orchestrator';
   }
-  if (lower.includes('化学') || lower.includes('分子') || lower.includes('反应') ||
-      lower.includes('material') || lower.includes('chemistry') || lower.includes('reaction') ||
-      lower.includes('synthesis') || lower.includes('catalyst') || lower.includes('compound')) {
+  if (
+    lower.includes('化学') ||
+    lower.includes('分子') ||
+    lower.includes('反应') ||
+    lower.includes('material') ||
+    lower.includes('chemistry') ||
+    lower.includes('reaction') ||
+    lower.includes('synthesis') ||
+    lower.includes('catalyst') ||
+    lower.includes('compound')
+  ) {
     return 'chem-orchestrator';
   }
   return 'engineer';

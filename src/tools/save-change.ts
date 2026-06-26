@@ -1,6 +1,6 @@
-import { type ToolDefinition, tool } from '@opencode-ai/plugin';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { type ToolDefinition, tool } from '@opencode-ai/plugin';
 
 const z = tool.schema;
 
@@ -29,7 +29,7 @@ CRITICAL WORKFLOW:
         ),
       proposal: z
         .string()
-        .describe('Proposal content — why we\'re doing this, what\'s changing.'),
+        .describe("Proposal content — why we're doing this, what's changing."),
       design: z
         .string()
         .optional()
@@ -37,7 +37,9 @@ CRITICAL WORKFLOW:
       tasks: z
         .string()
         .optional()
-        .describe('Tasks content — implementation checklist with - [ ] format.'),
+        .describe(
+          'Tasks content — implementation checklist with - [ ] format.',
+        ),
     },
     async execute(args) {
       const name = String(args.name)
@@ -48,7 +50,12 @@ CRITICAL WORKFLOW:
 
       const date = new Date().toISOString().split('T')[0];
       const folderName = `${date}-${name}`;
-      const changesDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'changes');
+      const changesDir = join(
+        workspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'changes',
+      );
       const changeDir = join(changesDir, folderName);
 
       try {
@@ -56,16 +63,28 @@ CRITICAL WORKFLOW:
         mkdirSync(changeDir, { recursive: true });
 
         // Write proposal.md
-        writeFileSync(join(changeDir, 'proposal.md'), String(args.proposal), 'utf8');
+        writeFileSync(
+          join(changeDir, 'proposal.md'),
+          String(args.proposal),
+          'utf8',
+        );
 
         // Write design.md if provided
         if (args.design) {
-          writeFileSync(join(changeDir, 'design.md'), String(args.design), 'utf8');
+          writeFileSync(
+            join(changeDir, 'design.md'),
+            String(args.design),
+            'utf8',
+          );
         }
 
         // Write tasks.md if provided
         if (args.tasks) {
-          writeFileSync(join(changeDir, 'tasks.md'), String(args.tasks), 'utf8');
+          writeFileSync(
+            join(changeDir, 'tasks.md'),
+            String(args.tasks),
+            'utf8',
+          );
         }
 
         // Write status.json
@@ -80,7 +99,11 @@ CRITICAL WORKFLOW:
           },
           last_updated: new Date().toISOString(),
         };
-        writeFileSync(join(changeDir, 'status.json'), JSON.stringify(status, null, 2), 'utf8');
+        writeFileSync(
+          join(changeDir, 'status.json'),
+          JSON.stringify(status, null, 2),
+          'utf8',
+        );
 
         const relativePath = `.opencode/extendai-lab/changes/${folderName}`;
 
@@ -89,7 +112,9 @@ CRITICAL WORKFLOW:
           `Path: ${relativePath}`,
           `Proposal: proposal.md`,
           args.design ? `Design: design.md` : 'Design: (not provided)',
-          args.tasks ? `Tasks: tasks.md (${status.tasks.total} tasks)` : 'Tasks: (not provided)',
+          args.tasks
+            ? `Tasks: tasks.md (${status.tasks.total} tasks)`
+            : 'Tasks: (not provided)',
           'Status: status.json',
           '',
           'Next steps:',

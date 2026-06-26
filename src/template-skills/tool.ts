@@ -8,8 +8,7 @@ export function createLoadSkillTemplateTool(
   sessionManager: TemplateSkillsSessionManager,
 ): ToolDefinition {
   return tool({
-    description:
-      `Load skill templates by category. Use when you need HTML page templates, presentation decks, academic tools, or document generation templates. Returns SKILL.md content for the requested categories.
+    description: `Load skill templates by category. Use when you need HTML page templates, presentation decks, academic tools, or document generation templates. Returns SKILL.md content for the requested categories.
 
 Available categories:
 - html-deck: HTML 幻灯片/PPT 模板（横向翻页、演讲者模式、WebGL 背景）— 2 skills

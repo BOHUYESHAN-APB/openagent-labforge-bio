@@ -1,9 +1,9 @@
 // Team inbox injector — delivers pending messages when members become idle
-import type { PluginInput } from "@opencode-ai/plugin"
-import type { RuntimeState } from "../types"
-import { loadRuntimeState, saveRuntimeState } from "../team-state-store/index"
-import { pollAndDeliverMessages } from "./messaging"
-import { log } from "../../../shared/logger"
+import type { PluginInput } from '@opencode-ai/plugin';
+import { log } from '../../../shared/logger';
+import { loadRuntimeState, saveRuntimeState } from '../team-state-store/index';
+import type { RuntimeState } from '../types';
+import { pollAndDeliverMessages } from './messaging';
 
 /**
  * Check and deliver pending messages to a member that just became idle.
@@ -14,27 +14,31 @@ import { log } from "../../../shared/logger"
 export async function onMemberIdle(
   teamRunId: string,
   memberName: string,
-  client: PluginInput["client"],
+  client: PluginInput['client'],
 ): Promise<number> {
   try {
-    const delivered = await pollAndDeliverMessages(teamRunId, memberName, client)
+    const delivered = await pollAndDeliverMessages(
+      teamRunId,
+      memberName,
+      client,
+    );
 
     if (delivered > 0) {
-      log("[team-injector] Delivered pending messages to idle member", {
+      log('[team-injector] Delivered pending messages to idle member', {
         teamRunId,
         memberName,
         delivered,
-      })
+      });
     }
 
-    return delivered
+    return delivered;
   } catch (error) {
-    log("[team-injector] Failed to deliver messages to idle member", {
+    log('[team-injector] Failed to deliver messages to idle member', {
       teamRunId,
       memberName,
       error: error instanceof Error ? error.message : String(error),
-    })
-    return 0
+    });
+    return 0;
   }
 }
 
@@ -46,37 +50,41 @@ export async function onMemberIdle(
  */
 export async function checkAllMembersInbox(
   teamRunId: string,
-  client: PluginInput["client"],
+  client: PluginInput['client'],
 ): Promise<number> {
   try {
-    const runtimeState = await loadRuntimeState(teamRunId)
-    if (!runtimeState || runtimeState.status !== "active") {
-      return 0
+    const runtimeState = await loadRuntimeState(teamRunId);
+    if (!runtimeState || runtimeState.status !== 'active') {
+      return 0;
     }
 
-    let totalDelivered = 0
+    let totalDelivered = 0;
 
     for (const member of runtimeState.members) {
-      if (member.status === "idle" && member.sessionId) {
-        const delivered = await pollAndDeliverMessages(teamRunId, member.name, client)
-        totalDelivered += delivered
+      if (member.status === 'idle' && member.sessionId) {
+        const delivered = await pollAndDeliverMessages(
+          teamRunId,
+          member.name,
+          client,
+        );
+        totalDelivered += delivered;
       }
     }
 
     if (totalDelivered > 0) {
-      log("[team-injector] Delivered pending messages to idle members", {
+      log('[team-injector] Delivered pending messages to idle members', {
         teamRunId,
         totalDelivered,
-      })
+      });
     }
 
-    return totalDelivered
+    return totalDelivered;
   } catch (error) {
-    log("[team-injector] Failed to check members inbox", {
+    log('[team-injector] Failed to check members inbox', {
       teamRunId,
       error: error instanceof Error ? error.message : String(error),
-    })
-    return 0
+    });
+    return 0;
   }
 }
 
@@ -85,25 +93,31 @@ export async function checkAllMembersInbox(
  */
 export async function getTeamInboxStatus(
   teamRunId: string,
-): Promise<Array<{ memberName: string; pendingMessages: number; status: string }>> {
+): Promise<
+  Array<{ memberName: string; pendingMessages: number; status: string }>
+> {
   try {
-    const runtimeState = await loadRuntimeState(teamRunId)
+    const runtimeState = await loadRuntimeState(teamRunId);
     if (!runtimeState) {
-      return []
+      return [];
     }
 
-    const status: Array<{ memberName: string; pendingMessages: number; status: string }> = []
+    const status: Array<{
+      memberName: string;
+      pendingMessages: number;
+      status: string;
+    }> = [];
 
     for (const member of runtimeState.members) {
       status.push({
         memberName: member.name,
         pendingMessages: member.pendingInjectedMessageIds.length,
         status: member.status,
-      })
+      });
     }
 
-    return status
+    return status;
   } catch {
-    return []
+    return [];
   }
 }

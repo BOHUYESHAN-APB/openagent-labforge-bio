@@ -5,8 +5,12 @@ describe('classifyTerminalCommand', () => {
   test('classifies quick inspection commands as short-sync', () => {
     expect(classifyTerminalCommand('git status')).toBe('short-sync');
     expect(classifyTerminalCommand('git diff --stat')).toBe('short-sync');
-    expect(classifyTerminalCommand('gh release view v1.17.8')).toBe('short-sync');
-    expect(classifyTerminalCommand('python -c "print(123)"')).toBe('short-sync');
+    expect(classifyTerminalCommand('gh release view v1.17.8')).toBe(
+      'short-sync',
+    );
+    expect(classifyTerminalCommand('python -c "print(123)"')).toBe(
+      'short-sync',
+    );
     expect(classifyTerminalCommand('bun test -t "my test"')).toBe('short-sync');
   });
 

@@ -1,7 +1,7 @@
 export type EffectiveAgentOverlayPhase =
-  | 'plan'       // generic plan-mode (backward compat)
-  | 'interview'  // loop: planner interview phase
-  | 'redesign'   // loop: autonomous redesign phase
+  | 'plan' // generic plan-mode (backward compat)
+  | 'interview' // loop: planner interview phase
+  | 'redesign' // loop: autonomous redesign phase
   | 'execute'
   | 'review';
 

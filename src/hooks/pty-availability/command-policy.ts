@@ -34,7 +34,9 @@ const PTY_RECOMMENDED_PATTERNS = [
   /^(docker\s+build|docker\s+compose\s+build|terraform\s+(plan|apply)|ansible-playbook)\b/i,
 ];
 
-export function classifyTerminalCommand(command: string): TerminalCommandPolicy {
+export function classifyTerminalCommand(
+  command: string,
+): TerminalCommandPolicy {
   const normalized = command.trim();
 
   if (SHORT_SYNC_PATTERNS.some((pattern) => pattern.test(normalized))) {

@@ -69,7 +69,7 @@ describe('createContextPressureHook', () => {
     expect(output.system[0]).toContain('Before any pruning');
   });
 
-  test('uses bio thresholds for bio-orchestrator sessions', async () => {
+  test('adaptive thresholds for bio-orchestrator sessions', async () => {
     const ctx = createCtx();
     const hook = createContextPressureHook(ctx as never);
 
@@ -84,7 +84,9 @@ describe('createContextPressureHook', () => {
             providerID: 'openai',
             modelID: 'gpt-5.5',
             tokens: {
-              input: 130_000,
+              // 200K context → L1=min(350K,100K)=100K, L2=min(450K,130K)=130K
+              // 100K tokens → below L2, level 1
+              input: 96_000,
               output: 4_000,
               reasoning: 0,
               cache: { read: 0, write: 0 },
@@ -95,11 +97,11 @@ describe('createContextPressureHook', () => {
     });
 
     const state = hook.getState('bio1');
-    expect(Math.round((state?.ratio ?? 0) * 100)).toBe(67);
+    expect(Math.round((state?.ratio ?? 0) * 100)).toBe(50);
     expect(state?.level).toBe(1);
   });
 
-  test('uses bio thresholds for chem-orchestrator sessions', async () => {
+  test('adaptive thresholds for chem-orchestrator sessions', async () => {
     const ctx = createCtx();
     const hook = createContextPressureHook(ctx as never);
 
@@ -114,7 +116,9 @@ describe('createContextPressureHook', () => {
             providerID: 'openai',
             modelID: 'gpt-5.5',
             tokens: {
-              input: 130_000,
+              // 200K context → L1=100K, L2=130K, L3=160K
+              // 95K tokens → below L1=100K (just under), level 0
+              input: 91_000,
               output: 4_000,
               reasoning: 0,
               cache: { read: 0, write: 0 },
@@ -125,17 +129,13 @@ describe('createContextPressureHook', () => {
     });
 
     const state = hook.getState('chem1');
-    expect(Math.round((state?.ratio ?? 0) * 100)).toBe(67);
-    expect(state?.level).toBe(1);
+    expect(Math.round((state?.ratio ?? 0) * 100)).toBe(48);
+    expect(state?.level).toBe(0);
   });
 
-  test('respects configured threshold overrides', async () => {
+  test('adaptive thresholds: L2 at 140K in 200K context', async () => {
     const ctx = createCtx();
-    const hook = createContextPressureHook(ctx as never, {
-      profiles: {
-        engineering: { l1: 0.4, l2: 0.55, l3: 0.7 },
-      },
-    });
+    const hook = createContextPressureHook(ctx as never);
 
     hook.handleChatMessage({ sessionID: 's3', agent: 'orchestrator' });
     await hook.handleEvent({
@@ -148,7 +148,9 @@ describe('createContextPressureHook', () => {
             providerID: 'openai',
             modelID: 'gpt-5.5',
             tokens: {
-              input: 110_000,
+              // 200K context → L2=130K, L3=160K
+              // 140K tokens → between L2 and L3, level 2
+              input: 140_000,
               output: 0,
               reasoning: 0,
               cache: { read: 0, write: 0 },
@@ -164,6 +166,7 @@ describe('createContextPressureHook', () => {
 
     const output = { system: [] as string[] };
     await hook.handleSystemTransform({ sessionID: 's3' }, output);
+    expect(output.system[0]).toContain('[Context pressure: L2');
     expect(output.system[0]).toContain('handle context pressure first');
     expect(output.system[0]).toContain(
       'whatever context-management path is actually available',
@@ -172,7 +175,7 @@ describe('createContextPressureHook', () => {
     expect(output.system[0]).toContain('information-dense summary/checkpoint');
   });
 
-  test('injects tool-agnostic L2 context pressure guidance', async () => {
+  test('L3 at 160K in 200K context (80% threshold)', async () => {
     const ctx = createCtx();
     const hook = createContextPressureHook(ctx as never);
 
@@ -187,6 +190,8 @@ describe('createContextPressureHook', () => {
             providerID: 'openai',
             modelID: 'gpt-5.5',
             tokens: {
+              // 200K context → L3=min(550K,200K*0.80=160K)=160K
+              // 160K tokens → at L3 threshold, level 3
               input: 150_000,
               output: 10_000,
               reasoning: 0,
@@ -199,13 +204,8 @@ describe('createContextPressureHook', () => {
 
     const output = { system: [] as string[] };
     await hook.handleSystemTransform({ sessionID: 's4' }, output);
-    expect(output.system[0]).toContain('[Context pressure: L2');
-    expect(output.system[0]).toContain('handle context pressure first');
-    expect(output.system[0]).toContain(
-      'whatever context-management path is actually available',
-    );
-    expect(output.system[0]).toContain('Slow down compression enough to preserve key decisions');
-    expect(output.system[0]).toContain('summary/checkpoint for the next turn or a fresh session');
+    expect(output.system[0]).toContain('[Context pressure: L3');
+    expect(output.system[0]).toContain('立即使用 /compact 命令');
   });
 
   test('clears pressure state on session.deleted', async () => {
@@ -223,8 +223,10 @@ describe('createContextPressureHook', () => {
             providerID: 'openai',
             modelID: 'gpt-5.5',
             tokens: {
-              input: 150_000,
-              output: 10_000,
+              // 200K context → L2=130K, L3=160K
+              // 140K tokens → level 2
+              input: 140_000,
+              output: 0,
               reasoning: 0,
               cache: { read: 0, write: 0 },
             },

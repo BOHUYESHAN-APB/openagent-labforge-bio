@@ -1,9 +1,14 @@
 # Plan Workflow
 
-ExtendAI Lab’s plan workflow is derived from OMO / oh-my-openagent ideas,
-but uses LabForge-owned paths and the `ol-` command prefix.
+ExtendAI Lab’s plan workflow uses two plan-mode tools (`plan_enter` / `plan_exit`)
+for agent switching, plus `save_plan` for persistence.
 
 ## Agent roles
+
+> **v1.3.5+**: Any main orchestrator (engineer, deep-worker, bio-analyst,
+> chem-analyst) can call `plan_enter` to switch to prometheus (planner) for
+> structured planning. See [Plan Mode System](../AGENTS.md#plan-mode-system-v135)
+> for the full overlay mechanism.
 
 | Agent | Role in plan workflow |
 |-------|-----------------------|
@@ -40,12 +45,19 @@ create an execution plan, it must use the model-visible `save_plan` tool. The
 tool is the authority for whether a plan was actually written to disk; chat text
 alone is not a successful save.
 
+**v1.3.5+ workflow:**
+1. Main orchestrator calls `plan_enter` → switches to prometheus (overlay activates)
+2. Prometheus works through 5-phase plan: analyze → research → design → write → save
+3. Prometheus calls `save_plan`, then `plan_exit` → returns to original orchestrator
+4. Original agent reads the saved plan and begins execution
+
 The planner should:
 
-1. Call `save_plan` with a descriptive `name` and the full markdown `content`.
+1. Work within the 5-phase planning workflow (analyze requirements → research context → design solution → write structured plan → call save_plan then plan_exit)
+2. Call `save_plan` with a descriptive `name` and the full markdown `content`.
    The tool writes the plan file to `.opencode/extendai-lab/plans/` and returns
    the normalized saved path.
-2. Use top-level structured checkboxes for executable progress:
+3. Use top-level structured checkboxes for executable progress:
    - `- [ ] 1. Implementation task`
    - `- [ ] 2. Implementation task`
    - `- [ ] F1. Plan Compliance Audit`

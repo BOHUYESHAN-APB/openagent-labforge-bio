@@ -44,13 +44,18 @@ describe('selectPreferredWorkspaceRecords', () => {
       ],
       projectWorktrees: [
         { id: 'proj-current', worktree: 'D:/repo/current' },
-        { id: 'proj-nested', worktree: 'D:/repo/current/Future/clone/opencode' },
+        {
+          id: 'proj-nested',
+          worktree: 'D:/repo/current/Future/clone/opencode',
+        },
         { id: 'proj-other', worktree: 'F:/other/project' },
         { id: 'proj-missing', worktree: 'G:/standalone/project' },
       ],
     });
 
-    expect(result.map((entry) => normalizeWorkspaceDirectory(entry.directory))).toEqual([
+    expect(
+      result.map((entry) => normalizeWorkspaceDirectory(entry.directory)),
+    ).toEqual([
       normalizeWorkspaceDirectory('D:/repo/current'),
       normalizeWorkspaceDirectory('F:/other/project'),
       normalizeWorkspaceDirectory('G:/standalone/project'),

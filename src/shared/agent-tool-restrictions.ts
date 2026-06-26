@@ -1,4 +1,4 @@
-import { stripInvisibleAgentCharacters } from "./agent-display-names"
+import { stripInvisibleAgentCharacters } from './agent-display-names';
 
 /**
  * Agent tool restrictions for session.prompt calls.
@@ -19,14 +19,14 @@ const TEAM_TOOL_DENYLIST: Record<string, boolean> = {
   team_task_get: false,
   team_status: false,
   team_list: false,
-}
+};
 
 const EXPLORATION_AGENT_DENYLIST: Record<string, boolean> = {
   write: false,
   edit: false,
   task: false,
   call_omo_agent: false,
-}
+};
 
 const AGENT_RESTRICTIONS: Record<string, Record<string, boolean>> = {
   explore: EXPLORATION_AGENT_DENYLIST,
@@ -50,32 +50,38 @@ const AGENT_RESTRICTIONS: Record<string, Record<string, boolean>> = {
     edit: false,
   },
 
-  "multimodal-looker": {
+  'multimodal-looker': {
     read: true,
   },
 
-  "sisyphus-junior": {
+  'sisyphus-junior': {
     task: false,
   },
-}
+};
 
 type AgentToolRestrictionsOptions = {
-  includeTeamToolDenylist?: boolean
-}
+  includeTeamToolDenylist?: boolean;
+};
 
-export function getAgentToolRestrictions(agentName: string, options: AgentToolRestrictionsOptions = {}): Record<string, boolean> {
-  const stripped = stripInvisibleAgentCharacters(agentName)
-  const agentRestrictions = AGENT_RESTRICTIONS[stripped]
-    ?? Object.entries(AGENT_RESTRICTIONS).find(([key]) => key.toLowerCase() === stripped.toLowerCase())?.[1]
-    ?? {}
+export function getAgentToolRestrictions(
+  agentName: string,
+  options: AgentToolRestrictionsOptions = {},
+): Record<string, boolean> {
+  const stripped = stripInvisibleAgentCharacters(agentName);
+  const agentRestrictions =
+    AGENT_RESTRICTIONS[stripped] ??
+    Object.entries(AGENT_RESTRICTIONS).find(
+      ([key]) => key.toLowerCase() === stripped.toLowerCase(),
+    )?.[1] ??
+    {};
 
   return {
     ...(options.includeTeamToolDenylist === false ? {} : TEAM_TOOL_DENYLIST),
     ...agentRestrictions,
-  }
+  };
 }
 
 export function hasAgentToolRestrictions(agentName: string): boolean {
-  const restrictions = getAgentToolRestrictions(agentName)
-  return Object.keys(restrictions).length > 0
+  const restrictions = getAgentToolRestrictions(agentName);
+  return Object.keys(restrictions).length > 0;
 }

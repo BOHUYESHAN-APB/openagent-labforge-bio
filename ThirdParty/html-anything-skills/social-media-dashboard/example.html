@@ -10,857 +10,857 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-              /* Totality Festival Design System — bind palette */
-              --surface: #121318;
-              --surface-dim: #121318;
-              --surface-bright: #38393f;
-              --surface-container-lowest: #0d0e13;
-              --surface-container-low: #1a1b21;
-              --surface-container: #1e1f25;
-              --surface-container-high: #292a2f;
-              --surface-container-highest: #34343a;
-              --on-surface: #e3e1e9;
-              --on-surface-variant: #d0c6ab;
-              --inverse-surface: #e3e1e9;
-              --inverse-on-surface: #2f3036;
-              --outline: #999077;
-              --outline-variant: #4d4732;
-              --surface-tint: #e9c400;
-              --primary: #fff6df;
-              --on-primary: #3a3000;
-              --primary-container: #ffd700;
-              --on-primary-container: #705e00;
-              --inverse-primary: #705d00;
-              --secondary: #bdf4ff;
-              --on-secondary: #00363d;
-              --secondary-container: #00e3fd;
-              --on-secondary-container: #00616d;
-              --tertiary: #fcf3ff;
-              --on-tertiary: #3b2754;
-              --tertiary-container: #e7d1ff;
-              --on-tertiary-container: #6b5586;
-              --error: #ffb4ab;
-              --on-error: #690005;
-              --error-container: #93000a;
-              --on-error-container: #ffdad6;
-              --background: #121318;
-              --on-background: #e3e1e9;
-              --surface-variant: #34343a;
-        
-              /* Typography */
-              --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-              --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        
-              /* Spacing */
-              --spacing-unit: 8px;
-              --gutter: 24px;
-              --margin-desktop: 64px;
-        
-              /* Premium glass levels */
-              --glass-bg-level-1: rgba(52, 52, 58, 0.15);
-              --glass-bg-level-2: rgba(52, 52, 58, 0.25);
-              --glass-bg-level-3: rgba(52, 52, 58, 0.35);
-              --glass-border: rgba(255, 255, 255, 0.12);
-              --glass-border-strong: rgba(255, 255, 255, 0.2);
-            }
-        
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-        
-            body {
-              font-family: var(--font-body);
-              background: radial-gradient(ellipse at 50% 0%, rgba(255, 215, 0, 0.08) 0%, transparent 60%),
-                          radial-gradient(ellipse at 100% 100%, rgba(0, 227, 253, 0.06) 0%, transparent 50%),
-                          var(--surface);
-              color: var(--on-surface);
-              line-height: 1.6;
-              overflow-x: hidden;
-              min-height: 100vh;
-            }
-        
-            /* Header */
-            header {
-              position: sticky;
-              top: 0;
-              z-index: 100;
-              background: rgba(18, 19, 24, 0.75);
-              backdrop-filter: blur(32px) saturate(180%);
-              border-bottom: 1px solid var(--glass-border);
-              padding: 16px var(--margin-desktop);
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            }
-        
-            .header-left {
-              display: flex;
-              align-items: center;
-              gap: 16px;
-            }
-        
-            .logo-block {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-            }
-        
-            .logo-block img {
-              height: 32px;
-              width: auto;
-              filter: drop-shadow(0 0 8px rgba(0, 227, 253, 0.3));
-            }
-        
-            .logo-label {
-              font-family: var(--font-display);
-              font-size: 12px;
-              font-weight: 500;
-              letter-spacing: 0.1em;
-              text-transform: uppercase;
-              color: var(--on-surface-variant);
-            }
-        
-            .platform-switcher-inline {
-              display: flex;
-              gap: 8px;
-              margin-left: 24px;
-            }
-        
-            .platform-pill {
-              font-family: var(--font-display);
-              font-size: 14px;
-              font-weight: 500;
-              padding: 6px 16px;
-              border-radius: 999px;
-              background: transparent;
-              color: var(--on-surface-variant);
-              border: 1px solid var(--outline-variant);
-              cursor: pointer;
-              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-        
-            .platform-pill.active {
-              background: var(--glass-bg-level-2);
-              color: var(--primary);
-              border-color: var(--primary-container);
-              box-shadow: 0 0 32px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            }
-        
-            .header-right {
-              display: flex;
-              align-items: center;
-              gap: 24px;
-            }
-        
-            .time-range-tabs {
-              display: flex;
-              gap: 4px;
-            }
-        
-            .time-tab {
-              font-family: var(--font-display);
-              font-size: 13px;
-              font-weight: 500;
-              padding: 6px 12px;
-              background: transparent;
-              color: var(--on-surface-variant);
-              border: none;
-              cursor: pointer;
-              transition: color 0.2s ease;
-            }
-        
-            .time-tab.active {
-              color: var(--primary);
-            }
-        
-            .user-block {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-            }
-        
-            .user-avatar {
-              width: 32px;
-              height: 32px;
-              border-radius: 50%;
-              filter: drop-shadow(0 0 6px rgba(0, 227, 253, 0.3));
-            }
-        
-            .user-info {
-              display: flex;
-              flex-direction: column;
-              gap: 0;
-            }
-        
-            .user-name {
-              font-family: var(--font-display);
-              font-size: 14px;
-              font-weight: 600;
-              color: var(--on-surface);
-            }
-        
-            .user-role {
-              font-size: 12px;
-              color: var(--on-surface-variant);
-            }
-        
-            /* Hero Strip */
-            .hero-strip {
-              position: sticky;
-              top: 65px;
-              z-index: 90;
-              background: rgba(18, 19, 24, 0.85);
-              backdrop-filter: blur(40px) saturate(180%);
-              border-bottom: 1px solid var(--glass-border);
-              padding: 32px var(--margin-desktop);
-              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            }
-        
-            .hero-content {
-              display: flex;
-              align-items: flex-start;
-              justify-content: space-between;
-              gap: 32px;
-            }
-        
-            .hero-text {
-              flex: 1;
-            }
-        
-            .hero-headline {
-              font-family: var(--font-display);
-              font-size: 48px;
-              font-weight: 600;
-              line-height: 1.2;
-              letter-spacing: -0.02em;
-              color: var(--primary);
-              margin-bottom: 8px;
-              text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
-            }
-        
-            .hero-meta {
-              font-size: 14px;
-              color: var(--on-surface-variant);
-            }
-        
-            .hero-actions {
-              display: flex;
-              gap: 12px;
-            }
-        
-            .btn {
-              font-family: var(--font-display);
-              font-size: 14px;
-              font-weight: 500;
-              letter-spacing: 0.05em;
-              padding: 12px 24px;
-              height: 48px;
-              border-radius: 8px;
-              border: none;
-              cursor: pointer;
-              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-              white-space: nowrap;
-            }
-        
-            .btn-primary {
-              background: var(--primary-container);
-              color: var(--on-primary);
-              box-shadow: 0 0 32px rgba(255, 215, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
-            }
-        
-            .btn-primary:hover {
-              box-shadow: 0 0 48px rgba(255, 215, 0, 0.7), 0 8px 24px rgba(0, 0, 0, 0.4);
-              transform: translateY(-1px);
-            }
-        
-            .btn-secondary {
-              background: rgba(189, 244, 255, 0.08);
-              color: var(--secondary);
-              border: 1px solid var(--secondary);
-              backdrop-filter: blur(12px);
-            }
-        
-            .btn-secondary:hover {
-              background: rgba(189, 244, 255, 0.15);
-              box-shadow: 0 0 24px rgba(189, 244, 255, 0.2);
-            }
-        
-            /* Ask Bar */
-            .ask-bar {
-              padding: 24px var(--margin-desktop);
-              background: var(--glass-bg-level-1);
-              backdrop-filter: blur(20px);
-            }
-        
-            .ask-input {
-              width: 100%;
-              font-family: var(--font-body);
-              font-size: 16px;
-              padding: 16px 20px;
-              background: rgba(13, 14, 19, 0.6);
-              color: var(--on-surface);
-              border: 1px solid var(--glass-border);
-              border-radius: 8px;
-              transition: all 0.3s ease;
-              backdrop-filter: blur(8px);
-            }
-        
-            .ask-input:focus {
-              outline: none;
-              border-color: var(--secondary-container);
-              box-shadow: 0 0 0 3px rgba(0, 227, 253, 0.15), 0 0 32px rgba(0, 227, 253, 0.2);
-              background: rgba(13, 14, 19, 0.8);
-            }
-        
-            .ask-input::placeholder {
-              color: var(--on-surface-variant);
-              opacity: 0.6;
-            }
-        
-            /* Main Container */
-            .container {
-              max-width: 1280px;
-              margin: 0 auto;
-              padding: 32px var(--margin-desktop);
-            }
-        
-            /* Platform Switcher Cards */
-            .platform-cards {
-              display: grid;
-              grid-template-columns: repeat(2, 1fr);
-              gap: 16px;
-              margin-bottom: 32px;
-            }
-        
-            .platform-card {
-              background: var(--glass-bg-level-1);
-              backdrop-filter: blur(24px) saturate(180%);
-              border: 1px solid var(--glass-border);
-              border-radius: 12px;
-              padding: 24px;
-              cursor: pointer;
-              transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-              position: relative;
-              overflow: hidden;
-            }
-        
-            .platform-card::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              height: 1px;
-              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-              opacity: 0;
-              transition: opacity 0.3s ease;
-            }
-        
-            .platform-card.active::before {
-              opacity: 1;
-            }
-        
-            .platform-card.active {
-              background: var(--glass-bg-level-2);
-              border-color: var(--primary-container);
-              box-shadow: 0 0 48px rgba(255, 215, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            }
-        
-            .platform-card:hover:not(.active) {
-              background: var(--glass-bg-level-2);
-              border-color: var(--glass-border-strong);
-              transform: translateY(-2px);
-            }
-        
-            .platform-card-header {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              margin-bottom: 8px;
-            }
-        
-            .platform-icon {
-              font-size: 24px;
-            }
-        
-            .platform-name {
-              font-family: var(--font-display);
-              font-size: 18px;
-              font-weight: 600;
-              color: var(--on-surface);
-            }
-        
-            .platform-handle {
-              font-size: 14px;
-              color: var(--on-surface-variant);
-            }
-        
-            /* KPI Row */
-            .kpi-row {
-              display: grid;
-              grid-template-columns: repeat(4, 1fr);
-              gap: 16px;
-              margin-bottom: 32px;
-            }
-        
-            .kpi-card {
-              background: var(--glass-bg-level-1);
-              backdrop-filter: blur(24px) saturate(180%);
-              border: 1px solid var(--glass-border);
-              border-radius: 12px;
-              padding: 24px;
-              position: relative;
-              overflow: hidden;
-            }
-        
-            .kpi-card::after {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              height: 1px;
-              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-            }
-        
-            .kpi-label {
-              font-family: var(--font-display);
-              font-size: 12px;
-              font-weight: 500;
-              letter-spacing: 0.1em;
-              text-transform: uppercase;
-              color: var(--on-surface-variant);
-              margin-bottom: 8px;
-            }
-        
-            .kpi-value {
-              font-family: var(--font-display);
-              font-size: 36px;
-              font-weight: 700;
-              letter-spacing: -0.02em;
-              color: var(--on-surface);
-              margin-bottom: 4px;
-            }
-        
-            .kpi-delta {
-              display: inline-flex;
-              align-items: center;
-              gap: 4px;
-              font-size: 14px;
-              color: var(--secondary);
-              filter: drop-shadow(0 0 8px rgba(189, 244, 255, 0.3));
-            }
-        
-            .kpi-footnote {
-              font-size: 12px;
-              color: var(--on-surface-variant);
-              margin-top: 4px;
-            }
-        
-            /* Main Grid - 3 columns */
-            .main-grid {
-              display: grid;
-              grid-template-columns: 1fr 1fr 1fr;
-              gap: 24px;
-              margin-bottom: 32px;
-            }
-        
-            .chart-card {
-              background: var(--glass-bg-level-1);
-              backdrop-filter: blur(24px) saturate(180%);
-              border: 1px solid var(--glass-border);
-              border-radius: 12px;
-              padding: 32px;
-              position: relative;
-              overflow: hidden;
-            }
-        
-            .chart-card::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              height: 1px;
-              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-            }
-        
-            .chart-header {
-              font-family: var(--font-display);
-              font-size: 18px;
-              font-weight: 600;
-              color: var(--on-surface);
-              margin-bottom: 24px;
-            }
-        
-            .chart-svg {
-              width: 100%;
-              height: 280px;
-            }
-        
-            .top-post-card {
-              background: var(--glass-bg-level-1);
-              backdrop-filter: blur(24px) saturate(180%);
-              border: 1px solid var(--glass-border);
-              border-radius: 12px;
-              padding: 24px;
-              position: relative;
-              overflow: hidden;
-            }
-        
-            .top-post-card::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              height: 1px;
-              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-            }
-        
-            .post-header-tag {
-              display: inline-block;
-              font-family: var(--font-display);
-              font-size: 11px;
-              font-weight: 600;
-              letter-spacing: 0.05em;
-              text-transform: uppercase;
-              color: var(--on-primary-container);
-              background: var(--primary-container);
-              padding: 4px 12px;
-              border-radius: 999px;
-              margin-bottom: 16px;
-              box-shadow: 0 0 24px rgba(255, 215, 0, 0.4);
-            }
-        
-            .post-meta {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              margin-bottom: 12px;
-            }
-        
-            .post-avatar {
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
-              border: 1px solid var(--glass-border);
-            }
-        
-            .post-handle-block {
-              flex: 1;
-            }
-        
-            .post-handle {
-              font-family: var(--font-display);
-              font-size: 14px;
-              font-weight: 600;
-              color: var(--on-surface);
-              display: flex;
-              align-items: center;
-              gap: 4px;
-            }
-        
-            .verified-badge {
-              color: var(--secondary-container);
-              font-size: 16px;
-              filter: drop-shadow(0 0 6px rgba(0, 227, 253, 0.5));
-            }
-        
-            .post-timestamp {
-              font-size: 12px;
-              color: var(--on-surface-variant);
-            }
-        
-            .post-body {
-              font-size: 15px;
-              line-height: 1.5;
-              color: var(--on-surface);
-              margin-bottom: 12px;
-            }
-        
-            .post-media {
-              position: relative;
-              width: 100%;
-              aspect-ratio: 16/9;
-              background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(18, 19, 24, 0.9) 100%);
-              border: 1px solid rgba(255, 215, 0, 0.3);
-              border-radius: 8px;
-              margin-bottom: 12px;
-              box-shadow: 0 0 24px rgba(255, 215, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-              overflow: hidden;
-            }
-        
-            .post-media svg {
-              position: absolute;
-              inset: 0;
-              width: 100%;
-              height: 100%;
-            }
-        
-            .post-media-caption {
-              position: absolute;
-              left: 12px;
-              bottom: 10px;
-              font-family: var(--font-display);
-              font-size: 11px;
-              font-weight: 500;
-              letter-spacing: 0.08em;
-              text-transform: uppercase;
-              color: var(--primary);
-              opacity: 0.85;
-            }
-        
-            .post-engagement {
-              display: flex;
-              gap: 16px;
-              font-size: 13px;
-              color: var(--on-surface-variant);
-            }
-        
-            /* Geo Map Card */
-            .geo-card {
-              background: var(--glass-bg-level-1);
-              backdrop-filter: blur(24px) saturate(180%);
-              border: 1px solid var(--glass-border);
-              border-radius: 12px;
-              padding: 32px;
-              position: relative;
-              overflow: hidden;
-            }
-        
-            .geo-card::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              height: 1px;
-              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-            }
-        
-            .geo-map {
-              width: 100%;
-              height: 200px;
-              position: relative;
-            }
-        
-            .geo-dot {
-              position: absolute;
-              width: 8px;
-              height: 8px;
-              border-radius: 50%;
-              background: var(--primary-container);
-              box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
-              animation: pulse 2s ease-in-out infinite;
-            }
-        
-            @keyframes pulse {
-              0%, 100% { transform: scale(1); opacity: 1; }
-              50% { transform: scale(1.3); opacity: 0.7; }
-            }
-        
-            .geo-stats {
-              display: grid;
-              grid-template-columns: repeat(2, 1fr);
-              gap: 12px;
-              margin-top: 20px;
-            }
-        
-            .geo-stat {
-              font-size: 13px;
-            }
-        
-            .geo-stat-label {
-              color: var(--on-surface-variant);
-            }
-        
-            .geo-stat-value {
-              font-family: var(--font-display);
-              font-weight: 600;
-              color: var(--on-surface);
-            }
-        
-            /* GitHub Contributors */
-            .contributors-grid {
-              display: grid;
-              grid-template-columns: repeat(5, 1fr);
-              gap: 12px;
-              margin-top: 20px;
-            }
-        
-            .contributor-item {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 8px;
-            }
-        
-            .contributor-avatar {
-              width: 48px;
-              height: 48px;
-              border-radius: 50%;
-              border: 2px solid var(--glass-border);
-              box-shadow: 0 0 16px rgba(0, 227, 253, 0.2);
-              transition: all 0.3s ease;
-            }
-        
-            .contributor-avatar:hover {
-              border-color: var(--secondary);
-              box-shadow: 0 0 24px rgba(0, 227, 253, 0.4);
-              transform: scale(1.05);
-            }
-        
-            .contributor-name {
-              font-size: 11px;
-              color: var(--on-surface-variant);
-              text-align: center;
-            }
-        
-            .contributor-commits {
-              font-size: 10px;
-              color: var(--on-surface-variant);
-              opacity: 0.7;
-            }
-        
-            /* Lower Grid */
-            .lower-grid {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 24px;
-            }
-        
-            .trending-card, .comments-card {
-              background: var(--glass-bg-level-1);
-              backdrop-filter: blur(24px) saturate(180%);
-              border: 1px solid var(--glass-border);
-              border-radius: 12px;
-              padding: 24px;
-              position: relative;
-              overflow: hidden;
-            }
-        
-            .trending-card::before, .comments-card::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              height: 1px;
-              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-            }
-        
-            .section-title {
-              font-family: var(--font-display);
-              font-size: 18px;
-              font-weight: 600;
-              color: var(--on-surface);
-              margin-bottom: 20px;
-            }
-        
-            .trending-row {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              padding: 12px 0;
-              border-bottom: 1px solid rgba(153, 144, 119, 0.15);
-            }
-        
-            .trending-row:last-child {
-              border-bottom: none;
-            }
-        
-            .trending-name {
-              font-family: var(--font-display);
-              font-size: 15px;
-              font-weight: 500;
-              color: var(--on-surface);
-            }
-        
-            .trending-count {
-              font-size: 13px;
-              color: var(--on-surface-variant);
-              margin-left: 8px;
-            }
-        
-            .sparkline {
-              width: 60px;
-              height: 20px;
-            }
-        
-            .comment-item {
-              padding: 16px 0;
-              border-bottom: 1px solid rgba(153, 144, 119, 0.15);
-            }
-        
-            .comment-item:last-child {
-              border-bottom: none;
-            }
-        
-            .comment-meta {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              margin-bottom: 8px;
-            }
-        
-            .comment-avatar {
-              width: 28px;
-              height: 28px;
-              border-radius: 50%;
-              background: var(--glass-bg-level-2);
-              border: 1px solid var(--glass-border);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 12px;
-              font-weight: 600;
-              color: var(--primary);
-            }
-        
-            .comment-handle {
-              font-size: 13px;
-              font-weight: 600;
-              color: var(--on-surface);
-            }
-        
-            .comment-time {
-              font-size: 12px;
-              color: var(--on-surface-variant);
-            }
-        
-            .comment-body {
-              font-size: 14px;
-              line-height: 1.5;
-              color: var(--on-surface-variant);
-              margin-bottom: 6px;
-            }
-        
-            .comment-engagement {
-              font-size: 12px;
-              color: var(--on-surface-variant);
-            }
-        
-            /* GitHub specific styles */
-            .github-chart-explosive {
-              position: relative;
-            }
-        
-            .milestone-marker {
-              position: absolute;
-              font-size: 11px;
-              font-family: var(--font-display);
-              font-weight: 600;
-              color: var(--primary);
-              background: rgba(255, 215, 0, 0.15);
-              padding: 4px 8px;
-              border-radius: 4px;
-              border: 1px solid var(--primary-container);
-              box-shadow: 0 0 16px rgba(255, 215, 0, 0.3);
-            }
+                      /* Totality Festival Design System — bind palette */
+                      --surface: #121318;
+                      --surface-dim: #121318;
+                      --surface-bright: #38393f;
+                      --surface-container-lowest: #0d0e13;
+                      --surface-container-low: #1a1b21;
+                      --surface-container: #1e1f25;
+                      --surface-container-high: #292a2f;
+                      --surface-container-highest: #34343a;
+                      --on-surface: #e3e1e9;
+                      --on-surface-variant: #d0c6ab;
+                      --inverse-surface: #e3e1e9;
+                      --inverse-on-surface: #2f3036;
+                      --outline: #999077;
+                      --outline-variant: #4d4732;
+                      --surface-tint: #e9c400;
+                      --primary: #fff6df;
+                      --on-primary: #3a3000;
+                      --primary-container: #ffd700;
+                      --on-primary-container: #705e00;
+                      --inverse-primary: #705d00;
+                      --secondary: #bdf4ff;
+                      --on-secondary: #00363d;
+                      --secondary-container: #00e3fd;
+                      --on-secondary-container: #00616d;
+                      --tertiary: #fcf3ff;
+                      --on-tertiary: #3b2754;
+                      --tertiary-container: #e7d1ff;
+                      --on-tertiary-container: #6b5586;
+                      --error: #ffb4ab;
+                      --on-error: #690005;
+                      --error-container: #93000a;
+                      --on-error-container: #ffdad6;
+                      --background: #121318;
+                      --on-background: #e3e1e9;
+                      --surface-variant: #34343a;
+                
+                      /* Typography */
+                      --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+                      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                
+                      /* Spacing */
+                      --spacing-unit: 8px;
+                      --gutter: 24px;
+                      --margin-desktop: 64px;
+                
+                      /* Premium glass levels */
+                      --glass-bg-level-1: rgba(52, 52, 58, 0.15);
+                      --glass-bg-level-2: rgba(52, 52, 58, 0.25);
+                      --glass-bg-level-3: rgba(52, 52, 58, 0.35);
+                      --glass-border: rgba(255, 255, 255, 0.12);
+                      --glass-border-strong: rgba(255, 255, 255, 0.2);
+                    }
+                
+                    * {
+                      margin: 0;
+                      padding: 0;
+                      box-sizing: border-box;
+                    }
+                
+                    body {
+                      font-family: var(--font-body);
+                      background: radial-gradient(ellipse at 50% 0%, rgba(255, 215, 0, 0.08) 0%, transparent 60%),
+                                  radial-gradient(ellipse at 100% 100%, rgba(0, 227, 253, 0.06) 0%, transparent 50%),
+                                  var(--surface);
+                      color: var(--on-surface);
+                      line-height: 1.6;
+                      overflow-x: hidden;
+                      min-height: 100vh;
+                    }
+                
+                    /* Header */
+                    header {
+                      position: sticky;
+                      top: 0;
+                      z-index: 100;
+                      background: rgba(18, 19, 24, 0.75);
+                      backdrop-filter: blur(32px) saturate(180%);
+                      border-bottom: 1px solid var(--glass-border);
+                      padding: 16px var(--margin-desktop);
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                    }
+                
+                    .header-left {
+                      display: flex;
+                      align-items: center;
+                      gap: 16px;
+                    }
+                
+                    .logo-block {
+                      display: flex;
+                      align-items: center;
+                      gap: 12px;
+                    }
+                
+                    .logo-block img {
+                      height: 32px;
+                      width: auto;
+                      filter: drop-shadow(0 0 8px rgba(0, 227, 253, 0.3));
+                    }
+                
+                    .logo-label {
+                      font-family: var(--font-display);
+                      font-size: 12px;
+                      font-weight: 500;
+                      letter-spacing: 0.1em;
+                      text-transform: uppercase;
+                      color: var(--on-surface-variant);
+                    }
+                
+                    .platform-switcher-inline {
+                      display: flex;
+                      gap: 8px;
+                      margin-left: 24px;
+                    }
+                
+                    .platform-pill {
+                      font-family: var(--font-display);
+                      font-size: 14px;
+                      font-weight: 500;
+                      padding: 6px 16px;
+                      border-radius: 999px;
+                      background: transparent;
+                      color: var(--on-surface-variant);
+                      border: 1px solid var(--outline-variant);
+                      cursor: pointer;
+                      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    }
+                
+                    .platform-pill.active {
+                      background: var(--glass-bg-level-2);
+                      color: var(--primary);
+                      border-color: var(--primary-container);
+                      box-shadow: 0 0 32px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    }
+                
+                    .header-right {
+                      display: flex;
+                      align-items: center;
+                      gap: 24px;
+                    }
+                
+                    .time-range-tabs {
+                      display: flex;
+                      gap: 4px;
+                    }
+                
+                    .time-tab {
+                      font-family: var(--font-display);
+                      font-size: 13px;
+                      font-weight: 500;
+                      padding: 6px 12px;
+                      background: transparent;
+                      color: var(--on-surface-variant);
+                      border: none;
+                      cursor: pointer;
+                      transition: color 0.2s ease;
+                    }
+                
+                    .time-tab.active {
+                      color: var(--primary);
+                    }
+                
+                    .user-block {
+                      display: flex;
+                      align-items: center;
+                      gap: 12px;
+                    }
+                
+                    .user-avatar {
+                      width: 32px;
+                      height: 32px;
+                      border-radius: 50%;
+                      filter: drop-shadow(0 0 6px rgba(0, 227, 253, 0.3));
+                    }
+                
+                    .user-info {
+                      display: flex;
+                      flex-direction: column;
+                      gap: 0;
+                    }
+                
+                    .user-name {
+                      font-family: var(--font-display);
+                      font-size: 14px;
+                      font-weight: 600;
+                      color: var(--on-surface);
+                    }
+                
+                    .user-role {
+                      font-size: 12px;
+                      color: var(--on-surface-variant);
+                    }
+                
+                    /* Hero Strip */
+                    .hero-strip {
+                      position: sticky;
+                      top: 65px;
+                      z-index: 90;
+                      background: rgba(18, 19, 24, 0.85);
+                      backdrop-filter: blur(40px) saturate(180%);
+                      border-bottom: 1px solid var(--glass-border);
+                      padding: 32px var(--margin-desktop);
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+                    }
+                
+                    .hero-content {
+                      display: flex;
+                      align-items: flex-start;
+                      justify-content: space-between;
+                      gap: 32px;
+                    }
+                
+                    .hero-text {
+                      flex: 1;
+                    }
+                
+                    .hero-headline {
+                      font-family: var(--font-display);
+                      font-size: 48px;
+                      font-weight: 600;
+                      line-height: 1.2;
+                      letter-spacing: -0.02em;
+                      color: var(--primary);
+                      margin-bottom: 8px;
+                      text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+                    }
+                
+                    .hero-meta {
+                      font-size: 14px;
+                      color: var(--on-surface-variant);
+                    }
+                
+                    .hero-actions {
+                      display: flex;
+                      gap: 12px;
+                    }
+                
+                    .btn {
+                      font-family: var(--font-display);
+                      font-size: 14px;
+                      font-weight: 500;
+                      letter-spacing: 0.05em;
+                      padding: 12px 24px;
+                      height: 48px;
+                      border-radius: 8px;
+                      border: none;
+                      cursor: pointer;
+                      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                      white-space: nowrap;
+                    }
+                
+                    .btn-primary {
+                      background: var(--primary-container);
+                      color: var(--on-primary);
+                      box-shadow: 0 0 32px rgba(255, 215, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
+                    }
+                
+                    .btn-primary:hover {
+                      box-shadow: 0 0 48px rgba(255, 215, 0, 0.7), 0 8px 24px rgba(0, 0, 0, 0.4);
+                      transform: translateY(-1px);
+                    }
+                
+                    .btn-secondary {
+                      background: rgba(189, 244, 255, 0.08);
+                      color: var(--secondary);
+                      border: 1px solid var(--secondary);
+                      backdrop-filter: blur(12px);
+                    }
+                
+                    .btn-secondary:hover {
+                      background: rgba(189, 244, 255, 0.15);
+                      box-shadow: 0 0 24px rgba(189, 244, 255, 0.2);
+                    }
+                
+                    /* Ask Bar */
+                    .ask-bar {
+                      padding: 24px var(--margin-desktop);
+                      background: var(--glass-bg-level-1);
+                      backdrop-filter: blur(20px);
+                    }
+                
+                    .ask-input {
+                      width: 100%;
+                      font-family: var(--font-body);
+                      font-size: 16px;
+                      padding: 16px 20px;
+                      background: rgba(13, 14, 19, 0.6);
+                      color: var(--on-surface);
+                      border: 1px solid var(--glass-border);
+                      border-radius: 8px;
+                      transition: all 0.3s ease;
+                      backdrop-filter: blur(8px);
+                    }
+                
+                    .ask-input:focus {
+                      outline: none;
+                      border-color: var(--secondary-container);
+                      box-shadow: 0 0 0 3px rgba(0, 227, 253, 0.15), 0 0 32px rgba(0, 227, 253, 0.2);
+                      background: rgba(13, 14, 19, 0.8);
+                    }
+                
+                    .ask-input::placeholder {
+                      color: var(--on-surface-variant);
+                      opacity: 0.6;
+                    }
+                
+                    /* Main Container */
+                    .container {
+                      max-width: 1280px;
+                      margin: 0 auto;
+                      padding: 32px var(--margin-desktop);
+                    }
+                
+                    /* Platform Switcher Cards */
+                    .platform-cards {
+                      display: grid;
+                      grid-template-columns: repeat(2, 1fr);
+                      gap: 16px;
+                      margin-bottom: 32px;
+                    }
+                
+                    .platform-card {
+                      background: var(--glass-bg-level-1);
+                      backdrop-filter: blur(24px) saturate(180%);
+                      border: 1px solid var(--glass-border);
+                      border-radius: 12px;
+                      padding: 24px;
+                      cursor: pointer;
+                      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                      position: relative;
+                      overflow: hidden;
+                    }
+                
+                    .platform-card::before {
+                      content: '';
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      right: 0;
+                      height: 1px;
+                      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                      opacity: 0;
+                      transition: opacity 0.3s ease;
+                    }
+                
+                    .platform-card.active::before {
+                      opacity: 1;
+                    }
+                
+                    .platform-card.active {
+                      background: var(--glass-bg-level-2);
+                      border-color: var(--primary-container);
+                      box-shadow: 0 0 48px rgba(255, 215, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    }
+                
+                    .platform-card:hover:not(.active) {
+                      background: var(--glass-bg-level-2);
+                      border-color: var(--glass-border-strong);
+                      transform: translateY(-2px);
+                    }
+                
+                    .platform-card-header {
+                      display: flex;
+                      align-items: center;
+                      gap: 12px;
+                      margin-bottom: 8px;
+                    }
+                
+                    .platform-icon {
+                      font-size: 24px;
+                    }
+                
+                    .platform-name {
+                      font-family: var(--font-display);
+                      font-size: 18px;
+                      font-weight: 600;
+                      color: var(--on-surface);
+                    }
+                
+                    .platform-handle {
+                      font-size: 14px;
+                      color: var(--on-surface-variant);
+                    }
+                
+                    /* KPI Row */
+                    .kpi-row {
+                      display: grid;
+                      grid-template-columns: repeat(4, 1fr);
+                      gap: 16px;
+                      margin-bottom: 32px;
+                    }
+                
+                    .kpi-card {
+                      background: var(--glass-bg-level-1);
+                      backdrop-filter: blur(24px) saturate(180%);
+                      border: 1px solid var(--glass-border);
+                      border-radius: 12px;
+                      padding: 24px;
+                      position: relative;
+                      overflow: hidden;
+                    }
+                
+                    .kpi-card::after {
+                      content: '';
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      right: 0;
+                      height: 1px;
+                      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+                    }
+                
+                    .kpi-label {
+                      font-family: var(--font-display);
+                      font-size: 12px;
+                      font-weight: 500;
+                      letter-spacing: 0.1em;
+                      text-transform: uppercase;
+                      color: var(--on-surface-variant);
+                      margin-bottom: 8px;
+                    }
+                
+                    .kpi-value {
+                      font-family: var(--font-display);
+                      font-size: 36px;
+                      font-weight: 700;
+                      letter-spacing: -0.02em;
+                      color: var(--on-surface);
+                      margin-bottom: 4px;
+                    }
+                
+                    .kpi-delta {
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 4px;
+                      font-size: 14px;
+                      color: var(--secondary);
+                      filter: drop-shadow(0 0 8px rgba(189, 244, 255, 0.3));
+                    }
+                
+                    .kpi-footnote {
+                      font-size: 12px;
+                      color: var(--on-surface-variant);
+                      margin-top: 4px;
+                    }
+                
+                    /* Main Grid - 3 columns */
+                    .main-grid {
+                      display: grid;
+                      grid-template-columns: 1fr 1fr 1fr;
+                      gap: 24px;
+                      margin-bottom: 32px;
+                    }
+                
+                    .chart-card {
+                      background: var(--glass-bg-level-1);
+                      backdrop-filter: blur(24px) saturate(180%);
+                      border: 1px solid var(--glass-border);
+                      border-radius: 12px;
+                      padding: 32px;
+                      position: relative;
+                      overflow: hidden;
+                    }
+                
+                    .chart-card::before {
+                      content: '';
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      right: 0;
+                      height: 1px;
+                      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+                    }
+                
+                    .chart-header {
+                      font-family: var(--font-display);
+                      font-size: 18px;
+                      font-weight: 600;
+                      color: var(--on-surface);
+                      margin-bottom: 24px;
+                    }
+                
+                    .chart-svg {
+                      width: 100%;
+                      height: 280px;
+                    }
+                
+                    .top-post-card {
+                      background: var(--glass-bg-level-1);
+                      backdrop-filter: blur(24px) saturate(180%);
+                      border: 1px solid var(--glass-border);
+                      border-radius: 12px;
+                      padding: 24px;
+                      position: relative;
+                      overflow: hidden;
+                    }
+                
+                    .top-post-card::before {
+                      content: '';
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      right: 0;
+                      height: 1px;
+                      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+                    }
+                
+                    .post-header-tag {
+                      display: inline-block;
+                      font-family: var(--font-display);
+                      font-size: 11px;
+                      font-weight: 600;
+                      letter-spacing: 0.05em;
+                      text-transform: uppercase;
+                      color: var(--on-primary-container);
+                      background: var(--primary-container);
+                      padding: 4px 12px;
+                      border-radius: 999px;
+                      margin-bottom: 16px;
+                      box-shadow: 0 0 24px rgba(255, 215, 0, 0.4);
+                    }
+                
+                    .post-meta {
+                      display: flex;
+                      align-items: center;
+                      gap: 12px;
+                      margin-bottom: 12px;
+                    }
+                
+                    .post-avatar {
+                      width: 40px;
+                      height: 40px;
+                      border-radius: 50%;
+                      border: 1px solid var(--glass-border);
+                    }
+                
+                    .post-handle-block {
+                      flex: 1;
+                    }
+                
+                    .post-handle {
+                      font-family: var(--font-display);
+                      font-size: 14px;
+                      font-weight: 600;
+                      color: var(--on-surface);
+                      display: flex;
+                      align-items: center;
+                      gap: 4px;
+                    }
+                
+                    .verified-badge {
+                      color: var(--secondary-container);
+                      font-size: 16px;
+                      filter: drop-shadow(0 0 6px rgba(0, 227, 253, 0.5));
+                    }
+                
+                    .post-timestamp {
+                      font-size: 12px;
+                      color: var(--on-surface-variant);
+                    }
+                
+                    .post-body {
+                      font-size: 15px;
+                      line-height: 1.5;
+                      color: var(--on-surface);
+                      margin-bottom: 12px;
+                    }
+                
+                    .post-media {
+                      position: relative;
+                      width: 100%;
+                      aspect-ratio: 16/9;
+                      background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(18, 19, 24, 0.9) 100%);
+                      border: 1px solid rgba(255, 215, 0, 0.3);
+                      border-radius: 8px;
+                      margin-bottom: 12px;
+                      box-shadow: 0 0 24px rgba(255, 215, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                      overflow: hidden;
+                    }
+                
+                    .post-media svg {
+                      position: absolute;
+                      inset: 0;
+                      width: 100%;
+                      height: 100%;
+                    }
+                
+                    .post-media-caption {
+                      position: absolute;
+                      left: 12px;
+                      bottom: 10px;
+                      font-family: var(--font-display);
+                      font-size: 11px;
+                      font-weight: 500;
+                      letter-spacing: 0.08em;
+                      text-transform: uppercase;
+                      color: var(--primary);
+                      opacity: 0.85;
+                    }
+                
+                    .post-engagement {
+                      display: flex;
+                      gap: 16px;
+                      font-size: 13px;
+                      color: var(--on-surface-variant);
+                    }
+                
+                    /* Geo Map Card */
+                    .geo-card {
+                      background: var(--glass-bg-level-1);
+                      backdrop-filter: blur(24px) saturate(180%);
+                      border: 1px solid var(--glass-border);
+                      border-radius: 12px;
+                      padding: 32px;
+                      position: relative;
+                      overflow: hidden;
+                    }
+                
+                    .geo-card::before {
+                      content: '';
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      right: 0;
+                      height: 1px;
+                      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+                    }
+                
+                    .geo-map {
+                      width: 100%;
+                      height: 200px;
+                      position: relative;
+                    }
+                
+                    .geo-dot {
+                      position: absolute;
+                      width: 8px;
+                      height: 8px;
+                      border-radius: 50%;
+                      background: var(--primary-container);
+                      box-shadow: 0 0 16px rgba(255, 215, 0, 0.6);
+                      animation: pulse 2s ease-in-out infinite;
+                    }
+                
+                    @keyframes pulse {
+                      0%, 100% { transform: scale(1); opacity: 1; }
+                      50% { transform: scale(1.3); opacity: 0.7; }
+                    }
+                
+                    .geo-stats {
+                      display: grid;
+                      grid-template-columns: repeat(2, 1fr);
+                      gap: 12px;
+                      margin-top: 20px;
+                    }
+                
+                    .geo-stat {
+                      font-size: 13px;
+                    }
+                
+                    .geo-stat-label {
+                      color: var(--on-surface-variant);
+                    }
+                
+                    .geo-stat-value {
+                      font-family: var(--font-display);
+                      font-weight: 600;
+                      color: var(--on-surface);
+                    }
+                
+                    /* GitHub Contributors */
+                    .contributors-grid {
+                      display: grid;
+                      grid-template-columns: repeat(5, 1fr);
+                      gap: 12px;
+                      margin-top: 20px;
+                    }
+                
+                    .contributor-item {
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      gap: 8px;
+                    }
+                
+                    .contributor-avatar {
+                      width: 48px;
+                      height: 48px;
+                      border-radius: 50%;
+                      border: 2px solid var(--glass-border);
+                      box-shadow: 0 0 16px rgba(0, 227, 253, 0.2);
+                      transition: all 0.3s ease;
+                    }
+                
+                    .contributor-avatar:hover {
+                      border-color: var(--secondary);
+                      box-shadow: 0 0 24px rgba(0, 227, 253, 0.4);
+                      transform: scale(1.05);
+                    }
+                
+                    .contributor-name {
+                      font-size: 11px;
+                      color: var(--on-surface-variant);
+                      text-align: center;
+                    }
+                
+                    .contributor-commits {
+                      font-size: 10px;
+                      color: var(--on-surface-variant);
+                      opacity: 0.7;
+                    }
+                
+                    /* Lower Grid */
+                    .lower-grid {
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 24px;
+                    }
+                
+                    .trending-card, .comments-card {
+                      background: var(--glass-bg-level-1);
+                      backdrop-filter: blur(24px) saturate(180%);
+                      border: 1px solid var(--glass-border);
+                      border-radius: 12px;
+                      padding: 24px;
+                      position: relative;
+                      overflow: hidden;
+                    }
+                
+                    .trending-card::before, .comments-card::before {
+                      content: '';
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      right: 0;
+                      height: 1px;
+                      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+                    }
+                
+                    .section-title {
+                      font-family: var(--font-display);
+                      font-size: 18px;
+                      font-weight: 600;
+                      color: var(--on-surface);
+                      margin-bottom: 20px;
+                    }
+                
+                    .trending-row {
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      padding: 12px 0;
+                      border-bottom: 1px solid rgba(153, 144, 119, 0.15);
+                    }
+                
+                    .trending-row:last-child {
+                      border-bottom: none;
+                    }
+                
+                    .trending-name {
+                      font-family: var(--font-display);
+                      font-size: 15px;
+                      font-weight: 500;
+                      color: var(--on-surface);
+                    }
+                
+                    .trending-count {
+                      font-size: 13px;
+                      color: var(--on-surface-variant);
+                      margin-left: 8px;
+                    }
+                
+                    .sparkline {
+                      width: 60px;
+                      height: 20px;
+                    }
+                
+                    .comment-item {
+                      padding: 16px 0;
+                      border-bottom: 1px solid rgba(153, 144, 119, 0.15);
+                    }
+                
+                    .comment-item:last-child {
+                      border-bottom: none;
+                    }
+                
+                    .comment-meta {
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                      margin-bottom: 8px;
+                    }
+                
+                    .comment-avatar {
+                      width: 28px;
+                      height: 28px;
+                      border-radius: 50%;
+                      background: var(--glass-bg-level-2);
+                      border: 1px solid var(--glass-border);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 12px;
+                      font-weight: 600;
+                      color: var(--primary);
+                    }
+                
+                    .comment-handle {
+                      font-size: 13px;
+                      font-weight: 600;
+                      color: var(--on-surface);
+                    }
+                
+                    .comment-time {
+                      font-size: 12px;
+                      color: var(--on-surface-variant);
+                    }
+                
+                    .comment-body {
+                      font-size: 14px;
+                      line-height: 1.5;
+                      color: var(--on-surface-variant);
+                      margin-bottom: 6px;
+                    }
+                
+                    .comment-engagement {
+                      font-size: 12px;
+                      color: var(--on-surface-variant);
+                    }
+                
+                    /* GitHub specific styles */
+                    .github-chart-explosive {
+                      position: relative;
+                    }
+                
+                    .milestone-marker {
+                      position: absolute;
+                      font-size: 11px;
+                      font-family: var(--font-display);
+                      font-weight: 600;
+                      color: var(--primary);
+                      background: rgba(255, 215, 0, 0.15);
+                      padding: 4px 8px;
+                      border-radius: 4px;
+                      border: 1px solid var(--primary-container);
+                      box-shadow: 0 0 16px rgba(255, 215, 0, 0.3);
+                    }
   </style>
 </head>
 <body>
@@ -1232,303 +1232,303 @@
 
   <script>
     // Real GitHub contributors — only verified avatar IDs to avoid 404s
-            const githubContributors = [
-              { login: "pftom", avatar: "https://avatars.githubusercontent.com/u/26423749?v=4", contributions: 26 },
-              { login: "lefarcen", avatar: "https://avatars.githubusercontent.com/u/20859779?v=4", contributions: 18 },
-              { login: "Sid-Qin", avatar: "https://avatars.githubusercontent.com/u/201593046?v=4", contributions: 17 },
-              { login: "nettee", avatar: "https://avatars.githubusercontent.com/u/3953668?v=4", contributions: 10 },
-              { login: "alchemistklk", avatar: "https://avatars.githubusercontent.com/u/56862773?v=4", contributions: 8 }
-            ];
-        
-            // Platform data
-            const platformData = {
-              x: {
-                heroHeadline: "Open Design shipped 9 posts on X this week.",
-                heroMeta: "Engagement up 0.6% vs. last week · Top thread reached 38K accounts",
-                heroCta: "New post →",
-                askPlaceholder: "Ask across your posts — 'top performing last week', 'comments from verified accounts'...",
-                kpis: [
-                  { label: "Followers", value: 14287, format: "int", delta: "+2.3%", footnote: "vs. 13,968 last week" },
-                  { label: "Engagement Rate", value: 4.8, format: "percent", delta: "+0.4%", footnote: "vs. 4.4% last week" },
-                  { label: "Likes (7D)", value: 1842, format: "int", delta: "+18%", footnote: "+280 vs. last week" },
-                  { label: "Reposts (7D)", value: 487, format: "int", delta: "+22%", footnote: "+88 vs. last week" }
-                ],
-                chartTitle: "Follower Growth · 30D",
-                chartType: "smooth",
-                chartAnnotations: [
-                  { x: 180, y: 120, label: "Thread: live artifacts +412" },
-                  { x: 480, y: 60, label: "Launch week +1.1K" }
-                ],
-                postTag: "Click-through rate 5.8%",
-                postBody: "Live artifacts just shipped. Paste a DESIGN.md, get a dashboard that actually ticks. Video below.",
-                postEngagement: { likes: 312, reposts: 48, comments: 22 },
-                trendingTitle: "Trending in AI × Design",
-                commentsTitle: "Top Comments · This Week"
-              },
-              github: {
-                heroHeadline: "Open Design hit 30K stars on GitHub — 9 days in.",
-                heroMeta: "Explosive growth: 3 days → 10K, 9 days → 30K · 127 contributors total",
-                heroCta: "New release →",
-                askPlaceholder: "Ask across your repo — 'stale PRs', 'issues tagged good-first-issue'...",
-                kpis: [
-                  { label: "Stars", value: 30124, format: "int", delta: "+3,284%", footnote: "9 days since launch" },
-                  { label: "Forks", value: 2847, format: "int", delta: "+412%", footnote: "vs. 556 at day 3" },
-                  { label: "Pull Requests (7D)", value: 38, format: "int", delta: "+156%", footnote: "18 merged this week" },
-                  { label: "Contributors", value: 127, format: "int", delta: "+217%", footnote: "vs. 40 at day 3" }
-                ],
-                chartTitle: "Star Growth · Explosive Trajectory (9D)",
-                chartType: "explosive",
-                chartAnnotations: [
-                  { x: 180, y: 180, label: "Day 3 · 10K stars" },
-                  { x: 540, y: 20, label: "Day 9 · 30K stars" }
-                ],
-                postTag: "127 contributors · 30K stars",
-                postBody: "From 0 → 30K stars in 9 days. This is the fastest-growing design tool in GitHub history.",
-                postEngagement: { likes: 842, reposts: 217, comments: 94 },
-                trendingTitle: "Top Issues & Discussions",
-                commentsTitle: "Top Issue Replies · This Week"
-              }
-            };
-        
-            let activePlatform = 'x';
-            let chartBaseData = [];
-        
-            // Generate chart data based on platform
-            function generateChartData(platform) {
-              if (platform === 'x') {
-                // Smooth follower growth
-                return Array.from({ length: 30 }, (_, i) => ({
-                  x: i * 20,
-                  y: 200 - (i * 4) + Math.sin(i / 3) * 20
-                }));
-              } else {
-                // Explosive GitHub star growth (9 days, steep curve)
-                return [
-                  { x: 0, y: 250 },    // Day 0
-                  { x: 60, y: 240 },   // Day 1
-                  { x: 120, y: 220 },  // Day 2
-                  { x: 180, y: 180 },  // Day 3: 10K milestone
-                  { x: 240, y: 140 },  // Day 4
-                  { x: 300, y: 110 },  // Day 5
-                  { x: 360, y: 80 },   // Day 6
-                  { x: 420, y: 60 },   // Day 7
-                  { x: 480, y: 40 },   // Day 8
-                  { x: 540, y: 20 }    // Day 9: 30K milestone
-                ];
-              }
-            }
-        
-            // Initialize chart
-            function renderChart() {
-              const svg = document.getElementById('chart-svg');
-              svg.innerHTML = '';
-              const data = platformData[activePlatform];
-              chartBaseData = generateChartData(activePlatform);
-        
-              // Background grid
-              for (let i = 0; i <= 5; i++) {
-                const y = i * 56;
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', '0');
-                line.setAttribute('y1', y);
-                line.setAttribute('x2', '600');
-                line.setAttribute('y2', y);
-                line.setAttribute('stroke', 'var(--outline-variant)');
-                line.setAttribute('stroke-width', '0.5');
-                line.setAttribute('opacity', '0.3');
-                svg.appendChild(line);
-              }
-        
-              // Area fill
-              const areaPoints = chartBaseData.map(d => `${d.x},${d.y}`).join(' ');
-              const area = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-              area.setAttribute('points', `0,280 ${areaPoints} 600,280`);
-              area.setAttribute('fill', 'rgba(255, 215, 0, 0.12)');
-              svg.appendChild(area);
-        
-              // Line
-              const linePoints = chartBaseData.map(d => `${d.x},${d.y}`).join(' ');
-              const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-              line.setAttribute('points', linePoints);
-              line.setAttribute('fill', 'none');
-              line.setAttribute('stroke', 'var(--primary-container)');
-              line.setAttribute('stroke-width', activePlatform === 'github' ? '4' : '3');
-              line.setAttribute('filter', 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.4))');
-              line.id = 'chart-line';
-              svg.appendChild(line);
-        
-              // Annotations — place label above the dot when there's room overhead,
-              // otherwise place it below so the text never collides with the curve.
-              data.chartAnnotations.forEach(ann => {
-                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                circle.setAttribute('cx', ann.x);
-                circle.setAttribute('cy', ann.y);
-                circle.setAttribute('r', '7');
-                circle.setAttribute('fill', 'var(--primary-container)');
-                circle.setAttribute('stroke', 'var(--surface)');
-                circle.setAttribute('stroke-width', '3');
-                circle.setAttribute('filter', 'drop-shadow(0 0 12px rgba(255, 215, 0, 0.6))');
-                svg.appendChild(circle);
-        
-                // Anchor near edges so the label doesn't get cropped on the right side.
-                const anchor = ann.x > 540 ? 'end' : (ann.x < 60 ? 'start' : 'middle');
-                // Below the dot when the dot is too high to leave label room.
-                const placeBelow = ann.y < 40;
-                const labelY = placeBelow ? ann.y + 22 : ann.y - 14;
-        
-                // Soft pill background behind the text so it stays legible across the
-                // gold gradient + chart line, without using a heavy rect.
-                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text.setAttribute('x', ann.x);
-                text.setAttribute('y', labelY);
-                text.setAttribute('fill', 'var(--primary)');
-                text.setAttribute('font-size', '12');
-                text.setAttribute('font-family', 'var(--font-display)');
-                text.setAttribute('font-weight', '600');
-                text.setAttribute('text-anchor', anchor);
-                text.setAttribute('paint-order', 'stroke');
-                text.setAttribute('stroke', 'rgba(18, 19, 24, 0.85)');
-                text.setAttribute('stroke-width', '4');
-                text.setAttribute('stroke-linejoin', 'round');
-                text.setAttribute('filter', 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.35))');
-                text.textContent = ann.label;
-                svg.appendChild(text);
-              });
-            }
-        
-            // Render contributors
-            function renderContributors() {
-              const grid = document.getElementById('contributors-grid');
-              grid.innerHTML = '';
-              githubContributors.forEach(contributor => {
-                const item = document.createElement('div');
-                item.className = 'contributor-item';
-                item.innerHTML = `
-                  <img src="${contributor.avatar}" alt="${contributor.login}" class="contributor-avatar"
-                       onerror="this.style.display='none'; this.nextElementSibling.style.fontWeight='600';">
-                  <div class="contributor-name">${contributor.login}</div>
-                  <div class="contributor-commits">${contributor.contributions} commits</div>
-                `;
-                grid.appendChild(item);
-              });
-            }
-        
-            // Switch platform
-            function switchPlatform(platform) {
-              activePlatform = platform;
-              const data = platformData[platform];
-        
-              // Update hero
-              document.getElementById('hero-headline').textContent = data.heroHeadline;
-              document.getElementById('hero-meta').textContent = data.heroMeta;
-              document.getElementById('hero-cta').textContent = data.heroCta;
-        
-              // Update ask bar
-              document.getElementById('ask-input').placeholder = data.askPlaceholder;
-        
-              // Update KPIs
-              data.kpis.forEach((kpi, i) => {
-                document.getElementById(`kpi-${i + 1}-label`).textContent = kpi.label;
-                document.getElementById(`kpi-${i + 1}-value`).textContent = formatKpi(kpi);
-                document.getElementById(`kpi-${i + 1}-delta`).textContent = kpi.delta;
-                document.getElementById(`kpi-${i + 1}-footnote`).textContent = kpi.footnote;
-              });
-        
-              // Update chart
-              document.getElementById('chart-title').textContent = data.chartTitle;
-              renderChart();
-        
-              // Toggle between post and contributors
-              if (platform === 'github') {
-                document.getElementById('post-section').style.display = 'none';
-                document.getElementById('contributors-section').style.display = 'block';
-                renderContributors();
-              } else {
-                document.getElementById('post-section').style.display = 'block';
-                document.getElementById('contributors-section').style.display = 'none';
-              }
-        
-              // Update top post/stats
-              document.getElementById('post-tag').textContent = data.postTag;
-              document.getElementById('post-body').textContent = data.postBody;
-              document.getElementById('post-likes').textContent = data.postEngagement.likes;
-              document.getElementById('post-reposts').textContent = data.postEngagement.reposts;
-              document.getElementById('post-comments').textContent = data.postEngagement.comments;
-        
-              // Update section titles
-              document.getElementById('trending-title').textContent = data.trendingTitle;
-              document.getElementById('comments-title').textContent = data.commentsTitle;
-        
-              // Update active states
-              document.querySelectorAll('.platform-pill').forEach(pill => {
-                pill.classList.toggle('active', pill.dataset.platform === platform);
-              });
-              document.querySelectorAll('.platform-card').forEach(card => {
-                card.classList.toggle('active', card.dataset.platformCard === platform);
-              });
-            }
-        
-            // Format a KPI value for display, based on its `format` flag.
-            function formatKpi(kpi) {
-              if (kpi.format === 'percent') return kpi.value.toFixed(2) + '%';
-              if (typeof kpi.value === 'number') return kpi.value.toLocaleString();
-              return String(kpi.value);
-            }
-        
-            // Live updates — every 2 seconds, nudge each numeric KPI by a small,
-            // realistic delta. Counters tick up; the engagement rate jitters by a
-            // fraction of a percent so it visibly breathes without drifting absurdly.
-            function animateNumbers() {
-              const data = platformData[activePlatform];
-              data.kpis.forEach((kpi, i) => {
-                const valueEl = document.getElementById(`kpi-${i + 1}-value`);
-                if (kpi.format === 'percent') {
-                  // Random walk in ±0.04% range, clamped to a believable band.
-                  kpi.value += (Math.random() - 0.5) * 0.08;
-                  kpi.value = Math.max(3.5, Math.min(6.0, kpi.value));
-                  valueEl.textContent = formatKpi(kpi);
-                } else if (typeof kpi.value === 'number') {
-                  const delta = Math.floor(Math.random() * (activePlatform === 'github' ? 8 : 3)) + 1;
-                  kpi.value += delta;
-                  valueEl.textContent = formatKpi(kpi);
-                }
-              });
-        
-              // Update post engagement
-              const postData = data.postEngagement;
-              postData.likes += Math.floor(Math.random() * (activePlatform === 'github' ? 4 : 2));
-              postData.reposts += Math.random() > 0.7 ? 1 : 0;
-              postData.comments += Math.random() > 0.8 ? 1 : 0;
-              document.getElementById('post-likes').textContent = postData.likes;
-              document.getElementById('post-reposts').textContent = postData.reposts;
-              document.getElementById('post-comments').textContent = postData.comments;
-        
-              // Breathe the chart
-              if (activePlatform === 'x') {
-                const lastPoint = chartBaseData[chartBaseData.length - 1];
-                lastPoint.y += (Math.random() - 0.5) * 4;
-                lastPoint.y = Math.max(40, Math.min(200, lastPoint.y));
+                    const githubContributors = [
+                      { login: "pftom", avatar: "https://avatars.githubusercontent.com/u/26423749?v=4", contributions: 26 },
+                      { login: "lefarcen", avatar: "https://avatars.githubusercontent.com/u/20859779?v=4", contributions: 18 },
+                      { login: "Sid-Qin", avatar: "https://avatars.githubusercontent.com/u/201593046?v=4", contributions: 17 },
+                      { login: "nettee", avatar: "https://avatars.githubusercontent.com/u/3953668?v=4", contributions: 10 },
+                      { login: "alchemistklk", avatar: "https://avatars.githubusercontent.com/u/56862773?v=4", contributions: 8 }
+                    ];
                 
-                const linePoints = chartBaseData.map(d => `${d.x},${d.y}`).join(' ');
-                const line = document.getElementById('chart-line');
-                if (line) {
-                  line.setAttribute('points', linePoints);
-                }
-              }
-            }
-        
-            // Event listeners
-            document.querySelectorAll('.platform-pill').forEach(pill => {
-              pill.addEventListener('click', () => switchPlatform(pill.dataset.platform));
-            });
-        
-            document.querySelectorAll('.platform-card').forEach(card => {
-              card.addEventListener('click', () => switchPlatform(card.dataset.platformCard));
-            });
-        
-            // Initialize
-            renderChart();
-            setInterval(animateNumbers, 2000);
+                    // Platform data
+                    const platformData = {
+                      x: {
+                        heroHeadline: "Open Design shipped 9 posts on X this week.",
+                        heroMeta: "Engagement up 0.6% vs. last week · Top thread reached 38K accounts",
+                        heroCta: "New post →",
+                        askPlaceholder: "Ask across your posts — 'top performing last week', 'comments from verified accounts'...",
+                        kpis: [
+                          { label: "Followers", value: 14287, format: "int", delta: "+2.3%", footnote: "vs. 13,968 last week" },
+                          { label: "Engagement Rate", value: 4.8, format: "percent", delta: "+0.4%", footnote: "vs. 4.4% last week" },
+                          { label: "Likes (7D)", value: 1842, format: "int", delta: "+18%", footnote: "+280 vs. last week" },
+                          { label: "Reposts (7D)", value: 487, format: "int", delta: "+22%", footnote: "+88 vs. last week" }
+                        ],
+                        chartTitle: "Follower Growth · 30D",
+                        chartType: "smooth",
+                        chartAnnotations: [
+                          { x: 180, y: 120, label: "Thread: live artifacts +412" },
+                          { x: 480, y: 60, label: "Launch week +1.1K" }
+                        ],
+                        postTag: "Click-through rate 5.8%",
+                        postBody: "Live artifacts just shipped. Paste a DESIGN.md, get a dashboard that actually ticks. Video below.",
+                        postEngagement: { likes: 312, reposts: 48, comments: 22 },
+                        trendingTitle: "Trending in AI × Design",
+                        commentsTitle: "Top Comments · This Week"
+                      },
+                      github: {
+                        heroHeadline: "Open Design hit 30K stars on GitHub — 9 days in.",
+                        heroMeta: "Explosive growth: 3 days → 10K, 9 days → 30K · 127 contributors total",
+                        heroCta: "New release →",
+                        askPlaceholder: "Ask across your repo — 'stale PRs', 'issues tagged good-first-issue'...",
+                        kpis: [
+                          { label: "Stars", value: 30124, format: "int", delta: "+3,284%", footnote: "9 days since launch" },
+                          { label: "Forks", value: 2847, format: "int", delta: "+412%", footnote: "vs. 556 at day 3" },
+                          { label: "Pull Requests (7D)", value: 38, format: "int", delta: "+156%", footnote: "18 merged this week" },
+                          { label: "Contributors", value: 127, format: "int", delta: "+217%", footnote: "vs. 40 at day 3" }
+                        ],
+                        chartTitle: "Star Growth · Explosive Trajectory (9D)",
+                        chartType: "explosive",
+                        chartAnnotations: [
+                          { x: 180, y: 180, label: "Day 3 · 10K stars" },
+                          { x: 540, y: 20, label: "Day 9 · 30K stars" }
+                        ],
+                        postTag: "127 contributors · 30K stars",
+                        postBody: "From 0 → 30K stars in 9 days. This is the fastest-growing design tool in GitHub history.",
+                        postEngagement: { likes: 842, reposts: 217, comments: 94 },
+                        trendingTitle: "Top Issues & Discussions",
+                        commentsTitle: "Top Issue Replies · This Week"
+                      }
+                    };
+                
+                    let activePlatform = 'x';
+                    let chartBaseData = [];
+                
+                    // Generate chart data based on platform
+                    function generateChartData(platform) {
+                      if (platform === 'x') {
+                        // Smooth follower growth
+                        return Array.from({ length: 30 }, (_, i) => ({
+                          x: i * 20,
+                          y: 200 - (i * 4) + Math.sin(i / 3) * 20
+                        }));
+                      } else {
+                        // Explosive GitHub star growth (9 days, steep curve)
+                        return [
+                          { x: 0, y: 250 },    // Day 0
+                          { x: 60, y: 240 },   // Day 1
+                          { x: 120, y: 220 },  // Day 2
+                          { x: 180, y: 180 },  // Day 3: 10K milestone
+                          { x: 240, y: 140 },  // Day 4
+                          { x: 300, y: 110 },  // Day 5
+                          { x: 360, y: 80 },   // Day 6
+                          { x: 420, y: 60 },   // Day 7
+                          { x: 480, y: 40 },   // Day 8
+                          { x: 540, y: 20 }    // Day 9: 30K milestone
+                        ];
+                      }
+                    }
+                
+                    // Initialize chart
+                    function renderChart() {
+                      const svg = document.getElementById('chart-svg');
+                      svg.innerHTML = '';
+                      const data = platformData[activePlatform];
+                      chartBaseData = generateChartData(activePlatform);
+                
+                      // Background grid
+                      for (let i = 0; i <= 5; i++) {
+                        const y = i * 56;
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', '0');
+                        line.setAttribute('y1', y);
+                        line.setAttribute('x2', '600');
+                        line.setAttribute('y2', y);
+                        line.setAttribute('stroke', 'var(--outline-variant)');
+                        line.setAttribute('stroke-width', '0.5');
+                        line.setAttribute('opacity', '0.3');
+                        svg.appendChild(line);
+                      }
+                
+                      // Area fill
+                      const areaPoints = chartBaseData.map(d => `${d.x},${d.y}`).join(' ');
+                      const area = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                      area.setAttribute('points', `0,280 ${areaPoints} 600,280`);
+                      area.setAttribute('fill', 'rgba(255, 215, 0, 0.12)');
+                      svg.appendChild(area);
+                
+                      // Line
+                      const linePoints = chartBaseData.map(d => `${d.x},${d.y}`).join(' ');
+                      const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                      line.setAttribute('points', linePoints);
+                      line.setAttribute('fill', 'none');
+                      line.setAttribute('stroke', 'var(--primary-container)');
+                      line.setAttribute('stroke-width', activePlatform === 'github' ? '4' : '3');
+                      line.setAttribute('filter', 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.4))');
+                      line.id = 'chart-line';
+                      svg.appendChild(line);
+                
+                      // Annotations — place label above the dot when there's room overhead,
+                      // otherwise place it below so the text never collides with the curve.
+                      data.chartAnnotations.forEach(ann => {
+                        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        circle.setAttribute('cx', ann.x);
+                        circle.setAttribute('cy', ann.y);
+                        circle.setAttribute('r', '7');
+                        circle.setAttribute('fill', 'var(--primary-container)');
+                        circle.setAttribute('stroke', 'var(--surface)');
+                        circle.setAttribute('stroke-width', '3');
+                        circle.setAttribute('filter', 'drop-shadow(0 0 12px rgba(255, 215, 0, 0.6))');
+                        svg.appendChild(circle);
+                
+                        // Anchor near edges so the label doesn't get cropped on the right side.
+                        const anchor = ann.x > 540 ? 'end' : (ann.x < 60 ? 'start' : 'middle');
+                        // Below the dot when the dot is too high to leave label room.
+                        const placeBelow = ann.y < 40;
+                        const labelY = placeBelow ? ann.y + 22 : ann.y - 14;
+                
+                        // Soft pill background behind the text so it stays legible across the
+                        // gold gradient + chart line, without using a heavy rect.
+                        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        text.setAttribute('x', ann.x);
+                        text.setAttribute('y', labelY);
+                        text.setAttribute('fill', 'var(--primary)');
+                        text.setAttribute('font-size', '12');
+                        text.setAttribute('font-family', 'var(--font-display)');
+                        text.setAttribute('font-weight', '600');
+                        text.setAttribute('text-anchor', anchor);
+                        text.setAttribute('paint-order', 'stroke');
+                        text.setAttribute('stroke', 'rgba(18, 19, 24, 0.85)');
+                        text.setAttribute('stroke-width', '4');
+                        text.setAttribute('stroke-linejoin', 'round');
+                        text.setAttribute('filter', 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.35))');
+                        text.textContent = ann.label;
+                        svg.appendChild(text);
+                      });
+                    }
+                
+                    // Render contributors
+                    function renderContributors() {
+                      const grid = document.getElementById('contributors-grid');
+                      grid.innerHTML = '';
+                      githubContributors.forEach(contributor => {
+                        const item = document.createElement('div');
+                        item.className = 'contributor-item';
+                        item.innerHTML = `
+                          <img src="${contributor.avatar}" alt="${contributor.login}" class="contributor-avatar"
+                               onerror="this.style.display='none'; this.nextElementSibling.style.fontWeight='600';">
+                          <div class="contributor-name">${contributor.login}</div>
+                          <div class="contributor-commits">${contributor.contributions} commits</div>
+                        `;
+                        grid.appendChild(item);
+                      });
+                    }
+                
+                    // Switch platform
+                    function switchPlatform(platform) {
+                      activePlatform = platform;
+                      const data = platformData[platform];
+                
+                      // Update hero
+                      document.getElementById('hero-headline').textContent = data.heroHeadline;
+                      document.getElementById('hero-meta').textContent = data.heroMeta;
+                      document.getElementById('hero-cta').textContent = data.heroCta;
+                
+                      // Update ask bar
+                      document.getElementById('ask-input').placeholder = data.askPlaceholder;
+                
+                      // Update KPIs
+                      data.kpis.forEach((kpi, i) => {
+                        document.getElementById(`kpi-${i + 1}-label`).textContent = kpi.label;
+                        document.getElementById(`kpi-${i + 1}-value`).textContent = formatKpi(kpi);
+                        document.getElementById(`kpi-${i + 1}-delta`).textContent = kpi.delta;
+                        document.getElementById(`kpi-${i + 1}-footnote`).textContent = kpi.footnote;
+                      });
+                
+                      // Update chart
+                      document.getElementById('chart-title').textContent = data.chartTitle;
+                      renderChart();
+                
+                      // Toggle between post and contributors
+                      if (platform === 'github') {
+                        document.getElementById('post-section').style.display = 'none';
+                        document.getElementById('contributors-section').style.display = 'block';
+                        renderContributors();
+                      } else {
+                        document.getElementById('post-section').style.display = 'block';
+                        document.getElementById('contributors-section').style.display = 'none';
+                      }
+                
+                      // Update top post/stats
+                      document.getElementById('post-tag').textContent = data.postTag;
+                      document.getElementById('post-body').textContent = data.postBody;
+                      document.getElementById('post-likes').textContent = data.postEngagement.likes;
+                      document.getElementById('post-reposts').textContent = data.postEngagement.reposts;
+                      document.getElementById('post-comments').textContent = data.postEngagement.comments;
+                
+                      // Update section titles
+                      document.getElementById('trending-title').textContent = data.trendingTitle;
+                      document.getElementById('comments-title').textContent = data.commentsTitle;
+                
+                      // Update active states
+                      document.querySelectorAll('.platform-pill').forEach(pill => {
+                        pill.classList.toggle('active', pill.dataset.platform === platform);
+                      });
+                      document.querySelectorAll('.platform-card').forEach(card => {
+                        card.classList.toggle('active', card.dataset.platformCard === platform);
+                      });
+                    }
+                
+                    // Format a KPI value for display, based on its `format` flag.
+                    function formatKpi(kpi) {
+                      if (kpi.format === 'percent') return kpi.value.toFixed(2) + '%';
+                      if (typeof kpi.value === 'number') return kpi.value.toLocaleString();
+                      return String(kpi.value);
+                    }
+                
+                    // Live updates — every 2 seconds, nudge each numeric KPI by a small,
+                    // realistic delta. Counters tick up; the engagement rate jitters by a
+                    // fraction of a percent so it visibly breathes without drifting absurdly.
+                    function animateNumbers() {
+                      const data = platformData[activePlatform];
+                      data.kpis.forEach((kpi, i) => {
+                        const valueEl = document.getElementById(`kpi-${i + 1}-value`);
+                        if (kpi.format === 'percent') {
+                          // Random walk in ±0.04% range, clamped to a believable band.
+                          kpi.value += (Math.random() - 0.5) * 0.08;
+                          kpi.value = Math.max(3.5, Math.min(6.0, kpi.value));
+                          valueEl.textContent = formatKpi(kpi);
+                        } else if (typeof kpi.value === 'number') {
+                          const delta = Math.floor(Math.random() * (activePlatform === 'github' ? 8 : 3)) + 1;
+                          kpi.value += delta;
+                          valueEl.textContent = formatKpi(kpi);
+                        }
+                      });
+                
+                      // Update post engagement
+                      const postData = data.postEngagement;
+                      postData.likes += Math.floor(Math.random() * (activePlatform === 'github' ? 4 : 2));
+                      postData.reposts += Math.random() > 0.7 ? 1 : 0;
+                      postData.comments += Math.random() > 0.8 ? 1 : 0;
+                      document.getElementById('post-likes').textContent = postData.likes;
+                      document.getElementById('post-reposts').textContent = postData.reposts;
+                      document.getElementById('post-comments').textContent = postData.comments;
+                
+                      // Breathe the chart
+                      if (activePlatform === 'x') {
+                        const lastPoint = chartBaseData[chartBaseData.length - 1];
+                        lastPoint.y += (Math.random() - 0.5) * 4;
+                        lastPoint.y = Math.max(40, Math.min(200, lastPoint.y));
+                        
+                        const linePoints = chartBaseData.map(d => `${d.x},${d.y}`).join(' ');
+                        const line = document.getElementById('chart-line');
+                        if (line) {
+                          line.setAttribute('points', linePoints);
+                        }
+                      }
+                    }
+                
+                    // Event listeners
+                    document.querySelectorAll('.platform-pill').forEach(pill => {
+                      pill.addEventListener('click', () => switchPlatform(pill.dataset.platform));
+                    });
+                
+                    document.querySelectorAll('.platform-card').forEach(card => {
+                      card.addEventListener('click', () => switchPlatform(card.dataset.platformCard));
+                    });
+                
+                    // Initialize
+                    renderChart();
+                    setInterval(animateNumbers, 2000);
   </script>
 </body>
 </html>

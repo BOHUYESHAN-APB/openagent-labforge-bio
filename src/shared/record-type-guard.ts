@@ -1,1 +1,1 @@
-export { isRecord } from "./utils-shim"
+export { isRecord } from './utils-shim';

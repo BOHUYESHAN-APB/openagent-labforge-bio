@@ -82,17 +82,18 @@ describe('bio skill loader resources', () => {
 
     writeFileSync(
       join(skillDir, 'SKILL.md'),
-      ['---', 'name: bio-flow-doublet', 'description: Doublet detection', '---'].join(
-        '\n',
-      ),
+      [
+        '---',
+        'name: bio-flow-doublet',
+        'description: Doublet detection',
+        '---',
+      ].join('\n'),
     );
     writeFileSync(
       join(skillDir, 'examples', 'detect_doublets.R'),
-      [
-        '# Simulated example',
-        'set.seed(42)',
-        'cat("Simulated data")',
-      ].join('\n'),
+      ['# Simulated example', 'set.seed(42)', 'cat("Simulated data")'].join(
+        '\n',
+      ),
     );
 
     const loaded = loadCategorySkills(categoryDir, 'flow-cytometry');

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { PluginInput } from '@opencode-ai/plugin';
-import { ALL_AGENT_NAMES, type AgentName } from '../../config';
+import { type AgentName, ALL_AGENT_NAMES } from '../../config';
 import {
   BackgroundJobBoard,
   type BackgroundJobRecord,
@@ -29,7 +29,9 @@ interface PendingTaskCall {
   resumedTaskId?: string;
 }
 
-const AGENT_NAME_SET = new Set<AgentName>(ALL_AGENT_NAMES as unknown as AgentName[]);
+const AGENT_NAME_SET = new Set<AgentName>(
+  ALL_AGENT_NAMES as unknown as AgentName[],
+);
 
 const MAX_PENDING_TASK_CALLS = 100;
 const BACKGROUND_JOB_BOARD_SENTINEL = 'SENTINEL: background-job-board-v2';
@@ -278,7 +280,8 @@ export function createTaskSessionManagerHook(
     processedInjectedCompletionOrder.push(signature);
 
     while (
-      processedInjectedCompletionOrder.length > MAX_PROCESSED_INJECTED_COMPLETIONS
+      processedInjectedCompletionOrder.length >
+      MAX_PROCESSED_INJECTED_COMPLETIONS
     ) {
       const evicted = processedInjectedCompletionOrder.shift();
       if (!evicted) break;
@@ -516,7 +519,9 @@ export function createTaskSessionManagerHook(
       const combined = output.system.join('\n');
       if (reminder && !combined.includes(RESUMABLE_SESSIONS_START)) {
         output.system.push(
-          [RESUMABLE_SESSIONS_START, reminder, RESUMABLE_SESSIONS_END].join('\n'),
+          [RESUMABLE_SESSIONS_START, reminder, RESUMABLE_SESSIONS_END].join(
+            '\n',
+          ),
         );
       }
 

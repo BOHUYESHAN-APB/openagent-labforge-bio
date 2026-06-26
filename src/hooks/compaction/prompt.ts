@@ -162,4 +162,3 @@ export function getPartialCompactionPrompt(
 ): string {
   return getCompactionPrompt(customInstructions);
 }
-

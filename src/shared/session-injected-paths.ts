@@ -4,8 +4,8 @@ import {
   readFileSync,
   unlinkSync,
   writeFileSync,
-} from "node:fs";
-import { join } from "node:path";
+} from 'node:fs';
+import { join } from 'node:path';
 
 export interface InjectedPathsData {
   sessionID: string;
@@ -22,7 +22,7 @@ export function createInjectedPathsStorage(storageDir: string) {
     if (!existsSync(filePath)) return new Set();
 
     try {
-      const content = readFileSync(filePath, "utf-8");
+      const content = readFileSync(filePath, 'utf-8');
       const data: InjectedPathsData = JSON.parse(content);
       return new Set(data.injectedPaths);
     } catch {

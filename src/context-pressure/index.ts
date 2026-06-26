@@ -1,9 +1,75 @@
 /**
  * Context pressure monitor - track context usage and trigger L0/L1/L2/L3 strategies
  *
- * Monitors context window usage via OpenCode native stats and triggers
- * appropriate compression/checkpoint strategies based on pressure levels.
+ * Thresholds are adaptive to model context size:
+ * - For models ≥ 700K context: absolute caps (350K/450K/550K)
+ * - For models < 700K: proportional to context (50%/65%/80%)
+ * - Hysteresis: proportional min(50K, 10% of context)
+ *
+ * This handles all model sizes: 100K, 128K, 200K, 256K, 400K, 500K, 1M.
  */
+
+/** Maximum (cap) thresholds — never exceed these regardless of model size */
+export const MAX_THRESHOLDS = {
+  /** L1 trigger: suggest compaction/checkpoint planning */
+  L1: 350_000,
+  /** L2 trigger: warning, must compress */
+  L2: 450_000,
+  /** L3 trigger: force compaction immediately */
+  L3: 550_000,
+} as const;
+
+/** Ratio thresholds used when model context is smaller than caps */
+export const RATIO_THRESHOLDS = {
+  L1: 0.50,
+  L2: 0.65,
+  L3: 0.80,
+} as const;
+
+/**
+ * Compute effective thresholds for a given context limit.
+ * For large models (≥700K), caps dominate.
+ * For small models (≤400K), ratios dominate.
+ * For mid-range, a blend applies.
+ */
+export function computeThresholds(
+  contextLimit: number,
+): {
+  L1: number;
+  L2: number;
+  L3: number;
+  L1_CLEAR: number;
+  L2_CLEAR: number;
+  L3_CLEAR: number;
+} {
+  if (contextLimit <= 0) {
+    return {
+      L1: MAX_THRESHOLDS.L1,
+      L2: MAX_THRESHOLDS.L2,
+      L3: MAX_THRESHOLDS.L3,
+      L1_CLEAR: MAX_THRESHOLDS.L1 - 50_000,
+      L2_CLEAR: MAX_THRESHOLDS.L2 - 50_000,
+      L3_CLEAR: MAX_THRESHOLDS.L3 - 50_000,
+    };
+  }
+
+  // Proportional hysteresis: min(50K, 10% of context)
+  const hysteresis = Math.min(50_000, Math.round(contextLimit * 0.1));
+
+  // Effective thresholds: cap at max, scale by ratio for smaller models
+  const L1 = Math.min(MAX_THRESHOLDS.L1, Math.round(contextLimit * RATIO_THRESHOLDS.L1));
+  const L2 = Math.min(MAX_THRESHOLDS.L2, Math.round(contextLimit * RATIO_THRESHOLDS.L2));
+  const L3 = Math.min(MAX_THRESHOLDS.L3, Math.round(contextLimit * RATIO_THRESHOLDS.L3));
+
+  return {
+    L1,
+    L2,
+    L3,
+    L1_CLEAR: Math.max(0, L1 - hysteresis),
+    L2_CLEAR: Math.max(0, L2 - hysteresis),
+    L3_CLEAR: Math.max(0, L3 - hysteresis),
+  };
+}
 
 export interface ContextPressureState {
   /** Current context usage ratio (0.0 - 1.0) */
@@ -103,6 +169,11 @@ export class ContextPressureMonitor {
 
   /**
    * Update context pressure state for a session
+   *
+   * Thresholds adapt to model context size:
+   * - Large models (≥700K): capped at 350K/450K/550K
+   * - Small models (≤400K): proportional (50%/65%/80% of context)
+   * - Mid-range: blend
    */
   updatePressure(
     sessionID: string,
@@ -110,8 +181,9 @@ export class ContextPressureMonitor {
     contextLimit: number,
   ): ContextPressureState {
     const ratio = contextLimit > 0 ? totalTokens / contextLimit : 0;
-    const profile = this.getProfile(sessionID);
-    const level = this.calculateLevel(ratio, profile.thresholds);
+    const prevState = this.stateBySession.get(sessionID);
+    const prevLevel = prevState?.level ?? 0;
+    const level = this.calculateLevel(totalTokens, prevLevel, contextLimit);
 
     const state: ContextPressureState = {
       ratio,
@@ -155,16 +227,43 @@ export class ContextPressureMonitor {
   }
 
   /**
-   * Calculate pressure level based on ratio and thresholds
+   * Calculate pressure level with adaptive thresholds + hysteresis.
+   *
+   * Thresholds adapt to model context size via computeThresholds().
+   * - Large models (1M): capped at 350K/450K/550K
+   * - Small models (100K): proportional 50K/65K/80K
+   *
+   * Hysteresis: going up immediate, going down needs 10% of context clearance.
+   *
+   * @param totalTokens - Current total tokens
+   * @param prevLevel - Previous level (for hysteresis demotion)
+   * @param contextLimit - Model context limit (for adaptive thresholds)
    */
   private calculateLevel(
-    ratio: number,
-    thresholds: ContextPressureThresholds,
+    totalTokens: number,
+    prevLevel: number,
+    contextLimit: number,
   ): number {
-    if (ratio >= thresholds.l3) return 3;
-    if (ratio >= thresholds.l2) return 2;
-    if (ratio >= thresholds.l1) return 1;
-    return 0;
+    const effective = computeThresholds(contextLimit);
+
+    let candidateLevel = 0;
+    if (totalTokens >= effective.L3) candidateLevel = 3;
+    else if (totalTokens >= effective.L2) candidateLevel = 2;
+    else if (totalTokens >= effective.L1) candidateLevel = 1;
+
+    // Hysteresis: going up is immediate, going down needs clearance
+    if (candidateLevel >= prevLevel) return candidateLevel;
+
+    switch (prevLevel) {
+      case 3:
+        return totalTokens < effective.L3_CLEAR ? candidateLevel : 3;
+      case 2:
+        return totalTokens < effective.L2_CLEAR ? candidateLevel : 2;
+      case 1:
+        return totalTokens < effective.L1_CLEAR ? candidateLevel : 1;
+      default:
+        return candidateLevel;
+    }
   }
 
   /**

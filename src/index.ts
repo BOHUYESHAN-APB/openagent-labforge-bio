@@ -72,14 +72,6 @@ import {
   createTeamTaskUpdateTool,
 } from './features/team-mode/tools/team-tools';
 import {
-  buildPhaseSwitchText,
-  getThinkLevel,
-  injectPhaseSwitch,
-  resolveThinkingEffort,
-  tryConsumePhaseSwitch,
-} from './hooks/phase-switch';
-import { classifyTaskExecutor, createLoop } from './hooks/loop';
-import {
   createApplyPatchHook,
   createAutoUpdateCheckerHook,
   createBashTimeoutRecoveryHook,
@@ -107,6 +99,14 @@ import {
   ForegroundFallbackManager,
 } from './hooks';
 import { processImageAttachments } from './hooks/image-hook';
+import { classifyTaskExecutor, createLoop } from './hooks/loop';
+import {
+  buildPhaseSwitchText,
+  getThinkLevel,
+  injectPhaseSwitch,
+  resolveThinkingEffort,
+  tryConsumePhaseSwitch,
+} from './hooks/phase-switch';
 import { createThinkingFloorHook } from './hooks/thinking-floor';
 import { createThinkingLanguageHook } from './hooks/thinking-language';
 import { createInterviewManager } from './interview';
@@ -138,8 +138,8 @@ import {
   createPresetManager,
   createSavePlanTool,
   createSubtaskTool,
-  createTaskCompleteTool,
   createSwitchAgentTool,
+  createTaskCompleteTool,
   createWebfetchTool,
   loadAgentInstructionsTool,
 } from './tools';
@@ -317,11 +317,13 @@ function registerCompleteArgumentCommands(opencodeConfig: {
   });
   registerCommandIfMissing(commands, PLAN_ENTER_COMMAND, {
     template: '',
-    description: 'Enter plan mode — switch to prometheus (planner) for strategic planning. prometheus has read-only access and works through a 5-phase planning workflow. Call /ol-plan-exit to return to the original agent.',
+    description:
+      'Enter plan mode — switch to prometheus (planner) for strategic planning. prometheus has read-only access and works through a 5-phase planning workflow. Call /ol-plan-exit to return to the original agent.',
   });
   registerCommandIfMissing(commands, PLAN_EXIT_COMMAND, {
     template: '',
-    description: 'Exit plan mode — return to the original agent. Call this when planning is complete.',
+    description:
+      'Exit plan mode — return to the original agent. Call this when planning is complete.',
   });
 }
 
@@ -1485,7 +1487,8 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       if (!configCommand?.['ol-loop-start']) {
         (opencodeConfig.command as Record<string, unknown>)['ol-loop-start'] = {
           template: '',
-          description: 'Start a loop session — plan → execute → review → cycle until approved',
+          description:
+            'Start a loop session — plan → execute → review → cycle until approved',
           argumentHint: '[task description]',
         };
       }
@@ -1652,7 +1655,8 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         effectiveInput.arguments = 'latest';
       } else if (typedInput.command === PLAN_ENTER_COMMAND) {
         // Activate plan overlay + set message agent
-        const returnAgent = sessionAgentMap.get(typedInput.sessionID) ?? 'orchestrator';
+        const returnAgent =
+          sessionAgentMap.get(typedInput.sessionID) ?? 'orchestrator';
         effectiveAgentOverlayManager.activate(typedInput.sessionID, {
           phase: 'plan',
           agent: 'prometheus',
@@ -1686,8 +1690,13 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
         return;
       } else if (typedInput.command === PLAN_EXIT_COMMAND) {
         // Clear plan overlay + restore message agent
-        const overlay = effectiveAgentOverlayManager.getCurrent(typedInput.sessionID);
-        const returnAgent = overlay?.returnAgent ?? sessionAgentMap.get(typedInput.sessionID) ?? 'orchestrator';
+        const overlay = effectiveAgentOverlayManager.getCurrent(
+          typedInput.sessionID,
+        );
+        const returnAgent =
+          overlay?.returnAgent ??
+          sessionAgentMap.get(typedInput.sessionID) ??
+          'orchestrator';
         effectiveAgentOverlayManager.clear(typedInput.sessionID, 'plan');
         if (typedOutput?.message) {
           typedOutput.message.agent = returnAgent;
@@ -1708,7 +1717,8 @@ Returning to the original agent (${returnAgent}). The plan has been saved.`,
         return;
       } else if (typedInput.command === LOOP_START_COMMAND) {
         const description = typedInput.arguments || 'Untitled loop task';
-        const returnAgent = sessionAgentMap.get(typedInput.sessionID) ?? 'orchestrator';
+        const returnAgent =
+          sessionAgentMap.get(typedInput.sessionID) ?? 'orchestrator';
         const executorType = classifyTaskExecutor(description);
 
         // Create loop state
@@ -1839,10 +1849,7 @@ After requirements are confirmed:
         );
         if (overlay) {
           const thinkLevel = getThinkLevel(overlay.phase, overlay.agent);
-          const effort = resolveThinkingEffort(
-            thinkLevel,
-            input.model?.id,
-          );
+          const effort = resolveThinkingEffort(thinkLevel, input.model?.id);
           if (effort) {
             const output = _output as {
               options?: Record<string, unknown>;
@@ -1961,9 +1968,7 @@ After requirements are confirmed:
 
       // Plan overlay: isolate prometheus prompt + inject mode instructions
       if (overlayAgentName === 'prometheus') {
-        const promptAgentDef = agentDefs.find(
-          (a) => a.name === 'prometheus',
-        );
+        const promptAgentDef = agentDefs.find((a) => a.name === 'prometheus');
         const promptText =
           typeof promptAgentDef?.config?.prompt === 'string'
             ? promptAgentDef.config.prompt

@@ -5,6 +5,49 @@ All notable changes to this project are documented here.
 本文件记录项目的重要变更。由于 `v1.0.5` 之前主要是内部开发、迁移和
 checkpoint 式迭代，早期版本条目为基于现有提交历史和功能阶段整理的补记。
 
+## v1.3.5 — 2026-06-24
+
+### Added / 新增
+
+- **Plan mode switching**: New `plan_enter`/`plan_exit` tools switch the active
+  agent to prometheus (planner) for strategic planning, with read-only access
+  and 5-phase workflow. Hook-based overlay mechanism isolates the planner prompt
+  and sets `output.message.agent` for UI agent display.
+- 计划模式切换：新增 `plan_enter`/`plan_exit` 工具，将当前的主代理切换到
+  prometheus（规划师）进行战略规划，只读权限 + 5 阶段工作流。
+- **Continuation intent detection**: Auto-detects LLM stop signals ("should I?",
+  truncated output) and injects force-continue messages to prevent premature
+  stops mid-plan.
+- 延续意图检测：自动检测 LLM 停止信号和截断输出，注入强制继续消息。
+- **Agent name set dynamic**: `AGENT_NAME_SET` now uses `ALL_AGENT_NAMES`
+  instead of hardcoded subset, fixing task session management for 10 previously
+  missing agents (metis, momus, multimodal-looker, reviewer, etc.).
+- Agent 名称集动态化：`AGENT_NAME_SET` 现在使用 `ALL_AGENT_NAMES`，修复了
+  10 个之前缺失的 agent 的任务会话管理。
+
+### Fixed / 修复
+
+- **Context compaction contamination**: Compaction prompt now includes Boundary
+  Declaration and Context Isolation sections, preventing conversation formatting
+  instructions from leaking into compaction summaries. `output.context` is
+  cleared before compaction runs.
+- 上下文压缩污染修复：压缩提示词增加边界声明和上下文隔离，防止对话中的格式
+  要求泄漏到压缩摘要中。压缩运行前清除 `output.context`。
+- **Agent switching for plan/review overlays**: `system.transform` now early-
+  returns for prometheus overlay (matching reviewer pattern), other hooks no
+  longer dilute the isolated prompt. `chat.message` always sets
+  `output.message.agent` when overlay is active.
+- Agent 切换修复：`system.transform` 对 prometheus 增加 early return，
+  `chat.message` 在 overlay 激活时强制设置 `output.message.agent`。
+
+### Removed / 移除
+
+- **subagentPolicy system**: Ultra-minimal/minimal/full/custom/main-only subagent
+  policies removed. Agent registration now uses only `disabled_agents`.
+  Commands `/ol-subagents-*` deleted.
+- subagentPolicy 系统移除：极简/最小/完整/自定义/主代理模式全部删除。Agent
+  注册仅使用 `disabled_agents`。`/ol-subagents-*` 指令已删除。
+
 ## v1.1.4 — 2026-05-27
 
 ### Fixed / 修复

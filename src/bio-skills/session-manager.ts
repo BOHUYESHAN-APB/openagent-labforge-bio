@@ -148,7 +148,9 @@ function selectSkills(
   allSkills: BioSkillMetadata[],
   request: BioSkillLoadRequest,
 ): BioSkillMetadata[] {
-  const explicitSkills = new Set((request.skills ?? []).map((value) => value.trim()));
+  const explicitSkills = new Set(
+    (request.skills ?? []).map((value) => value.trim()),
+  );
   const limit = clampLimit(request.limit);
 
   if (explicitSkills.size > 0) {

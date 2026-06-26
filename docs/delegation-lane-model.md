@@ -1,5 +1,9 @@
 # Canonical Delegation Lane Model
 
+> **v1.3.5 更新**: `subagentPolicy` 已移除（系统已删除）。Agent 注册仅使用
+> `disabled_agents`。Plan mode 新增 `plan_enter`/`plan_exit` 工具实现代理切换（见
+> Planner/Executor/Review overlay 模型）。
+
 ## Purpose
 
 This document is the Phase 1 canonical model for delegation and effective-agent overlays.

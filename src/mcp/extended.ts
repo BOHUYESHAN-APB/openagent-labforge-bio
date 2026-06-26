@@ -95,6 +95,6 @@ export const semantic_scholar_fastmcp: McpConfig = {
 export const cua_driver: McpConfig = {
   type: 'local',
   command: ['cua-driver', 'mcp'],
-  enabled: false,  // Disabled by default, enable via config
+  enabled: false, // Disabled by default, enable via config
   timeout: LOCAL_MCP_STARTUP_TIMEOUT_MS,
 };

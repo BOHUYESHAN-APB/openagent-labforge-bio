@@ -271,9 +271,7 @@ function multiplePlansMessage(
 
   const planList = listed
     .map((plan) => {
-      const desc = plan.description
-        ? ` — ${plan.description}`
-        : '';
+      const desc = plan.description ? ` — ${plan.description}` : '';
       const next = plan.progress.nextTaskLabel
         ? `\n      Next: ${plan.progress.nextTaskLabel}`
         : '';

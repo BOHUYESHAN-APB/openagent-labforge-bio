@@ -14,15 +14,8 @@
         "bio-alignment-multiple",
         "bio-alignment-pairwise"
       ],
-      "toolTypes": [
-        "mixed",
-        "python"
-      ],
-      "primaryTools": [
-        "Bio.Align",
-        "Bio.AlignIO",
-        "MAFFT"
-      ],
+      "toolTypes": ["mixed", "python"],
+      "primaryTools": ["Bio.Align", "Bio.AlignIO", "MAFFT"],
       "skills": [
         {
           "name": "bio-alignment-io",
@@ -72,13 +65,8 @@
         "bio-alignment-sorting",
         "bio-alignment-validation"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed"
-      ],
-      "primaryTools": [
-        "samtools"
-      ],
+      "toolTypes": ["cli", "mixed"],
+      "primaryTools": ["samtools"],
       "skills": [
         {
           "name": "bio-alignment-files-bam-statistics",
@@ -156,11 +144,7 @@
         "bio-single-cell-splicing",
         "bio-splicing-qc"
       ],
-      "toolTypes": [
-        "mixed",
-        "python",
-        "r"
-      ],
+      "toolTypes": ["mixed", "python", "r"],
       "primaryTools": [
         "BRIE2",
         "IsoformSwitchAnalyzeR",
@@ -225,11 +209,7 @@
         "bio-atac-seq-footprinting",
         "bio-atac-seq-motif-deviation"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "r"
-      ],
+      "toolTypes": ["cli", "mixed", "r"],
       "primaryTools": [
         "DiffBind",
         "NucleoATAC",
@@ -287,9 +267,7 @@
       "name": "bioskills-installer",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\bioskills-installer",
       "skillCount": 1,
-      "sampleSkills": [
-        "bioskills"
-      ],
+      "sampleSkills": ["bioskills"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -311,9 +289,7 @@
         "bio-causal-genomics-mendelian-randomization",
         "bio-causal-genomics-pleiotropy-detection"
       ],
-      "toolTypes": [
-        "r"
-      ],
+      "toolTypes": ["r"],
       "primaryTools": [
         "MR-PRESSO",
         "TwoSampleMR",
@@ -370,14 +346,8 @@
         "bio-reaction-enumeration",
         "bio-similarity-searching"
       ],
-      "toolTypes": [
-        "python"
-      ],
-      "primaryTools": [
-        "ADMETlab",
-        "RDKit",
-        "vina"
-      ],
+      "toolTypes": ["python"],
+      "primaryTools": ["ADMETlab", "RDKit", "vina"],
       "skills": [
         {
           "name": "bio-admet-prediction",
@@ -446,10 +416,7 @@
         "bio-chipseq-peak-calling",
         "bio-chipseq-qc"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed"
-      ],
+      "toolTypes": ["cli", "mixed"],
       "primaryTools": [
         "ChIPseeker",
         "DiffBind",
@@ -526,15 +493,8 @@
         "bio-clinical-biostatistics-logistic-regression",
         "bio-clinical-biostatistics-subgroup-analysis"
       ],
-      "toolTypes": [
-        "python"
-      ],
-      "primaryTools": [
-        "pyreadstat",
-        "scipy",
-        "statsmodels",
-        "tableone"
-      ],
+      "toolTypes": ["python"],
+      "primaryTools": ["pyreadstat", "scipy", "statsmodels", "tableone"],
       "skills": [
         {
           "name": "bio-clinical-biostatistics-categorical-tests",
@@ -591,11 +551,7 @@
         "bio-clinical-databases-hla-typing",
         "bio-clinical-databases-myvariant-queries"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python"
-      ],
+      "toolTypes": ["cli", "mixed", "python"],
       "primaryTools": [
         "OptiType",
         "PRSice-2",
@@ -764,17 +720,8 @@
         "bio-clip-seq-clip-peak-calling",
         "bio-clip-seq-clip-preprocessing"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed"
-      ],
-      "primaryTools": [
-        "CLIPper",
-        "ChIPseeker",
-        "HOMER",
-        "STAR",
-        "umi_tools"
-      ],
+      "toolTypes": ["cli", "mixed"],
+      "primaryTools": ["CLIPper", "ChIPseeker", "HOMER", "STAR", "umi_tools"],
       "skills": [
         {
           "name": "bio-clip-seq-binding-site-annotation",
@@ -817,10 +764,7 @@
       "name": "cloud-compute",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\cloud-compute",
       "skillCount": 2,
-      "sampleSkills": [
-        "get-available-resources",
-        "modal"
-      ],
+      "sampleSkills": ["get-available-resources", "modal"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -847,16 +791,8 @@
         "bio-comparative-genomics-positive-selection",
         "bio-comparative-genomics-synteny-analysis"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed"
-      ],
-      "primaryTools": [
-        "HGTector",
-        "MCScanX",
-        "OrthoFinder",
-        "PAML"
-      ],
+      "toolTypes": ["cli", "mixed"],
+      "primaryTools": ["HGTector", "MCScanX", "OrthoFinder", "PAML"],
       "skills": [
         {
           "name": "bio-comparative-genomics-ancestral-reconstruction",
@@ -905,16 +841,8 @@
         "bio-copy-number-cnvkit-analysis",
         "bio-copy-number-gatk-cnv"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed"
-      ],
-      "primaryTools": [
-        "bedtools",
-        "cnvkit",
-        "gatk",
-        "matplotlib"
-      ],
+      "toolTypes": ["cli", "mixed"],
+      "primaryTools": ["bedtools", "cnvkit", "gatk", "matplotlib"],
       "skills": [
         {
           "name": "bio-copy-number-cnv-annotation",
@@ -957,11 +885,7 @@
         "bio-crispr-screens-hit-calling",
         "bio-crispr-screens-jacks-analysis"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python"
-      ],
+      "toolTypes": ["cli", "mixed", "python"],
       "primaryTools": [
         "CRISPResso2",
         "JACKS",
@@ -1087,11 +1011,7 @@
         "bio-data-visualization-genome-tracks",
         "bio-data-visualization-ggplot2-fundamentals"
       ],
-      "toolTypes": [
-        "mixed",
-        "python",
-        "r"
-      ],
+      "toolTypes": ["mixed", "python", "r"],
       "primaryTools": [
         "Circos",
         "ComplexHeatmap",
@@ -1221,11 +1141,7 @@
         "bio-entrez-link",
         "bio-entrez-search"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python"
-      ],
+      "toolTypes": ["cli", "mixed", "python"],
       "primaryTools": [
         "BLAST+",
         "Bio.Blast.NCBIWWW",
@@ -1418,10 +1334,7 @@
       "name": "deep-learning",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\deep-learning",
       "skillCount": 2,
-      "sampleSkills": [
-        "pytorch-lightning",
-        "transformers"
-      ],
+      "sampleSkills": ["pytorch-lightning", "transformers"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -1448,15 +1361,8 @@
         "bio-de-visualization",
         "bio-differential-expression-batch-correction"
       ],
-      "toolTypes": [
-        "r"
-      ],
-      "primaryTools": [
-        "DESeq2",
-        "edgeR",
-        "limma",
-        "sva"
-      ],
+      "toolTypes": ["r"],
+      "primaryTools": ["DESeq2", "edgeR", "limma", "sva"],
       "skills": [
         {
           "name": "bio-de-deseq2-basics",
@@ -1579,10 +1485,7 @@
         "bio-ecological-genomics-edna-metabarcoding",
         "bio-ecological-genomics-landscape-genomics"
       ],
-      "toolTypes": [
-        "mixed",
-        "r"
-      ],
+      "toolTypes": ["mixed", "r"],
       "primaryTools": [
         "ASAP",
         "LEA",
@@ -1647,11 +1550,7 @@
         "bio-epidemiological-genomics-transmission-inference",
         "bio-epidemiological-genomics-variant-surveillance"
       ],
-      "toolTypes": [
-        "cli",
-        "python",
-        "r"
-      ],
+      "toolTypes": ["cli", "python", "r"],
       "primaryTools": [
         "AMRFinderPlus",
         "TransPhylo",
@@ -1708,18 +1607,8 @@
         "bio-epitranscriptomics-merip-preprocessing",
         "bio-epitranscriptomics-modification-visualization"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python",
-        "r"
-      ],
-      "primaryTools": [
-        "Guitar",
-        "STAR",
-        "exomePeak2",
-        "m6Anet"
-      ],
+      "toolTypes": ["cli", "mixed", "python", "r"],
+      "primaryTools": ["Guitar", "STAR", "exomePeak2", "m6Anet"],
       "skills": [
         {
           "name": "bio-epitranscriptomics-m6a-differential",
@@ -1769,10 +1658,7 @@
         "bio-experimental-design-power-analysis",
         "bio-experimental-design-research-question-framing"
       ],
-      "toolTypes": [
-        "mixed",
-        "r"
-      ],
+      "toolTypes": ["mixed", "r"],
       "primaryTools": [
         "RNASeqPower",
         "hypothesis-logic",
@@ -1845,16 +1731,8 @@
         "bio-expression-matrix-normalization",
         "bio-expression-matrix-sparse-handling"
       ],
-      "toolTypes": [
-        "mixed",
-        "python"
-      ],
-      "primaryTools": [
-        "DESeq2",
-        "biomaRt",
-        "pandas",
-        "scipy.sparse"
-      ],
+      "toolTypes": ["mixed", "python"],
+      "primaryTools": ["DESeq2", "biomaRt", "pandas", "scipy.sparse"],
       "skills": [
         {
           "name": "bio-expression-matrix-counts-ingest",
@@ -1904,15 +1782,8 @@
         "bio-flow-cytometry-cytometry-qc",
         "bio-flow-cytometry-differential-analysis"
       ],
-      "toolTypes": [
-        "r"
-      ],
-      "primaryTools": [
-        "CATALYST",
-        "flowAI",
-        "flowCore",
-        "flowWorkspace"
-      ],
+      "toolTypes": ["r"],
+      "primaryTools": ["CATALYST", "flowAI", "flowCore", "flowWorkspace"],
       "skills": [
         {
           "name": "bio-flow-cytometry-bead-normalization",
@@ -1988,10 +1859,7 @@
         "bio-gene-regulatory-networks-multiomics-grn",
         "bio-gene-regulatory-networks-perturbation-simulation"
       ],
-      "toolTypes": [
-        "python",
-        "r"
-      ],
+      "toolTypes": ["python", "r"],
       "primaryTools": [
         "CellOracle",
         "DiffCorr",
@@ -2053,9 +1921,7 @@
         "bio-genome-annotation-ncrna-annotation",
         "bio-genome-annotation-prokaryotic-annotation"
       ],
-      "toolTypes": [
-        "cli"
-      ],
+      "toolTypes": ["cli"],
       "primaryTools": [
         "BRAKER3",
         "Bakta",
@@ -2120,9 +1986,7 @@
         "bio-genome-assembly-hifi-assembly",
         "bio-genome-assembly-long-read-assembly"
       ],
-      "toolTypes": [
-        "cli"
-      ],
+      "toolTypes": ["cli"],
       "primaryTools": [
         "CheckM2",
         "Flye",
@@ -2203,10 +2067,7 @@
         "bio-genome-engineering-hdr-template-design",
         "bio-genome-engineering-off-target-prediction"
       ],
-      "toolTypes": [
-        "cli",
-        "python"
-      ],
+      "toolTypes": ["cli", "python"],
       "primaryTools": [
         "BE-Hive",
         "Cas-OFFinder",
@@ -2268,14 +2129,8 @@
         "bio-genome-intervals-coverage-analysis",
         "bio-genome-intervals-gtf-gff-handling"
       ],
-      "toolTypes": [
-        "mixed"
-      ],
-      "primaryTools": [
-        "bedtools",
-        "gffread",
-        "pyBigWig"
-      ],
+      "toolTypes": ["mixed"],
+      "primaryTools": ["bedtools", "gffread", "pyBigWig"],
       "skills": [
         {
           "name": "bio-bedgraph-handling",
@@ -2371,10 +2226,7 @@
       "name": "geospatial",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\geospatial",
       "skillCount": 2,
-      "sampleSkills": [
-        "geomaster",
-        "geopandas"
-      ],
+      "sampleSkills": ["geomaster", "geopandas"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -2394,9 +2246,7 @@
       "name": "gpu-acceleration",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\gpu-acceleration",
       "skillCount": 1,
-      "sampleSkills": [
-        "optimize-for-gpu"
-      ],
+      "sampleSkills": ["optimize-for-gpu"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -2411,9 +2261,7 @@
       "name": "graph-ml",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\graph-ml",
       "skillCount": 1,
-      "sampleSkills": [
-        "torch-geometric"
-      ],
+      "sampleSkills": ["torch-geometric"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -2435,16 +2283,8 @@
         "bio-hi-c-analysis-hic-differential",
         "bio-hi-c-analysis-hic-visualization"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python"
-      ],
-      "primaryTools": [
-        "cooler",
-        "cooltools",
-        "pairtools"
-      ],
+      "toolTypes": ["cli", "mixed", "python"],
+      "primaryTools": ["cooler", "cooltools", "pairtools"],
       "skills": [
         {
           "name": "bio-hi-c-analysis-compartment-analysis",
@@ -2515,9 +2355,7 @@
         "bio-imaging-mass-cytometry-phenotyping",
         "bio-imaging-mass-cytometry-quality-metrics"
       ],
-      "toolTypes": [
-        "python"
-      ],
+      "toolTypes": ["python"],
       "primaryTools": [
         "cellpose",
         "napari",
@@ -2582,15 +2420,8 @@
         "bio-immunoinformatics-neoantigen-prediction",
         "bio-immunoinformatics-tcr-epitope-binding"
       ],
-      "toolTypes": [
-        "python"
-      ],
-      "primaryTools": [
-        "BepiPred",
-        "ERGO-II",
-        "mhcflurry",
-        "pVACtools"
-      ],
+      "toolTypes": ["python"],
+      "primaryTools": ["BepiPred", "ERGO-II", "mhcflurry", "pVACtools"],
       "skills": [
         {
           "name": "bio-immunoinformatics-epitope-prediction",
@@ -2633,9 +2464,7 @@
       "name": "knowledge-graphs",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\knowledge-graphs",
       "skillCount": 1,
-      "sampleSkills": [
-        "primekg"
-      ],
+      "sampleSkills": ["primekg"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -2703,10 +2532,7 @@
         "bio-longitudinal-monitoring",
         "bio-methylation-based-detection"
       ],
-      "toolTypes": [
-        "python",
-        "r"
-      ],
+      "toolTypes": ["python", "r"],
       "primaryTools": [
         "FinaleToolkit",
         "MethylDackel",
@@ -2806,9 +2632,7 @@
         "bio-long-read-sequencing-nanopore-methylation",
         "bio-longread-alignment"
       ],
-      "toolTypes": [
-        "cli"
-      ],
+      "toolTypes": ["cli"],
       "primaryTools": [
         "Clair3",
         "IsoSeq3",
@@ -2889,16 +2713,8 @@
         "bio-machine-learning-omics-classifiers",
         "bio-machine-learning-prediction-explanation"
       ],
-      "toolTypes": [
-        "python"
-      ],
-      "primaryTools": [
-        "boruta",
-        "lifelines",
-        "scvi-tools",
-        "shap",
-        "sklearn"
-      ],
+      "toolTypes": ["python"],
+      "primaryTools": ["boruta", "lifelines", "scvi-tools", "shap", "sklearn"],
       "skills": [
         {
           "name": "bio-machine-learning-atlas-mapping",
@@ -2998,10 +2814,7 @@
       "name": "mass-spectrometry",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\mass-spectrometry",
       "skillCount": 2,
-      "sampleSkills": [
-        "matchms",
-        "pyopenms"
-      ],
+      "sampleSkills": ["matchms", "pyopenms"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -3021,10 +2834,7 @@
       "name": "materials-science",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\materials-science",
       "skillCount": 2,
-      "sampleSkills": [
-        "astropy",
-        "pymatgen"
-      ],
+      "sampleSkills": ["astropy", "pymatgen"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -3044,11 +2854,7 @@
       "name": "medical-imaging",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\medical-imaging",
       "skillCount": 3,
-      "sampleSkills": [
-        "histolab",
-        "pathml",
-        "pydicom"
-      ],
+      "sampleSkills": ["histolab", "pathml", "pydicom"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -3080,10 +2886,7 @@
         "bio-metabolomics-normalization-qc",
         "bio-metabolomics-pathway-mapping"
       ],
-      "toolTypes": [
-        "mixed",
-        "r"
-      ],
+      "toolTypes": ["mixed", "r"],
       "primaryTools": [
         "HMDB",
         "MetaboAnalystR",
@@ -3163,10 +2966,7 @@
         "bio-metagenomics-kraken",
         "bio-metagenomics-metaphlan"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed"
-      ],
+      "toolTypes": ["cli", "mixed"],
       "primaryTools": [
         "AMRFinderPlus",
         "MASH",
@@ -3239,16 +3039,8 @@
         "bio-methylation-dmr-detection",
         "bio-methylation-methylkit"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "r"
-      ],
-      "primaryTools": [
-        "bismark",
-        "methylKit",
-        "scipy"
-      ],
+      "toolTypes": ["cli", "mixed", "r"],
+      "primaryTools": ["bismark", "methylKit", "scipy"],
       "skills": [
         {
           "name": "bio-methylation-bismark-alignment",
@@ -3298,18 +3090,8 @@
         "bio-microbiome-functional-prediction",
         "bio-microbiome-qiime2-workflow"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "r"
-      ],
-      "primaryTools": [
-        "ALDEx2",
-        "dada2",
-        "phyloseq",
-        "picrust2",
-        "qiime2"
-      ],
+      "toolTypes": ["cli", "mixed", "r"],
+      "primaryTools": ["ALDEx2", "dada2", "phyloseq", "picrust2", "qiime2"],
       "skills": [
         {
           "name": "bio-microbiome-amplicon-processing",
@@ -3365,15 +3147,8 @@
         "bio-multi-omics-mofa-integration",
         "bio-multi-omics-similarity-network"
       ],
-      "toolTypes": [
-        "r"
-      ],
-      "primaryTools": [
-        "MOFA2",
-        "MultiAssayExperiment",
-        "SNFtool",
-        "mixOmics"
-      ],
+      "toolTypes": ["r"],
+      "primaryTools": ["MOFA2", "MultiAssayExperiment", "SNFtool", "mixOmics"],
       "skills": [
         {
           "name": "bio-multi-omics-data-harmonization",
@@ -3409,11 +3184,7 @@
       "name": "neuroscience",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\neuroscience",
       "skillCount": 3,
-      "sampleSkills": [
-        "bids",
-        "neurokit2",
-        "neuropixels-analysis"
-      ],
+      "sampleSkills": ["bids", "neurokit2", "neuropixels-analysis"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -3445,14 +3216,8 @@
         "bio-pathway-kegg-pathways",
         "bio-pathway-reactome"
       ],
-      "toolTypes": [
-        "r"
-      ],
-      "primaryTools": [
-        "ReactomePA",
-        "clusterProfiler",
-        "enrichplot"
-      ],
+      "toolTypes": ["r"],
+      "primaryTools": ["ReactomePA", "clusterProfiler", "enrichplot"],
       "skills": [
         {
           "name": "bio-pathway-enrichment-visualization",
@@ -3513,14 +3278,8 @@
         "bio-phasing-imputation-imputation-qc",
         "bio-phasing-imputation-reference-panels"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed"
-      ],
-      "primaryTools": [
-        "bcftools",
-        "beagle"
-      ],
+      "toolTypes": ["cli", "mixed"],
+      "primaryTools": ["bcftools", "beagle"],
       "skills": [
         {
           "name": "bio-phasing-imputation-genotype-imputation",
@@ -3563,11 +3322,7 @@
         "bio-phylo-modern-tree-inference",
         "bio-phylo-species-trees"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python"
-      ],
+      "toolTypes": ["cli", "mixed", "python"],
       "primaryTools": [
         "ASTRAL-III",
         "BEAST2",
@@ -3656,16 +3411,8 @@
         "bio-population-genetics-population-structure",
         "bio-population-genetics-scikit-allel-analysis"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python"
-      ],
-      "primaryTools": [
-        "plink",
-        "plink2",
-        "scikit-allel"
-      ],
+      "toolTypes": ["cli", "mixed", "python"],
+      "primaryTools": ["plink", "plink2", "scikit-allel"],
       "skills": [
         {
           "name": "bio-population-genetics-association-testing",
@@ -3720,12 +3467,8 @@
         "bio-primer-design-primer-validation",
         "bio-primer-design-qpcr-primers"
       ],
-      "toolTypes": [
-        "python"
-      ],
-      "primaryTools": [
-        "primer3-py"
-      ],
+      "toolTypes": ["python"],
+      "primaryTools": ["primer3-py"],
       "skills": [
         {
           "name": "bio-primer-design-primer-basics",
@@ -3761,10 +3504,7 @@
         "bio-proteomics-differential-abundance",
         "bio-proteomics-peptide-identification"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed"
-      ],
+      "toolTypes": ["cli", "mixed"],
       "primaryTools": [
         "MSstats",
         "diann",
@@ -3853,12 +3593,7 @@
       "name": "quantum-computing",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\quantum-computing",
       "skillCount": 4,
-      "sampleSkills": [
-        "cirq",
-        "pennylane",
-        "qiskit",
-        "qutip"
-      ],
+      "sampleSkills": ["cirq", "pennylane", "qiskit", "qutip"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -3895,15 +3630,8 @@
         "bio-read-alignment-star-alignment",
         "pysam"
       ],
-      "toolTypes": [
-        "cli"
-      ],
-      "primaryTools": [
-        "HISAT2",
-        "STAR",
-        "bowtie2",
-        "bwa-mem2"
-      ],
+      "toolTypes": ["cli"],
+      "primaryTools": ["HISAT2", "STAR", "bowtie2", "bwa-mem2"],
       "skills": [
         {
           "name": "bio-read-alignment-bowtie2-alignment",
@@ -3951,10 +3679,7 @@
         "bio-read-qc-quality-filtering",
         "bio-read-qc-quality-reports"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed"
-      ],
+      "toolTypes": ["cli", "mixed"],
       "primaryTools": [
         "RSeQC",
         "cutadapt",
@@ -4020,9 +3745,7 @@
       "name": "regulatory",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\regulatory",
       "skillCount": 1,
-      "sampleSkills": [
-        "iso-13485-certification"
-      ],
+      "sampleSkills": ["iso-13485-certification"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -4037,10 +3760,7 @@
       "name": "reinforcement-learning",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\reinforcement-learning",
       "skillCount": 2,
-      "sampleSkills": [
-        "pufferlib",
-        "stable-baselines3"
-      ],
+      "sampleSkills": ["pufferlib", "stable-baselines3"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -4067,12 +3787,7 @@
         "bio-reporting-quarto-reports",
         "bio-reporting-rmarkdown-reports"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python",
-        "r"
-      ],
+      "toolTypes": ["cli", "mixed", "python", "r"],
       "primaryTools": [
         "Quarto",
         "matplotlib",
@@ -4199,12 +3914,8 @@
         "bio-restriction-mapping",
         "bio-restriction-sites"
       ],
-      "toolTypes": [
-        "python"
-      ],
-      "primaryTools": [
-        "Bio.Restriction"
-      ],
+      "toolTypes": ["python"],
+      "primaryTools": ["Bio.Restriction"],
       "skills": [
         {
           "name": "bio-restriction-enzyme-selection",
@@ -4247,17 +3958,8 @@
         "bio-ribo-seq-ribosome-stalling",
         "bio-ribo-seq-translation-efficiency"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python"
-      ],
-      "primaryTools": [
-        "Plastid",
-        "RiboCode",
-        "bowtie2",
-        "riborex"
-      ],
+      "toolTypes": ["cli", "mixed", "python"],
+      "primaryTools": ["Plastid", "RiboCode", "bowtie2", "riborex"],
       "skills": [
         {
           "name": "bio-ribo-seq-orf-detection",
@@ -4306,17 +4008,8 @@
         "bio-rna-quantification-featurecounts-counting",
         "bio-rna-quantification-tximport-workflow"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "r"
-      ],
-      "primaryTools": [
-        "DESeq2",
-        "featureCounts",
-        "salmon",
-        "tximport"
-      ],
+      "toolTypes": ["cli", "mixed", "r"],
+      "primaryTools": ["DESeq2", "featureCounts", "salmon", "tximport"],
       "skills": [
         {
           "name": "bio-rna-quantification-alignment-free-quant",
@@ -4357,14 +4050,8 @@
         "bio-rna-structure-secondary-structure-prediction",
         "bio-rna-structure-structure-probing"
       ],
-      "toolTypes": [
-        "cli"
-      ],
-      "primaryTools": [
-        "Infernal",
-        "ShapeMapper2",
-        "ViennaRNA"
-      ],
+      "toolTypes": ["cli"],
+      "primaryTools": ["Infernal", "ShapeMapper2", "ViennaRNA"],
       "skills": [
         {
           "name": "bio-rna-structure-ncrna-search",
@@ -4551,13 +4238,8 @@
         "bio-filter-sequences",
         "bio-format-conversion"
       ],
-      "toolTypes": [
-        "python"
-      ],
-      "primaryTools": [
-        "Bio.SeqIO",
-        "Bio.bgzf"
-      ],
+      "toolTypes": ["python"],
+      "primaryTools": ["Bio.SeqIO", "Bio.bgzf"],
       "skills": [
         {
           "name": "bio-batch-processing",
@@ -4635,9 +4317,7 @@
         "bio-seq-objects",
         "bio-sequence-properties"
       ],
-      "toolTypes": [
-        "python"
-      ],
+      "toolTypes": ["python"],
       "primaryTools": [
         "Bio.Seq",
         "Bio.SeqUtils",
@@ -4710,11 +4390,7 @@
       "name": "simulation",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\simulation",
       "skillCount": 3,
-      "sampleSkills": [
-        "fluidsim",
-        "matlab",
-        "simpy"
-      ],
+      "sampleSkills": ["fluidsim", "matlab", "simpy"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -4746,11 +4422,7 @@
         "bio-single-cell-cell-communication",
         "bio-single-cell-clustering"
       ],
-      "toolTypes": [
-        "mixed",
-        "python",
-        "r"
-      ],
+      "toolTypes": ["mixed", "python", "r"],
       "primaryTools": [
         "Cassiopeia",
         "CellChat",
@@ -4895,19 +4567,8 @@
         "bio-small-rna-seq-smrna-preprocessing",
         "bio-small-rna-seq-target-prediction"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python",
-        "r"
-      ],
-      "primaryTools": [
-        "DESeq2",
-        "cutadapt",
-        "miRDeep2",
-        "miRanda",
-        "miRge3"
-      ],
+      "toolTypes": ["cli", "mixed", "python", "r"],
+      "primaryTools": ["DESeq2", "cutadapt", "miRDeep2", "miRanda", "miRge3"],
       "skills": [
         {
           "name": "bio-small-rna-seq-differential-mirna",
@@ -4957,14 +4618,8 @@
         "bio-spatial-transcriptomics-spatial-deconvolution",
         "bio-spatial-transcriptomics-spatial-domains"
       ],
-      "toolTypes": [
-        "python"
-      ],
-      "primaryTools": [
-        "cell2location",
-        "scimap",
-        "squidpy"
-      ],
+      "toolTypes": ["python"],
+      "primaryTools": ["cell2location", "scimap", "squidpy"],
       "skills": [
         {
           "name": "bio-spatial-transcriptomics-image-analysis",
@@ -5056,14 +4711,8 @@
         "bio-pdb-structure-modification",
         "bio-pdb-structure-navigation"
       ],
-      "toolTypes": [
-        "python"
-      ],
-      "primaryTools": [
-        "Bio.PDB",
-        "ESMFold",
-        "requests"
-      ],
+      "toolTypes": ["python"],
+      "primaryTools": ["Bio.PDB", "ESMFold", "requests"],
       "skills": [
         {
           "name": "alphafold-database-fetch-and-analyze",
@@ -5148,9 +4797,7 @@
       "name": "symbolic-math",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\symbolic-math",
       "skillCount": 1,
-      "sampleSkills": [
-        "sympy"
-      ],
+      "sampleSkills": ["sympy"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -5172,15 +4819,8 @@
         "bio-systems-biology-metabolic-reconstruction",
         "bio-systems-biology-model-curation"
       ],
-      "toolTypes": [
-        "cli",
-        "python"
-      ],
-      "primaryTools": [
-        "CarveMe",
-        "cobrapy",
-        "memote"
-      ],
+      "toolTypes": ["cli", "python"],
+      "primaryTools": ["CarveMe", "cobrapy", "memote"],
       "skills": [
         {
           "name": "bio-systems-biology-context-specific-models",
@@ -5235,18 +4875,8 @@
         "bio-tcr-bcr-analysis-scirpy-analysis",
         "bio-tcr-bcr-analysis-vdjtools-analysis"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python",
-        "r"
-      ],
-      "primaryTools": [
-        "MiXCR",
-        "VDJtools",
-        "alakazam",
-        "scirpy"
-      ],
+      "toolTypes": ["cli", "mixed", "python", "r"],
+      "primaryTools": ["MiXCR", "VDJtools", "alakazam", "scirpy"],
       "skills": [
         {
           "name": "bio-tcr-bcr-analysis-immcantation-analysis",
@@ -5296,17 +4926,8 @@
         "bio-temporal-genomics-temporal-grn",
         "bio-temporal-genomics-trajectory-modeling"
       ],
-      "toolTypes": [
-        "mixed",
-        "python"
-      ],
-      "primaryTools": [
-        "CosinorPy",
-        "Mfuzz",
-        "mgcv",
-        "scipy",
-        "statsmodels"
-      ],
+      "toolTypes": ["mixed", "python"],
+      "primaryTools": ["CosinorPy", "Mfuzz", "mgcv", "scipy", "statsmodels"],
       "skills": [
         {
           "name": "bio-temporal-genomics-circadian-rhythms",
@@ -5349,10 +4970,7 @@
       "name": "time-series",
       "path": "D:\\-Users-\\Documents\\GitHub\\chat-model\\openagent-labforge\\resources\\bioSkills\\time-series",
       "skillCount": 2,
-      "sampleSkills": [
-        "aeon",
-        "timesfm-forecasting"
-      ],
+      "sampleSkills": ["aeon", "timesfm-forecasting"],
       "toolTypes": [],
       "primaryTools": [],
       "skills": [
@@ -5379,10 +4997,7 @@
         "bio-variant-calling",
         "bio-variant-calling-clinical-interpretation"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed"
-      ],
+      "toolTypes": ["cli", "mixed"],
       "primaryTools": [
         "DeepVariant",
         "GATK",
@@ -5502,16 +5117,8 @@
         "bio-workflow-management-wdl-workflows",
         "nextflow"
       ],
-      "toolTypes": [
-        "cli",
-        "python"
-      ],
-      "primaryTools": [
-        "Nextflow",
-        "Snakemake",
-        "cromwell",
-        "cwltool"
-      ],
+      "toolTypes": ["cli", "python"],
+      "primaryTools": ["Nextflow", "Snakemake", "cromwell", "cwltool"],
       "skills": [
         {
           "name": "bio-workflow-management-cwl-workflows",
@@ -5559,12 +5166,7 @@
         "bio-workflows-biomarker-pipeline",
         "bio-workflows-causal-genomics-pipeline"
       ],
-      "toolTypes": [
-        "cli",
-        "mixed",
-        "python",
-        "r"
-      ],
+      "toolTypes": ["cli", "mixed", "python", "r"],
       "primaryTools": [
         "Bakta",
         "Bismark",

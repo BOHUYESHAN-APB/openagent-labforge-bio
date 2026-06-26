@@ -9,8 +9,7 @@ export function createLoadBioSkillsTool(
   sessionManager: BioSkillsSessionManager,
 ): ToolDefinition {
   return tool({
-    description:
-      `Load bio skills from specific categories. Use this when you need specialized bioinformatics workflows or tools.
+    description: `Load bio skills from specific categories. Use this when you need specialized bioinformatics workflows or tools.
 
 Key categories (88 total):
 - rna-quantification: RNA sequencing analysis (salmon, featureCounts, tximport)
@@ -92,9 +91,7 @@ Default behavior is now bounded. Prefer query and limit for broad categories ins
       const limit =
         typeof args.limit === 'number' ? Math.trunc(args.limit) : undefined;
       const skillNames = Array.isArray(args.skills)
-        ? (args.skills as string[])
-            .map((value) => value.trim())
-            .filter(Boolean)
+        ? (args.skills as string[]).map((value) => value.trim()).filter(Boolean)
         : undefined;
       const sessionID = (toolContext as { sessionID: string }).sessionID;
 
@@ -119,7 +116,9 @@ Default behavior is now bounded. Prefer query and limit for broad categories ins
           name,
           ...(query ? { query } : {}),
           ...(limit !== undefined ? { limit } : {}),
-          ...(skillNames && skillNames.length > 0 ? { skills: skillNames } : {}),
+          ...(skillNames && skillNames.length > 0
+            ? { skills: skillNames }
+            : {}),
         })),
       );
       const loaded = sessionManager.getLoadedSkills(sessionID);

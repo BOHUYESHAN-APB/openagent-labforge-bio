@@ -87,8 +87,7 @@ export function getBundledModelCapabilitiesSnapshot(
         models[id] = {
           id,
           family: typeof e.family === 'string' ? e.family : undefined,
-          reasoning:
-            typeof e.reasoning === 'boolean' ? e.reasoning : undefined,
+          reasoning: typeof e.reasoning === 'boolean' ? e.reasoning : undefined,
           temperature:
             typeof e.temperature === 'boolean' ? e.temperature : undefined,
           toolCall: typeof e.toolCall === 'boolean' ? e.toolCall : undefined,
@@ -103,8 +102,7 @@ export function getBundledModelCapabilitiesSnapshot(
     }
   }
   return {
-    generatedAt:
-      typeof data.generatedAt === 'string' ? data.generatedAt : '',
+    generatedAt: typeof data.generatedAt === 'string' ? data.generatedAt : '',
     sourceUrl: typeof data.sourceUrl === 'string' ? data.sourceUrl : '',
     models,
   };
@@ -141,8 +139,7 @@ export function getModelCapabilities(
 ): ModelCapabilities {
   const runtimeModel = input.runtimeModel ?? {};
   const bundledSnapshot =
-    input.bundledSnapshot ??
-    getBundledModelCapabilitiesSnapshot({});
+    input.bundledSnapshot ?? getBundledModelCapabilitiesSnapshot({});
   const bundledEntry = bundledSnapshot.models[input.modelID];
 
   const modalities = readRuntimeModelModalities(runtimeModel);
@@ -159,14 +156,13 @@ export function getModelCapabilities(
       readBoolean(runtimeModel.supportsPromptCaching) ?? undefined,
     supportsSystemMessages:
       readBoolean(runtimeModel.supportsSystemMessages) ?? undefined,
-    supportsStreaming:
-      readBoolean(runtimeModel.supportsStreaming) ?? undefined,
+    supportsStreaming: readBoolean(runtimeModel.supportsStreaming) ?? undefined,
     knowledgeCutoff:
       typeof runtimeModel.knowledgeCutoff === 'string'
         ? runtimeModel.knowledgeCutoff
         : undefined,
     modalities:
-      modalities ?? snapshotModalities
+      (modalities ?? snapshotModalities)
         ? {
             input: snapshotModalities?.input ?? modalities?.input ?? [],
             output: snapshotModalities?.output ?? modalities?.output ?? [],
@@ -206,7 +202,9 @@ function readRuntimeModelModalities(
     if (isInputOutputStrings(capModalities)) {
       return {
         input: (capModalities.input ?? []).map((s: string) => s.toLowerCase()),
-        output: (capModalities.output ?? []).map((s: string) => s.toLowerCase()),
+        output: (capModalities.output ?? []).map((s: string) =>
+          s.toLowerCase(),
+        ),
       };
     }
   }
@@ -221,7 +219,8 @@ function isInputOutputStrings(
   const v = value as Record<string, unknown>;
   return (
     (v.input === undefined ||
-      (Array.isArray(v.input) && v.input.every((s) => typeof s === 'string'))) &&
+      (Array.isArray(v.input) &&
+        v.input.every((s) => typeof s === 'string'))) &&
     (v.output === undefined ||
       (Array.isArray(v.output) && v.output.every((s) => typeof s === 'string')))
   );

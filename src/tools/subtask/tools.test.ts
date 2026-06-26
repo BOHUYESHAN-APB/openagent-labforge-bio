@@ -82,7 +82,9 @@ describe('subtask tool', () => {
         },
       });
       expect(sessionPrompt).toHaveBeenCalledTimes(1);
-      const firstPromptCall = sessionPrompt.mock.calls[0] as unknown as [unknown];
+      const firstPromptCall = sessionPrompt.mock.calls[0] as unknown as [
+        unknown,
+      ];
       expect(firstPromptCall).toBeDefined();
       const promptCall = firstPromptCall[0] as {
         path: { id: string };
@@ -278,10 +280,10 @@ describe('subtask tool', () => {
         new SubagentDepthTracker(),
       );
 
-      const result = await tool.execute(
-        { prompt: 'Nested run' },
-        { sessionID: 'ses_child', agent: 'oracle' } as any,
-      );
+      const result = await tool.execute({ prompt: 'Nested run' }, {
+        sessionID: 'ses_child',
+        agent: 'oracle',
+      } as any);
 
       expect(resultText(result)).toContain(
         'restricted to primary orchestrator agents',

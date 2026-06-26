@@ -6,86 +6,86 @@
 <title>Welcome to Northwind — Maya's Onboarding Plan</title>
 <style>
   :root {
-        --bg: #fbf9f4;
-        --paper: #ffffff;
-        --ink: #14110e;
-        --muted: #6b6760;
-        --line: #ece6d8;
-        --accent: #c2521a;
-        --accent-soft: #fbe6d6;
-        --positive: #2c8a4f;
-        --display: 'Georgia', 'Times New Roman', serif;
-        --body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
-        --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
-      }
-      * { box-sizing: border-box; }
-      body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14.5px; line-height: 1.55; }
-      .wrap { max-width: 1080px; margin: 28px auto; padding: 0 32px 64px; }
-    
-      /* Cover */
-      .cover { padding: 36px 40px; background: var(--ink); color: var(--paper); border-radius: 16px; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }
-      .cover .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-soft); }
-      .cover h1 { font-family: var(--display); font-size: 38px; line-height: 1.05; letter-spacing: -0.01em; margin: 8px 0 12px; }
-      .cover .meta { display: flex; gap: 28px; font-size: 13px; color: rgba(255,255,255,0.74); }
-      .cover .meta strong { color: var(--paper); display: block; font-weight: 600; font-size: 14px; }
-      .cover-art { width: 130px; height: 130px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #ec8b5b); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 56px; color: var(--paper); }
-    
-      section { margin-top: 44px; }
-      h2 { font-family: var(--display); font-size: 22px; margin: 0 0 6px; letter-spacing: -0.005em; }
-      .section-sub { color: var(--muted); margin: 0 0 18px; font-size: 13.5px; }
-    
-      /* Day 1 */
-      .day-one { padding: 24px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
-      .schedule { display: grid; grid-template-columns: 110px 1fr; gap: 0; }
-      .schedule-row { display: contents; }
-      .schedule-row .time { padding: 12px 0; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--muted); }
-      .schedule-row .item { padding: 12px 0; border-top: 1px solid var(--line); }
-      .schedule-row:first-child .time, .schedule-row:first-child .item { border-top: none; }
-      .schedule-row .item strong { display: block; font-weight: 600; }
-      .schedule-row .item span { color: var(--muted); font-size: 13px; }
-    
-      /* Week timeline */
-      .week { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-      .day { padding: 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 200px; }
-      .day-head { display: flex; justify-content: space-between; align-items: baseline; }
-      .day-name { font-family: var(--display); font-size: 16px; font-weight: 700; }
-      .day-date { font-family: var(--mono); font-size: 11px; color: var(--muted); }
-      .activity { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
-      .activity .dot { flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 6px; }
-      .activity small { display: block; color: var(--muted); margin-top: 2px; font-size: 11.5px; }
-    
-      /* 30/60/90 */
-      .milestones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-      .milestone { padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
-      .milestone .badge { display: inline-block; font-family: var(--mono); font-size: 11px; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); letter-spacing: 0.06em; margin-bottom: 10px; }
-      .milestone h3 { font-family: var(--display); font-size: 18px; margin: 0 0 12px; }
-      .milestone ul { padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; }
-      .milestone li::marker { color: var(--accent); }
-    
-      /* Resources & checklist */
-      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-      .panel { padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
-      .panel h3 { font-family: var(--display); font-size: 17px; margin: 0 0 12px; }
-      .resource { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); align-items: center; font-size: 13.5px; }
-      .resource:first-of-type { border-top: none; padding-top: 0; }
-      .resource .icon { width: 28px; height: 28px; background: var(--accent-soft); border-radius: 7px; color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
-      .resource .meta { color: var(--muted); font-family: var(--mono); font-size: 11px; }
-      .check { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-top: 1px dashed var(--line); }
-      .check:first-of-type { border-top: none; padding-top: 0; }
-      .check .box { flex: 0 0 18px; width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--ink); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: transparent; }
-      .check.done .box { background: var(--positive); border-color: var(--positive); color: var(--paper); }
-      .check strong { display: block; font-weight: 600; }
-      .check span { color: var(--muted); font-size: 12.5px; }
-    
-      footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
-    
-      @media (max-width: 900px) {
-        .cover { grid-template-columns: 1fr; text-align: center; }
-        .cover-art { margin: 0 auto; }
-        .week { grid-template-columns: 1fr 1fr; }
-        .milestones { grid-template-columns: 1fr; }
-        .grid-2 { grid-template-columns: 1fr; }
-      }
+            --bg: #fbf9f4;
+            --paper: #ffffff;
+            --ink: #14110e;
+            --muted: #6b6760;
+            --line: #ece6d8;
+            --accent: #c2521a;
+            --accent-soft: #fbe6d6;
+            --positive: #2c8a4f;
+            --display: 'Georgia', 'Times New Roman', serif;
+            --body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+            --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+          }
+          * { box-sizing: border-box; }
+          body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14.5px; line-height: 1.55; }
+          .wrap { max-width: 1080px; margin: 28px auto; padding: 0 32px 64px; }
+        
+          /* Cover */
+          .cover { padding: 36px 40px; background: var(--ink); color: var(--paper); border-radius: 16px; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }
+          .cover .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-soft); }
+          .cover h1 { font-family: var(--display); font-size: 38px; line-height: 1.05; letter-spacing: -0.01em; margin: 8px 0 12px; }
+          .cover .meta { display: flex; gap: 28px; font-size: 13px; color: rgba(255,255,255,0.74); }
+          .cover .meta strong { color: var(--paper); display: block; font-weight: 600; font-size: 14px; }
+          .cover-art { width: 130px; height: 130px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #ec8b5b); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 56px; color: var(--paper); }
+        
+          section { margin-top: 44px; }
+          h2 { font-family: var(--display); font-size: 22px; margin: 0 0 6px; letter-spacing: -0.005em; }
+          .section-sub { color: var(--muted); margin: 0 0 18px; font-size: 13.5px; }
+        
+          /* Day 1 */
+          .day-one { padding: 24px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
+          .schedule { display: grid; grid-template-columns: 110px 1fr; gap: 0; }
+          .schedule-row { display: contents; }
+          .schedule-row .time { padding: 12px 0; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--muted); }
+          .schedule-row .item { padding: 12px 0; border-top: 1px solid var(--line); }
+          .schedule-row:first-child .time, .schedule-row:first-child .item { border-top: none; }
+          .schedule-row .item strong { display: block; font-weight: 600; }
+          .schedule-row .item span { color: var(--muted); font-size: 13px; }
+        
+          /* Week timeline */
+          .week { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+          .day { padding: 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 200px; }
+          .day-head { display: flex; justify-content: space-between; align-items: baseline; }
+          .day-name { font-family: var(--display); font-size: 16px; font-weight: 700; }
+          .day-date { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+          .activity { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+          .activity .dot { flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 6px; }
+          .activity small { display: block; color: var(--muted); margin-top: 2px; font-size: 11.5px; }
+        
+          /* 30/60/90 */
+          .milestones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+          .milestone { padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
+          .milestone .badge { display: inline-block; font-family: var(--mono); font-size: 11px; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); letter-spacing: 0.06em; margin-bottom: 10px; }
+          .milestone h3 { font-family: var(--display); font-size: 18px; margin: 0 0 12px; }
+          .milestone ul { padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; }
+          .milestone li::marker { color: var(--accent); }
+        
+          /* Resources & checklist */
+          .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+          .panel { padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; }
+          .panel h3 { font-family: var(--display); font-size: 17px; margin: 0 0 12px; }
+          .resource { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); align-items: center; font-size: 13.5px; }
+          .resource:first-of-type { border-top: none; padding-top: 0; }
+          .resource .icon { width: 28px; height: 28px; background: var(--accent-soft); border-radius: 7px; color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+          .resource .meta { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+          .check { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-top: 1px dashed var(--line); }
+          .check:first-of-type { border-top: none; padding-top: 0; }
+          .check .box { flex: 0 0 18px; width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--ink); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: transparent; }
+          .check.done .box { background: var(--positive); border-color: var(--positive); color: var(--paper); }
+          .check strong { display: block; font-weight: 600; }
+          .check span { color: var(--muted); font-size: 12.5px; }
+        
+          footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+        
+          @media (max-width: 900px) {
+            .cover { grid-template-columns: 1fr; text-align: center; }
+            .cover-art { margin: 0 auto; }
+            .week { grid-template-columns: 1fr 1fr; }
+            .milestones { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
+          }
 </style>
 </head>
 <body>

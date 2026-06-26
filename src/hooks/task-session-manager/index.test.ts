@@ -234,7 +234,9 @@ describe('task-session-manager hook', () => {
     );
 
     const prompt = systemOutput.system.join('\n');
-    expect(prompt).toContain('ora-1 / ses_bg_456 / oracle / completed, unreconciled');
+    expect(prompt).toContain(
+      'ora-1 / ses_bg_456 / oracle / completed, unreconciled',
+    );
     expect(prompt).toContain('Result: Use a lane-specific overlay.');
   });
 
@@ -314,9 +316,7 @@ describe('task-session-manager hook', () => {
       { sessionID: 'parent-1' },
       systemOutput,
     );
-    expect(systemOutput.system.join('\n')).toContain(
-      'completed, unreconciled',
-    );
+    expect(systemOutput.system.join('\n')).toContain('completed, unreconciled');
 
     await hook.event({
       event: {

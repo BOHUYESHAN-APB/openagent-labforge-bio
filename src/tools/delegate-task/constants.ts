@@ -29,11 +29,13 @@ export type CategoriesConfig = Record<string, CategoryConfig>;
 export const DEFAULT_CATEGORIES: Record<string, CategoryConfig> = {
   quick: {
     model: 'openai/gpt-5.4-mini',
-    description: 'Fast, low-cost tasks (search, simple code-gen, summarization)',
+    description:
+      'Fast, low-cost tasks (search, simple code-gen, summarization)',
   },
   ultrabrain: {
     model: 'openai/gpt-5.5',
-    description: 'Highest intelligence for complex reasoning, research, and coding',
+    description:
+      'Highest intelligence for complex reasoning, research, and coding',
   },
   'unspecified-high': {
     model: 'anthropic/claude-opus-4-7',
@@ -41,7 +43,8 @@ export const DEFAULT_CATEGORIES: Record<string, CategoryConfig> = {
   },
   'unspecified-low': {
     model: 'anthropic/claude-sonnet-4-6',
-    description: 'Low-to-mid intelligence fallback when no specific category is set',
+    description:
+      'Low-to-mid intelligence fallback when no specific category is set',
   },
   'visual-engineering': {
     model: 'google/gemini-3.1-pro',

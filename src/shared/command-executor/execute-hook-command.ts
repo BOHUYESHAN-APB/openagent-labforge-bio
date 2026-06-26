@@ -1,6 +1,6 @@
-import { spawn } from "node:child_process";
-import { getHomeDirectory } from "./home-directory";
-import { findBashPath, findZshPath } from "./shell-path";
+import { spawn } from 'node:child_process';
+import { getHomeDirectory } from './home-directory';
+import { findBashPath, findZshPath } from './shell-path';
 
 export interface CommandResult {
   exitCode: number;
@@ -50,15 +50,15 @@ export async function executeHookCommand(
     }
   }
 
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let settled = false;
     let killTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const isWin32 = process.platform === "win32";
+    const isWin32 = process.platform === 'win32';
 
     // Keys that are always set from normalized sources and must not be
     // overwritten by ambient process.env values during the allowlist merge.
-    const PROTECTED_ENV_KEYS = new Set(["HOME", "CLAUDE_PROJECT_DIR"]);
+    const PROTECTED_ENV_KEYS = new Set(['HOME', 'CLAUDE_PROJECT_DIR']);
 
     let env: Record<string, string | undefined>;
     if (options?.allowedEnvVars) {
@@ -84,18 +84,18 @@ export async function executeHookCommand(
       env,
     });
 
-    let stdout = "";
-    let stderr = "";
+    let stdout = '';
+    let stderr = '';
 
-    proc.stdout?.on("data", (data: Buffer) => {
+    proc.stdout?.on('data', (data: Buffer) => {
       stdout += data.toString();
     });
 
-    proc.stderr?.on("data", (data: Buffer) => {
+    proc.stderr?.on('data', (data: Buffer) => {
       stderr += data.toString();
     });
 
-    proc.stdin?.on("error", () => {});
+    proc.stdin?.on('error', () => {});
     proc.stdin?.write(stdin);
     proc.stdin?.end();
 
@@ -107,7 +107,7 @@ export async function executeHookCommand(
       resolve(result);
     };
 
-    proc.on("close", code => {
+    proc.on('close', (code) => {
       settle({
         exitCode: code ?? 1,
         stdout: stdout.trim(),
@@ -115,7 +115,7 @@ export async function executeHookCommand(
       });
     });
 
-    proc.on("error", err => {
+    proc.on('error', (err) => {
       settle({ exitCode: 1, stderr: err.message });
     });
 
@@ -136,17 +136,21 @@ export async function executeHookCommand(
     const timeoutTimer = setTimeout(() => {
       if (settled) return;
       // Kill entire process group to avoid orphaned children
-      killProcessGroup("SIGTERM");
+      killProcessGroup('SIGTERM');
       killTimer = setTimeout(() => {
         if (settled) return;
-        killProcessGroup("SIGKILL");
+        killProcessGroup('SIGKILL');
       }, SIGKILL_GRACE_MS);
       // Append timeout notice to stderr
       stderr += `\nHook command timed out after ${timeoutMs}ms`;
     }, timeoutMs);
 
     // Don't let the timeout timer keep the process alive
-    if (timeoutTimer && typeof timeoutTimer === "object" && "unref" in timeoutTimer) {
+    if (
+      timeoutTimer &&
+      typeof timeoutTimer === 'object' &&
+      'unref' in timeoutTimer
+    ) {
       timeoutTimer.unref();
     }
   });

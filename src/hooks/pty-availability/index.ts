@@ -109,7 +109,9 @@ export function createPtyAvailabilityHook() {
         return;
       }
 
-      output.system.push(ptyToolsAvailable ? PTY_AVAILABLE_TEXT : PTY_UNAVAILABLE_TEXT);
+      output.system.push(
+        ptyToolsAvailable ? PTY_AVAILABLE_TEXT : PTY_UNAVAILABLE_TEXT,
+      );
     },
   };
 }

@@ -26,9 +26,7 @@ DO NOT stop without calling this tool when work is done.`,
     args: {
       summary: z
         .string()
-        .describe(
-          'Brief summary of what was completed (1-2 sentences).',
-        ),
+        .describe('Brief summary of what was completed (1-2 sentences).'),
     },
     async execute(args) {
       const summary = args?.summary as string | undefined;

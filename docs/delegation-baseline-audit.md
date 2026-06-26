@@ -1,5 +1,10 @@
 # Delegation Baseline Audit
 
+> **v1.3.5 更新**: `subagentPolicy` system has been removed. Agent registration
+> now uses only `disabled_agents`. This audit's recommendations around demoting
+> subagentPolicy (Baseline Conclusion #3, File-Level Inventory items) are now
+> **resolved upstream** — the policy system itself is deleted, not just demoted.
+
 ## Scope
 
 This document is the Phase 0 baseline audit for the delegation/planner refactor program in `.opencode/extendai-lab/plans/rebuild-delegation-lanes-and-planner-overlay.md`.

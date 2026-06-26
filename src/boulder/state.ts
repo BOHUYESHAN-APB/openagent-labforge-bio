@@ -212,7 +212,9 @@ export function getPlanProgress(content: string): PlanProgress {
     remaining,
     percent: total === 0 ? 0 : Math.round((completed / total) * 100),
     isComplete: total > 0 && remaining === 0,
-    nextTaskLabel: nextUnchecked ? (nextUnchecked[2]?.trim() ?? undefined) : undefined,
+    nextTaskLabel: nextUnchecked
+      ? (nextUnchecked[2]?.trim() ?? undefined)
+      : undefined,
   };
 }
 
@@ -235,7 +237,10 @@ export function extractPlanDescription(content: string): string | undefined {
 
     // Take the first `## Section` or `### Task` heading after the title
     if (/^#{2,3}\s+/.test(trimmed)) {
-      return trimmed.replace(/^#+\s+/, '').trim().slice(0, 120);
+      return trimmed
+        .replace(/^#+\s+/, '')
+        .trim()
+        .slice(0, 120);
     }
 
     // Or take the first non-empty paragraph sentence
@@ -246,7 +251,10 @@ export function extractPlanDescription(content: string): string | undefined {
       !trimmed.startsWith('>') &&
       !trimmed.startsWith('```')
     ) {
-      const sentence = trimmed.replace(/^[#*\s]+/, '').split(/[.。]/)[0]?.trim();
+      const sentence = trimmed
+        .replace(/^[#*\s]+/, '')
+        .split(/[.。]/)[0]
+        ?.trim();
       if (sentence && sentence.length > 10) {
         return sentence.slice(0, 120);
       }

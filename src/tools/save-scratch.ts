@@ -1,6 +1,6 @@
-import { type ToolDefinition, tool } from '@opencode-ai/plugin';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { type ToolDefinition, tool } from '@opencode-ai/plugin';
 
 const z = tool.schema;
 
@@ -18,9 +18,7 @@ This is for "let me note this down quickly" moments:
 
 This tool does NOT require user confirmation — it's for quick notes that don't interrupt workflow.`,
     args: {
-      note: z
-        .string()
-        .describe('The quick note to save.'),
+      note: z.string().describe('The quick note to save.'),
       sessionId: z
         .string()
         .describe('Current session ID (required for session isolation).'),
@@ -35,7 +33,12 @@ This tool does NOT require user confirmation — it's for quick notes that don't
         return 'Scratch save failed: sessionId is required.';
       }
 
-      const sessionsDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'sessions');
+      const sessionsDir = join(
+        workspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'sessions',
+      );
       const sessionDir = join(sessionsDir, sessionId);
       const scratchFile = join(sessionDir, 'scratch.md');
 
@@ -64,7 +67,8 @@ This tool does NOT require user confirmation — it's for quick notes that don't
         const newNote = `\n### ${categoryEmoji[category]} ${timestamp}\n\n${String(args.note)}\n`;
 
         // Append to existing content
-        const header = '# Session Scratch Notes\n\nQuick notes captured during this session.\n';
+        const header =
+          '# Session Scratch Notes\n\nQuick notes captured during this session.\n';
         const content = existingContent || header;
         writeFileSync(scratchFile, content + newNote, 'utf8');
 

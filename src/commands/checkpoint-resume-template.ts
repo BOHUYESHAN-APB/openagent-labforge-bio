@@ -6,38 +6,51 @@ Checkpoint is the "reinforcement board" for compaction — it preserves detailed
 ### PHASE 0: RESOLVE CHECKPOINT SOURCE
 Determine which checkpoint to load:
 
-**Priority order:**
-1. If session ID argument provided → read that session's checkpoint
-2. If no argument → read current session's checkpoint
-3. If "latest" argument → read workspace-level latest checkpoint
+**Argument handling:**
+1. **Session ID provided** (e.g., \`/ol-checkpoint-resume ses_abc123\`)
+   → Read \`.opencode/extendai-lab/checkpoints/by-session/ses_abc123.md\`
+   → This is the primary, intended use case for cross-session handoff
+2. **No argument**
+   → Read current session's own checkpoint:
+     \`.opencode/extendai-lab/checkpoints/by-session/{current-session-id}.md\`
+3. **"latest" argument** (\`/ol-checkpoint-resume latest\`)
+   → Read workspace-level \`latest.md\` (cross-session convenience reference)
+   → Only use this when you don't know the target session ID
 
 **File resolution order (per session):**
-1. \`.opencode/extendai-lab/checkpoints/by-session/$SESSION_ID.md\` (manual checkpoint — preferred)
+1. \`.opencode/extendai-lab/checkpoints/by-session/$SESSION_ID.md\` (manual checkpoint — PRIMARY)
 2. \`.opencode/extendai-lab/checkpoints/by-session-auto/$SESSION_ID.md\` (auto-compaction checkpoint — fallback)
-3. \`.opencode/extendai-lab/checkpoints/latest.md\` (workspace latest — last resort)
+3. \`.opencode/extendai-lab/checkpoints/latest.md\` (workspace latest — only for "latest" arg)
 
 **Directory structure:**
 \`\`\`
 .opencode/extendai-lab/checkpoints/
-├── latest.md                    ← 最新的人工 checkpoint
-├── latest.meta.json
 ├── by-session/
-│   └── {session-id}.md          ← 该会话最新的人工 checkpoint（优先读取）
+│   └── {session-id}.md          ← 该会话最新的人工 checkpoint（唯一权威来源）
 ├── by-session-auto/
 │   └── {session-id}.md          ← 自动压缩 checkpoint（fallback）
+├── latest.md                    ← 跨会话参考（仅 /ol-checkpoint-resume latest 使用）
+├── latest.meta.json
 └── history/
     └── {session-id}/
-        └── {timestamp}-{level}.md
+        └── {timestamp}-{level}.md  ← 永久存档
 \`\`\`
 
+**Important: Session isolation**
+Each session has its own \`by-session/{id}.md\`. Do NOT read another session's
+checkpoint unless explicitly asked (by session ID argument).
+The \`latest.md\` is a cross-session convenience reference only — prefer
+session-specific files for reliable recovery.
+
 ### PHASE 1: LOAD CHECKPOINT CONTEXT
-1. Read the checkpoint markdown file (using priority order above)
+1. Read the checkpoint markdown file (using resolution rules above)
 2. Read metadata:
-   - For manual: \`.opencode/extendai-lab/checkpoints/latest.meta.json\`
+   - For manual/by-session: check \`latest.meta.json\`
    - For auto: \`.opencode/extendai-lab/checkpoints/by-session-auto/$SESSION_ID.meta.json\`
 3. Extract: goal, current state, pending tasks, key decisions, resume instructions
 4. Check if checkpoint was created before compaction (pre_compaction flag)
 5. If checkpoint mentions an active execution plan / boulder-backed plan, treat that as the authoritative execution lane to restore
+6. If checkpoint mentions a Loop FSM state, restore loop awareness
 
 ### PHASE 2: REBUILD EXECUTION STATE
 1. Restate the carried-forward mission from checkpoint
@@ -58,7 +71,7 @@ If checkpoint has metadata file, update:
 \`\`\`
 
 ### PHASE 4: RESPOND
-1. Confirm checkpoint loaded (show level: light/heavy, source: manual/auto)
+1. Confirm checkpoint loaded (show level: light/heavy, source: manual/auto, session ID)
 2. Show restored goal and current state
 3. Show restored todo list
 4. If an active execution plan was recovered, say so explicitly and continue from that plan instead of asking for a fresh execution target

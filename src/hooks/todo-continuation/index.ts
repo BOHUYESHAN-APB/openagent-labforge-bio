@@ -10,15 +10,15 @@ import {
   log,
   SLIM_INTERNAL_INITIATOR_MARKER,
 } from '../../utils';
-import { createCrashRecovery } from './crash-recovery';
-import { createTodoHygiene } from './todo-hygiene';
-import { detectUserIntent, shouldSkipContinuation } from './user-intent';
 import {
   buildForceContinueMessage,
   buildLazyStopRejectionMessage,
   buildTruncationRecoveryMessage,
   detectContinuationIntent,
 } from './continuation-intent';
+import { createCrashRecovery } from './crash-recovery';
+import { createTodoHygiene } from './todo-hygiene';
+import { detectUserIntent, shouldSkipContinuation } from './user-intent';
 
 const HOOK_NAME = 'todo-continuation';
 const COMMAND_NAME = 'ol-auto-continue';
@@ -1400,7 +1400,11 @@ export function createTodoContinuationHook(
       // messages (without agent) are treated as system notifications
       // and don't trigger AI responses.
       try {
-        const { consumeLoopKickstart, isLoopActive: checkLoop, getLoop: getLoopState } = await import('../loop');
+        const {
+          consumeLoopKickstart,
+          isLoopActive: checkLoop,
+          getLoop: getLoopState,
+        } = await import('../loop');
         if (checkLoop()) {
           const fsm = getLoopState();
 
@@ -1408,10 +1412,17 @@ export function createTodoContinuationHook(
           // can work through multiple turns (create todos → execute → verify).
           // Without this, the executor stops after the first response unless
           // the user manually enabled auto-continue.
-          if (fsm && fsm.state.phase === 'execute' && !isContinuationEnabled(state, sessionID)) {
+          if (
+            fsm &&
+            fsm.state.phase === 'execute' &&
+            !isContinuationEnabled(state, sessionID)
+          ) {
             setContinuationEnabled(state, sessionID, true);
             setConsecutiveContinuations(state, sessionID, 0);
-            log(`[${HOOK_NAME}] Loop: auto-enabled continuation for execute phase`, { sessionID });
+            log(
+              `[${HOOK_NAME}] Loop: auto-enabled continuation for execute phase`,
+              { sessionID },
+            );
           }
 
           const kickstart = consumeLoopKickstart(sessionID);
@@ -1443,12 +1454,18 @@ export function createTodoContinuationHook(
             reviewOverlay?.agent === 'reviewer' &&
             !state.reviewInjectedBySession.has(sessionID)
           ) {
-            log(`[${HOOK_NAME}] Loop: injecting review kickstart (task_complete)`, {
-              sessionID,
-            });
+            log(
+              `[${HOOK_NAME}] Loop: injecting review kickstart (task_complete)`,
+              {
+                sessionID,
+              },
+            );
             state.reviewInjectedBySession.add(sessionID);
             state.reviewVerdictBySession.set(sessionID, 'pending');
-            const reviewPrompt = buildReviewPrompt(undefined, reviewOverlay.phase);
+            const reviewPrompt = buildReviewPrompt(
+              undefined,
+              reviewOverlay.phase,
+            );
             state.isAutoInjecting = true;
             try {
               await ctx.client.session.prompt({
@@ -1595,16 +1612,21 @@ export function createTodoContinuationHook(
               const { verdict, findings, scope } = parseReviewVerdict(text);
               if (verdict === 'approve') {
                 // Loop routing: if loop active, clean up and restore agent
-                const { deleteLoop, getLoop: getActiveLoop } = await import('../loop');
+                const { deleteLoop, getLoop: getActiveLoop } = await import(
+                  '../loop'
+                );
                 const currentLoop = getActiveLoop();
-                const { injectPhaseSwitch: injectPS2 } = await import('../phase-switch');
+                const { injectPhaseSwitch: injectPS2 } = await import(
+                  '../phase-switch'
+                );
                 deleteLoop();
 
                 // Explicit agent recovery: inject phase switch to restore
                 // the original agent so the UI doesn't stay on reviewer (B9 fix)
-                const returnAgent = currentLoop?.state.return_agent
-                  || config?.overlayManager?.getCurrent(sessionID)?.returnAgent
-                  || 'orchestrator';
+                const returnAgent =
+                  currentLoop?.state.return_agent ||
+                  config?.overlayManager?.getCurrent(sessionID)?.returnAgent ||
+                  'orchestrator';
                 config?.overlayManager?.clear(sessionID, 'review');
                 injectPS2(sessionID, {
                   phase: 'done',
@@ -1628,8 +1650,12 @@ export function createTodoContinuationHook(
               }
               if (verdict === 'reject') {
                 // Check if a loop is active for verdict routing
-                const { isLoopActive, routeVerdict, getLoop } = await import('../loop');
-                const { injectPhaseSwitch: injectPS } = await import('../phase-switch');
+                const { isLoopActive, routeVerdict, getLoop } = await import(
+                  '../loop'
+                );
+                const { injectPhaseSwitch: injectPS } = await import(
+                  '../phase-switch'
+                );
                 if (isLoopActive()) {
                   const nextPhase = routeVerdict(verdict, scope, findings);
                   if (nextPhase && nextPhase.phase === 'redesign') {
@@ -1637,7 +1663,8 @@ export function createTodoContinuationHook(
                     // overlay is needed for system.transform (prompt) and chat.params (think)
                     // Read return_agent from loop state (B6 fix: was hardcoded 'orchestrator')
                     const loopState = getLoop();
-                    const returnAgent = loopState?.state.return_agent || 'orchestrator';
+                    const returnAgent =
+                      loopState?.state.return_agent || 'orchestrator';
                     config?.overlayManager?.activate(sessionID, {
                       phase: 'plan',
                       agent: 'prometheus',
@@ -1648,14 +1675,19 @@ export function createTodoContinuationHook(
                       phase: 'redesign',
                       agent: 'prometheus',
                       think: 'max',
-                      extras: { returnAgent, fixInstructions: `Review feedback: ${findings}` },
+                      extras: {
+                        returnAgent,
+                        fixInstructions: `Review feedback: ${findings}`,
+                      },
                     });
                     config?.overlayManager?.clear(sessionID, 'review');
 
                     // Inject redesign kickstart prompt.
                     // The overlay is active and phase switch is set —
                     // now kickstart the planner to begin autonomous redesign.
-                    log(`[${HOOK_NAME}] Loop: injecting redesign kickstart`, { sessionID });
+                    log(`[${HOOK_NAME}] Loop: injecting redesign kickstart`, {
+                      sessionID,
+                    });
                     const redesignPrompt = `## Loop: Redesign Phase
 
 The reviewer rejected the plan for major rework. You are the internal planner (autonomous mode).
@@ -1698,7 +1730,10 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
                     config?.overlayManager?.clear(sessionID, 'review');
 
                     // Inject rework prompt — kickstart executor to fix issues
-                    log(`[${HOOK_NAME}] Loop: injecting executor rework prompt`, { sessionID });
+                    log(
+                      `[${HOOK_NAME}] Loop: injecting executor rework prompt`,
+                      { sessionID },
+                    );
                     const reworkPrompt = buildReworkPrompt(findings);
                     state.isAutoInjecting = true;
                     try {
@@ -1851,7 +1886,9 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
       // patterns stop an unfinished batch. Only explicit user stop / abort /
       // blocker should stop.
       let lastAssistantIsQuestion = false;
-      let continuationIntent: ReturnType<typeof detectContinuationIntent> | undefined;
+      let continuationIntent:
+        | ReturnType<typeof detectContinuationIntent>
+        | undefined;
       let lastAssistantText = '';
       try {
         const messagesResult = await ctx.client.session.messages({
@@ -1910,10 +1947,9 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
         );
       }
       if (continuationIntent?.isTruncated) {
-        log(
-          `[${HOOK_NAME}] Truncated output detected — will inject recovery`,
-          { sessionID },
-        );
+        log(`[${HOOK_NAME}] Truncated output detected — will inject recovery`, {
+          sessionID,
+        });
       }
 
       // Safety gate 4: below max continuations
@@ -2096,9 +2132,7 @@ The reviewer rejected the plan for major rework. You are the internal planner (a
             path: { id: sessionID },
             body: {
               agent: 'engineer',
-              parts: [
-                createInternalAgentTextPart(promptText),
-              ],
+              parts: [createInternalAgentTextPart(promptText)],
             },
           });
           if (needsPlanResync) {

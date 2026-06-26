@@ -1,6 +1,8 @@
-import type { TeamModeConfig } from "../../config/schema/team-mode"
+import type { TeamModeConfig } from '../../config/schema/team-mode';
 
-export function buildTeammateCommunicationAddendum(_config: TeamModeConfig): string {
+export function buildTeammateCommunicationAddendum(
+  _config: TeamModeConfig,
+): string {
   return `
 # Team Communication
 
@@ -42,5 +44,5 @@ When you finish your assigned work, ALWAYS:
 1. Send your results to the lead via \`team_send_message\`.
 2. Mark your task as completed via \`team_task_update\`.
 3. Send a completion message to the lead so the lead can decide whether to request shutdown.
-`
+`;
 }

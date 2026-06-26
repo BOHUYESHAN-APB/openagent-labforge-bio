@@ -604,10 +604,10 @@ describe('checkpoint persistence', () => {
       const content = readFileSync(checkpointPath, 'utf8');
       expect(content).toContain('Active execution plan: active-plan');
       expect(content).toContain('Top-level plan tasks remaining: 2');
-      expect(content).toContain(planPath);
-      expect(content).toContain('Active execution plan name: active-plan');
-      expect(content).toContain(`Active execution plan path: ${planPath}`);
-      expect(content).toContain('Re-read the plan, rebuild todos');
+      // planPath should appear in the resume instructions in the new (path: ...) format
+      expect(content).toContain(`${planPath}`);
+      expect(content).toContain('(path:');
+      expect(content).toContain('Re-read the plan and loop state');
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

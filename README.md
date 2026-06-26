@@ -1,6 +1,6 @@
 # ExtendAI Lab
 
-> Lightweight Agent Orchestration for [OpenCode](https://github.com/anomalyco/opencode) — 5 orchestrators · 15 specialists · 3-tier prompts · Bioinformatics · Academic Paper Mode · Auto-review
+> Lightweight Agent Orchestration for [OpenCode](https://github.com/anomalyco/opencode) — 6 orchestrators · 12 specialists · 3-tier prompts · Bioinformatics · Academic Paper Mode · Auto-review
 
 [![Version](https://img.shields.io/github/v/release/BOHUYESHAN-APB/openagent-labforge-bio?label=release)](https://github.com/BOHUYESHAN-APB/openagent-labforge-bio/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
@@ -15,7 +15,7 @@
 
 ## Overview
 
-ExtendAI Lab extends OpenCode with production-grade agent orchestration — 5 primary orchestrators, 15 specialist subagents, a three-tier prompt system, a checkpoint-based memory architecture, main-agent-first cost optimization, and optional bioinformatics domain support.
+ExtendAI Lab extends OpenCode with production-grade agent orchestration — 6 primary orchestrators, 12 specialist subagents, a three-tier prompt system, a checkpoint-based memory architecture, main-agent-first cost optimization, and optional bioinformatics domain support.
 
 **The philosophy**: main-agent-first. Most work happens in the primary orchestrator. Subagents are read as instruction checklists (`load_agent_instructions`) rather than spawned as child sessions. This keeps cache hit rates high and token costs low — critical for Chinese providers with token-based pricing.
 
@@ -23,12 +23,13 @@ ExtendAI Lab extends OpenCode with production-grade agent orchestration — 5 pr
 graph TB
     U((User)) --> P
 
-    subgraph P[Primary Orchestrators]
+    subgraph P[Primary Orchestrators — 6]
         O["engineer<br/>(orchestrator)"]
         DW["deep-worker"]
         PL["planner<br/>(prometheus)"]
         AT["executor<br/>(atlas)"]
         BO["bio-analyst<br/>(bio-orchestrator)"]
+        CO["chem-analyst<br/>(chem-orchestrator)"]
     end
 
     O --> |read instructions| SG[Specialist Agents]
@@ -42,23 +43,22 @@ graph TB
 
 | Feature | Base OpenCode | ExtendAI Lab |
 |---------|--------------|--------------|
-| Orchestrators | 1 | 5 |
-| Subagents | 3 | 15 |
+| Orchestrators | 1 | 6 |
+| Subagents | 3 | 12 |
 | Prompt System | Fixed | Heavy / Light / Turbo (runtime switch) |
 | Auto-Continue | — | Multi-session with structured auto-review |
 | Persistent Plans | — | `save_plan` → `/ol-start-work` |
 | Subagent Read Tool | — | `load_agent_instructions` |
 | Thinking Language | — | Provider-aware (CN→中文, EN→English) |
 | Checkpoints | — | Light (same-session) + Heavy (cross-session) |
-| Context Pressure | — | L1/L2/L3 monitoring |
+| Context Pressure | — | L1/L2/L3 monitoring, adaptive thresholds, hysteresis |
 | Bioinformatics | — | 617 skills, 3 MCPs |
 
 ### Key Numbers
 
 - **1221** tests passing, **101** test files, **0** failures
-- **5** primary orchestrators + **15** subagents
+- **6** primary orchestrators + **12** subagents = **18** total agents
 - **617** bioinformatics skills, **88** categories
-- **14** slash commands, **10** tools
 
 ### Release Policy
 
@@ -169,6 +169,7 @@ Restart OpenCode. The plugin loads automatically.
 | `prometheus` | planner | Strategic planner — `save_plan` persistence, `detect_bio_task` classification |
 | `atlas` | executor | Plan executor — reads saved plans, executes parallel waves |
 | `bio-orchestrator` | bio-analyst | Biological science — bioinformatics, experimental design, study strategy |
+| `chem-orchestrator` | chem-analyst | Chemical science — computational chemistry, molecular modeling |
 
 ### Subagents (read-first, spawn-last)
 
@@ -186,17 +187,7 @@ Restart OpenCode. The plugin loads automatically.
 | `multimodal-looker` | ✅ | — | Vision-capable media interpretation |
 | `reviewer` | ✅ | — | Code review (Correctness, Security, Performance, Style) |
 
-### Subagent Policy
-
-| Mode | Default? | Behavior |
-|------|----------|----------|
-| `full` | ✅ Yes | All agents registered; lane-driven main-agent-first remains default |
-| `ultra-minimal` | — | Legacy reduced-registration compatibility mode |
-| `minimal` | — | + fixer, observer |
-| `custom` | — | `allowedAgents` allowlist |
-| `main-only` | — | No child sessions, all specialist guidance as local checklists |
-
-Switch: `/ol-subagents-UM` `/ol-subagents-M` `/ol-subagents-F` `/ol-subagents-C` `/ol-subagents-MO`
+> **v1.3.5+**: The legacy `subagentPolicy` system (ultra-minimal/minimal/full/custom/main-only modes and `/ol-subagents-*` commands) has been removed. Agent registration now uses only `disabled_agents` in configuration.
 
 ---
 
@@ -259,12 +250,27 @@ Switch: `/ol-light` `/ol-heavy` `/ol-turbo`
 
 ### 6. Checkpoints
 
+Session-isolated, adaptive thresholds. Each session writes to its own `by-session/{id}.md` — never contaminates other sessions.
+
 | Type | Trigger | Use |
 |------|---------|-----|
-| Light | L2 (60-75% context) | Same-session recovery |
-| Heavy | L3 (>75% context) | Cross-session handoff |
+| Light | L2 (450K large / 65% small models) | Same-session recovery |
+| Heavy | L3 (550K large / 80% small models) | Cross-session handoff |
 
-115+ metadata fields for heavy checkpoints — full state reconstruction.
+**Adaptive thresholds** (caps at 350K/450K/550K, scales proportionally for smaller models):
+
+| Model Context | L1 (suggest) | L2 (must compress) | L3 (force) |
+|--------------|-------------|-------------------|-----------|
+| 1M | 350K | 450K | 550K |
+| 400K | 200K | 260K | 320K |
+| 256K | 128K | 166K | 205K |
+| 200K | 100K | 130K | 160K |
+
+**50K hysteresis** (10% for small models) prevents boundary oscillation.
+
+**Session isolation**: `by-session/{id}.md` is the primary source. `latest.md` is cross-session reference only (`/ol-checkpoint-resume latest`). No silent fallback between sessions.
+
+**Copyable command**: `/ol-checkpoint` outputs `📋 /ol-checkpoint-resume $SESSION_ID` — paste in any window to resume.
 
 ### 7. Model Presets
 
@@ -291,6 +297,29 @@ Five preset modes. **Default is `free`** — no model binding, no recommendation
 
 Each agent gets an independent reasoning effort (`variant`): `low` / `medium` / `high` / `xhigh` / `max`.
 
+### 8. Plan Mode & Agent Switching (v1.3.5+)
+
+Any main orchestrator (engineer, deep-worker, bio-analyst, chem-analyst) can enter **plan mode** to switch the active agent to prometheus (planner) for strategic planning:
+
+```
+Main agent   plan_enter   →   prometheus (planner)    plan_exit   →   Main agent
+(engineer)       ▼            read-only 5-phase plan         ▼       (engineer)
+                           analyze → research → design → save → exit
+```
+
+**How it works** — three-layer hook overlay:
+
+1. `tool.execute.before`: Saves returnAgent, sets `output.message.agent` → OpenCode UI switches to prometheus
+2. `experimental.chat.system.transform`: Injects isolated planner prompt stack (early-return, no dilution)
+3. `tool.execute.before` (deny): Blocks write/edit/bash/task in plan mode — prometheus is read-only
+
+**Restrictions:**
+- Prometheus CAN: read, glob, grep, webfetch, Question, save_plan, plan_exit
+- Prometheus CANNOT: write, edit, bash, task, subtask, plan_enter (no nested plan mode)
+- `plan_exit` is mandatory — without it, the session stays in read-only plan mode
+
+The same overlay mechanism also powers **review mode** — when auto-review activates, the `reviewer` agent gets an isolated prompt stack via the same `system.transform` early-return pattern.
+
 ---
 
 ## Configuration
@@ -302,7 +331,6 @@ Each agent gets an independent reasoning effort (`variant`): `low` / `medium` / 
   "promptMode": { "defaultMode": "light", "allowModeSwitch": true },
   "bioSkills": { "enabled": true },
   "modelPreferences": { "profile": "openai" },
-  "subagentPolicy": { "mode": "ultra-minimal" },
   "compression": {
     "enabled": true,
     "profiles": {
@@ -322,8 +350,8 @@ See [`extendai-lab.example.jsonc`](extendai-lab.example.jsonc) for full referenc
 | Command | Mode | Description |
 |---------|------|-------------|
 | `/ol-light` / `/ol-heavy` / `/ol-turbo` | Prompt | Switch prompt mode |
-| `/ol-checkpoint [l\|h\|light\|heavy] [goal]` | Checkpoint | Create checkpoint (light: same-session, heavy: cross-session) |
-| `/ol-checkpoint-resume [id]` | Checkpoint | Resume from checkpoint — restores `atlas` executor lane + `boulder.json` if checkpoint contains active execution plan |
+| `/ol-checkpoint [l\|h\|light\|heavy] [goal]` | Checkpoint | Create checkpoint — outputs copyable `/ol-checkpoint-resume $SESSION_ID` command. Session-isolated, auto-archives old latest.md to history/ |
+| `/ol-checkpoint-resume [id\|latest]` | Checkpoint | Resume from checkpoint: `{id}` reads `by-session/{id}.md`, `latest` reads `latest.md`, no arg reads current session's own checkpoint. Restores `atlas` executor + `boulder.json` + optional Loop FSM state |
 | `/ol-handoff [goal]` | Checkpoint | Create context summary for new session |
 | `/ol-start-work [name]` | Workflow | Execute a saved plan |
 | `/ol-auto-continue-on/off` | Continuation | Toggle auto-continuation |
@@ -332,7 +360,6 @@ See [`extendai-lab.example.jsonc`](extendai-lab.example.jsonc) for full referenc
 | `/ol-diagnose [bug]` | Workflow | Disciplined diagnosis loop for bugs |
 | `/ol-simplify [file]` | Workflow | Simplify code without changing behavior |
 | `/ol-review [files]` | Workflow | Code review with severity classification |
-| `/ol-subagents-UM/M/F/C/MO` | Policy | View subagent policy guidance |
 | `/ol-preset [name]` | Config | Switch model/provider preset |
 | `/ol-karpathy [task]` | Guidance | Apply Karpathy coding guidelines |
 | `/ol-ralph-loop [task]` | Workflow | Self-referential loop until completion |

@@ -151,11 +151,14 @@ export function createCompactionHook(options?: CompactionHookOptions): {
       const improvedPrompt = getCompactionPrompt(customInstructions);
       output.prompt = improvedPrompt;
 
-      log(`[${HOOK_NAME}] Replaced compaction prompt (anti-interference + detailed)`, {
-        sessionID: input.sessionID,
-        promptLength: improvedPrompt.length,
-        hasCustomInstructions: !!customInstructions,
-      });
+      log(
+        `[${HOOK_NAME}] Replaced compaction prompt (anti-interference + detailed)`,
+        {
+          sessionID: input.sessionID,
+          promptLength: improvedPrompt.length,
+          hasCustomInstructions: !!customInstructions,
+        },
+      );
     },
 
     'experimental.compaction.autocontinue': async (

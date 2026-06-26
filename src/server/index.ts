@@ -849,13 +849,6 @@ const mcpTools: Tool[] = [
     inputSchema: { type: 'object', properties: { name: { type: 'string' } } },
   },
   {
-    name: 'extendai_list_checkpoints',
-    description:
-      'List all session checkpoints for recovery purposes.\n' +
-      'Use to find and resume from earlier session states.',
-    inputSchema: { type: 'object', properties: {} },
-  },
-  {
     name: 'extendai_dashboard_status',
     description:
       'Returns workspace info, loaded skill count, and active port.\n' +

@@ -16,7 +16,9 @@ describe('bash timeout recovery hook', () => {
 
   test('ignores non-bash tools', async () => {
     const hook = createBashTimeoutRecoveryHook({} as never);
-    const output = { output: 'bash tool terminated command after exceeding timeout' };
+    const output = {
+      output: 'bash tool terminated command after exceeding timeout',
+    };
 
     await hook['tool.execute.after']({ tool: 'read' }, output);
 
@@ -27,7 +29,8 @@ describe('bash timeout recovery hook', () => {
     const hook = createBashTimeoutRecoveryHook({} as never);
     const output = {
       output:
-        'bash tool terminated command after exceeding timeout\n\n' + PTY_RECOVERY_TEXT,
+        'bash tool terminated command after exceeding timeout\n\n' +
+        PTY_RECOVERY_TEXT,
     };
 
     await hook['tool.execute.after']({ tool: 'bash' }, output);

@@ -9,7 +9,7 @@ import type { McpConfig } from './types';
  * Tools:
  *   - extendai_list_skills        List available document/design skills
  *   - extendai_read_plan          Read saved plans
- *   - extendai_list_checkpoints   List session checkpoints
+ *   - extendai_dashboard_status   Workspace status & port
  *   - extendai_dashboard_status   Dashboard status
  */
 export const extendaiLab: McpConfig = {

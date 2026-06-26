@@ -1,72 +1,76 @@
-import { describe, expect, it } from "bun:test"
-import { normalizeSDKResponse } from "./normalize-sdk-response"
+import { describe, expect, it } from 'bun:test';
+import { normalizeSDKResponse } from './normalize-sdk-response';
 
-describe("normalizeSDKResponse", () => {
-  it("returns data array when response includes data", () => {
+describe('normalizeSDKResponse', () => {
+  it('returns data array when response includes data', () => {
     //#given
-    const response = { data: [{ id: "1" }] }
+    const response = { data: [{ id: '1' }] };
 
     //#when
-    const result = normalizeSDKResponse(response, [] as Array<{ id: string }>)
+    const result = normalizeSDKResponse(response, [] as Array<{ id: string }>);
 
     //#then
-    expect(result).toEqual([{ id: "1" }])
-  })
+    expect(result).toEqual([{ id: '1' }]);
+  });
 
-  it("returns fallback array when data is missing", () => {
+  it('returns fallback array when data is missing', () => {
     //#given
-    const response = {}
-    const fallback = [{ id: "fallback" }]
+    const response = {};
+    const fallback = [{ id: 'fallback' }];
 
     //#when
-    const result = normalizeSDKResponse(response, fallback)
+    const result = normalizeSDKResponse(response, fallback);
 
     //#then
-    expect(result).toEqual(fallback)
-  })
+    expect(result).toEqual(fallback);
+  });
 
-  it("returns response array directly when SDK returns plain array", () => {
+  it('returns response array directly when SDK returns plain array', () => {
     //#given
-    const response = [{ id: "2" }]
+    const response = [{ id: '2' }];
 
     //#when
-    const result = normalizeSDKResponse(response, [] as Array<{ id: string }>)
+    const result = normalizeSDKResponse(response, [] as Array<{ id: string }>);
 
     //#then
-    expect(result).toEqual([{ id: "2" }])
-  })
+    expect(result).toEqual([{ id: '2' }]);
+  });
 
-  it("returns response when data missing and preferResponseOnMissingData is true", () => {
+  it('returns response when data missing and preferResponseOnMissingData is true', () => {
     //#given
-    const response = { value: "legacy" }
+    const response = { value: 'legacy' };
 
     //#when
-    const result = normalizeSDKResponse(response, { value: "fallback" }, { preferResponseOnMissingData: true })
+    const result = normalizeSDKResponse(
+      response,
+      { value: 'fallback' },
+      { preferResponseOnMissingData: true },
+    );
 
     //#then
-    expect(result).toEqual({ value: "legacy" })
-  })
+    expect(result).toEqual({ value: 'legacy' });
+  });
 
-  it("returns fallback for null response", () => {
+  it('returns fallback for null response', () => {
     //#given
-    const response = null
+    const response = null;
 
     //#when
-    const result = normalizeSDKResponse(response, [] as string[])
+    const result = normalizeSDKResponse(response, [] as string[]);
 
     //#then
-    expect(result).toEqual([])
-  })
+    expect(result).toEqual([]);
+  });
 
-  it("returns object fallback for direct data nullish pattern", () => {
+  it('returns object fallback for direct data nullish pattern', () => {
     //#given
-    const response = { data: undefined as { connected: string[] } | undefined }
-    const fallback = { connected: [] }
+    const response = { data: undefined as { connected: string[] } | undefined };
+    const fallback = { connected: [] };
 
     //#when
-    const result = normalizeSDKResponse(response, fallback)
+    const result = normalizeSDKResponse(response, fallback);
 
     //#then
-    expect(result).toEqual(fallback)
-  })
-})
+    expect(result).toEqual(fallback);
+  });
+});

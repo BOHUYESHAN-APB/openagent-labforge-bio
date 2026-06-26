@@ -43,8 +43,8 @@ const STOP_SIGNALS = [
 // Signals that text may be truncated mid-output
 // These must NOT match common natural sentence endings.
 const UNFINISHED_SENTINEL_SIGNALS = [
-  /,\s*$/,                   // Trailing comma — may be mid-list
-  /```\s*$/,                // Unclosed code fence at very end
+  /,\s*$/, // Trailing comma — may be mid-list
+  /```\s*$/, // Unclosed code fence at very end
   /\b(?:and|but|or|to|the|a|an|with|for|in|on|at|by)\s*$/i, // Trailing connector
 ];
 

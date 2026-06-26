@@ -67,7 +67,10 @@ export const MODEL_MAPPINGS: Record<string, Record<string, AgentModelEntry>> = {
     // 视觉 — MiMo V2 Omni（有视觉）
     designer: { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
     observer: { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
-    'multimodal-looker': { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
+    'multimodal-looker': {
+      model: 'opencode-go/mimo-v2-omni',
+      variant: 'medium',
+    },
   },
 
   openai: {
@@ -149,7 +152,10 @@ export const MODEL_MAPPINGS: Record<string, Record<string, AgentModelEntry>> = {
     // 视觉 — MiMo V2 Omni（有视觉）
     designer: { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
     observer: { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
-    'multimodal-looker': { model: 'opencode-go/mimo-v2-omni', variant: 'medium' },
+    'multimodal-looker': {
+      model: 'opencode-go/mimo-v2-omni',
+      variant: 'medium',
+    },
   },
 
   '3-mix': {

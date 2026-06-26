@@ -64,7 +64,10 @@ export function createCheckpointResumeHook(
     }
 
     const executionState = extractExecutionState(checkpointText, ctx.directory);
-    if (!executionState) {
+    const loopState = extractLoopState(checkpointText);
+
+    // Must have at least one of executionState or loopState to proceed
+    if (!executionState && !loopState) {
       return;
     }
 
@@ -72,11 +75,13 @@ export function createCheckpointResumeHook(
     const resumeAgent = priorPhase === 'plan' ? 'prometheus' : EXECUTOR_AGENT;
     const resumePhase = priorPhase === 'plan' ? 'plan' : 'execute';
 
-    restoreBoulderExecutionState(
-      ctx.directory,
-      input.sessionID,
-      executionState,
-    );
+    if (executionState) {
+      restoreBoulderExecutionState(
+        ctx.directory,
+        input.sessionID,
+        executionState,
+      );
+    }
 
     markCheckpointConsumed(ctx.directory, input.sessionID);
 
@@ -96,6 +101,7 @@ export function createCheckpointResumeHook(
         plansDir: getProjectPlansDir(ctx.directory),
         originalAgent: options?.getCurrentAgent?.(input.sessionID),
         executionState,
+        loopState,
         resumeAgent,
         resumePhase,
       }),
@@ -114,19 +120,42 @@ function resolveCheckpointText(
   input: { sessionID: string; arguments: string },
 ): string | null {
   const arg = input.arguments.trim();
+
+  // "latest" → read workspace-level latest.md (cross-session reference)
   if (arg === 'latest') {
     return readLatestCheckpoint(workspaceRoot);
   }
+
+  // Session ID provided → read that session's by-session/{id}.md
+  // This is the primary cross-session handoff path.
+  // readCheckpointFile tries by-session/{id} then by-session-auto/{id}.
   if (arg) {
-    return (
-      readCheckpointFile(workspaceRoot, arg) ??
-      readLatestCheckpoint(workspaceRoot)
-    );
+    return readCheckpointFile(workspaceRoot, arg);
   }
-  return (
-    readCheckpointFile(workspaceRoot, input.sessionID) ??
-    readLatestCheckpoint(workspaceRoot)
-  );
+
+  // No argument → read current session's own checkpoint.
+  // Session isolation: never silently fall back to latest.md
+  // (which may belong to a different session).
+  return readCheckpointFile(workspaceRoot, input.sessionID);
+}
+
+function extractLoopState(checkpointText: string): {
+  loop_id: string;
+  phase: string;
+  iteration: number;
+  max_iterations: number;
+} | null {
+  const loopIdMatch = checkpointText.match(/^Active Loop: (.+)$/m);
+  const loopPhaseMatch = checkpointText.match(/^Loop phase: (.+)$/m);
+  if (!loopIdMatch) return null;
+
+  const loop_id = loopIdMatch[1]?.trim().split(' ')[0] ?? '';
+  if (!loop_id) return null;
+  const phase = loopPhaseMatch?.[1]?.trim() ?? '';
+  const iteration = 1;
+  const max_iterations = 3;
+
+  return { loop_id, phase, iteration, max_iterations };
 }
 
 function extractPriorPhase(
@@ -285,28 +314,51 @@ function buildResumeExecutionContext(input: {
       remaining: number;
       percent: number;
     };
-  };
+  } | null;
+  loopState?: {
+    loop_id: string;
+    phase: string;
+    iteration: number;
+    max_iterations: number;
+  } | null;
 }): string {
   const agentLabel =
     input.resumeAgent === 'prometheus' ? 'planner' : 'executor';
+
+  // Build loop context if present
+  const loopContext = input.loopState
+    ? `\n### Restored Loop state
+- Loop ID: ${input.loopState.loop_id}
+- Loop phase: ${input.loopState.phase} (iteration ${input.loopState.iteration}/${input.loopState.max_iterations})
+- Active Loop FSM file: .opencode/loops/active.json`
+    : '';
+
+  // Build execution context if present
+  const executionContext = input.executionState
+    ? `\n### Restored execution state
+- Restored plan name: ${input.executionState.planName}
+- Restored plan file: ${input.executionState.planPath}
+- Restored top-level progress: ${input.executionState.progress.completed}/${input.executionState.progress.total} completed (${input.executionState.progress.percent}%), ${input.executionState.progress.remaining} remaining`
+    : '';
+
   return `## CHECKPOINT RESUME RECOVERY
 
-Loaded checkpoint with active execution plan. Restoring phase: ${input.resumePhase} (${input.resumeAgent}).
+Loaded checkpoint. Restoring phase: ${input.resumePhase} (${input.resumeAgent}).
 
-### Restored execution state
+### Overview
 - Effective execution agent: @${agentLabel} (internal id: ${input.resumeAgent})
 - Restored phase: ${input.resumePhase}
 - Control returns to: ${input.originalAgent ?? 'the original main agent'} after ${input.resumePhase} and review complete
 - Checkpoint source argument: ${input.checkpointArgument}
-- Restored plan name: ${input.executionState.planName}
-- Restored plan file: ${input.executionState.planPath}
 - Plans directory: ${input.plansDir}
 - Boulder state path: ${input.boulderPath}
-- Restored top-level progress: ${input.executionState.progress.completed}/${input.executionState.progress.total} completed (${input.executionState.progress.percent}%), ${input.executionState.progress.remaining} remaining
+${executionContext}
+${loopContext}
 
 ### Required recovery workflow
-1. Re-read the restored plan file immediately.
-2. Rebuild the todo list from the current top-level plan checkboxes before executing.
-3. Continue from the first unfinished top-level task.
-4. Keep boulder-backed execution state authoritative until the plan and final review are complete.`;
+1. Re-read the restored plan file immediately (if plan exists).
+2. If Loop FSM is active, check .opencode/loops/active.json for loop state.
+3. Rebuild the todo list from the current top-level plan checkboxes before executing.
+4. Continue from the first unfinished top-level task.
+5. Keep boulder-backed execution state authoritative until the plan and final review are complete.`;
 }

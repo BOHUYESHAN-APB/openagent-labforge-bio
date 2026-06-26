@@ -1,6 +1,7 @@
 import type { PluginInput } from '@opencode-ai/plugin';
 
-const BASH_TIMEOUT_SIGNAL = 'bash tool terminated command after exceeding timeout';
+const BASH_TIMEOUT_SIGNAL =
+  'bash tool terminated command after exceeding timeout';
 
 const PTY_RECOVERY_TEXT = `<internal_reminder>
 The previous bash command timed out.

@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test';
-import type { BackgroundJobBoard } from '../utils/background-job-board';
 import type { PluginInput } from '@opencode-ai/plugin';
+import type { BackgroundJobBoard } from '../utils/background-job-board';
 import { createCancelTaskTool } from './cancel-task';
 
 describe('cancel_task tool', () => {

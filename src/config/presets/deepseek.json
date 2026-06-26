@@ -3,7 +3,10 @@
   "deep-worker": ["deepseek/deepseek-v4-pro", "deepseek/deepseek-v4-flash"],
   "prometheus": ["deepseek/deepseek-v4-pro", "deepseek/deepseek-v4-flash"],
   "atlas": ["deepseek/deepseek-v4-pro", "deepseek/deepseek-v4-flash"],
-  "bio-orchestrator": ["deepseek/deepseek-v4-pro", "deepseek/deepseek-v4-flash"],
+  "bio-orchestrator": [
+    "deepseek/deepseek-v4-pro",
+    "deepseek/deepseek-v4-flash"
+  ],
   "explorer": ["deepseek/deepseek-v4-flash", "deepseek/deepseek-v4-pro"],
   "librarian": ["deepseek/deepseek-v4-flash", "deepseek/deepseek-v4-pro"],
   "oracle": ["deepseek/deepseek-v4-pro", "deepseek/deepseek-v4-flash"],
@@ -13,7 +16,10 @@
   "councillor": ["deepseek/deepseek-v4-flash", "deepseek/deepseek-v4-pro"],
   "metis": ["deepseek/deepseek-v4-flash", "deepseek/deepseek-v4-pro"],
   "momus": ["deepseek/deepseek-v4-pro", "deepseek/deepseek-v4-flash"],
-  "multimodal-looker": ["deepseek/deepseek-v4-flash", "deepseek/deepseek-v4-pro"],
+  "multimodal-looker": [
+    "deepseek/deepseek-v4-flash",
+    "deepseek/deepseek-v4-pro"
+  ],
   "reviewer": ["deepseek/deepseek-v4-pro", "deepseek/deepseek-v4-flash"],
   "team_mode": {
     "enabled": false,

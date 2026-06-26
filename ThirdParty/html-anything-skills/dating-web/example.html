@@ -9,104 +9,104 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Serif+Text:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
-              --paper: #f4ede0;
-              --panel: #f9f3e7;
-              --ink: #1f1c14;
-              --muted: #7a7264;
-              --rule: #d6cdb6;
-              --accent: #c14a2b;
-              --good: #406b3a;
-              --bad: #b6422f;
-              --serif-display: 'DM Serif Display', 'Iowan Old Style', Georgia, serif;
-              --serif-body: 'DM Serif Text', 'Iowan Old Style', Georgia, serif;
-              --mono: 'IBM Plex Mono', ui-monospace, monospace;
-            }
-            * { box-sizing: border-box; }
-            body { margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.55 var(--serif-body); }
-        
-            .ticker {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              padding: 14px 28px;
-              border-bottom: 1px solid var(--ink);
-              font: 11px/1 var(--mono);
-              color: var(--muted);
-              letter-spacing: 0.18em;
-              text-transform: uppercase;
-            }
-            .ticker .left { display: flex; align-items: center; gap: 18px; }
-            .ticker b { color: var(--ink); font-weight: 500; }
-        
-            .layout { display: grid; grid-template-columns: 232px 1fr; min-height: calc(100vh - 44px); }
-            aside.rail {
-              border-right: 1px solid var(--ink);
-              padding: 22px 22px 22px 28px;
-              display: flex; flex-direction: column; gap: 22px;
-            }
-            aside .brand { font: italic 800 30px/1 var(--serif-display); letter-spacing: -0.005em; }
-            aside .brand .dot { color: var(--accent); }
-            aside .user { display: flex; align-items: center; gap: 10px; }
-            aside .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--paper); display: grid; place-items: center; font: 700 12px/1 var(--mono); letter-spacing: 0.06em; }
-            aside .user .meta { font: 13px/1.2 var(--mono); }
-            aside .user .meta b { display: block; color: var(--ink); font-weight: 500; }
-            aside .user .meta span { color: var(--muted); font-size: 11px; letter-spacing: 0.06em; }
-        
-            aside h4 { font: 11px/1 var(--mono); color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin: 0 0 10px; }
-            aside ul { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 4px; }
-            aside li { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; border-radius: 4px; font: 15.5px/1.2 var(--serif-body); color: var(--ink); cursor: default; }
-            aside li.active { background: rgba(193,74,43,0.10); color: var(--accent); font-weight: 600; }
-            aside li.active::before { content: '●'; color: var(--accent); margin-right: 6px; font-size: 9px; }
-            aside li .badge { background: var(--accent); color: var(--paper); font: 10px/1 var(--mono); padding: 3px 6px; border-radius: 999px; letter-spacing: 0.06em; }
-            aside li .badge.gray { background: var(--ink); }
-        
-            aside .status {
-              margin-top: auto;
-              padding-top: 18px;
-              border-top: 1px solid var(--rule);
-              font: 11px/1.4 var(--mono);
-              color: var(--muted);
-              letter-spacing: 0.06em;
-            }
-            aside .status .live::before { content: '●'; color: #2f7d4a; margin-right: 6px; }
-        
-            main { padding: 30px 36px 44px; }
-            .grid {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              grid-auto-rows: minmax(120px, auto);
-              gap: 22px 36px;
-              margin-bottom: 36px;
-            }
-            .stat { padding: 4px 0 14px; border-bottom: 1px solid var(--rule); }
-            .stat .label { font: 11px/1.4 var(--mono); color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; }
-            .stat .value {
-              font: 800 56px/1.05 var(--serif-display);
-              letter-spacing: -0.01em;
-              font-feature-settings: 'tnum';
-              margin-bottom: 6px;
-            }
-            .stat .value.good { color: var(--good); }
-            .stat .value.bad { color: var(--bad); }
-            .stat .value em { font-style: italic; font-weight: 400; }
-            .stat .note { font: italic 13.5px/1.4 var(--serif-body); color: var(--muted); max-width: 32ch; }
-            .stat .arrow { font-style: normal; color: var(--good); font-size: 14px; }
-        
-            .panel { padding: 18px 0 24px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); margin-bottom: 18px; }
-            .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 14px; }
-            .panel-head h3 { margin: 0; font: italic 24px/1 var(--serif-display); letter-spacing: -0.005em; }
-            .panel-head .meta { font: 11px/1.4 var(--mono); color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; max-width: 56ch; text-align: right; }
-            .panel svg { width: 100%; height: 220px; display: block; }
-            .panel .axis { display: flex; justify-content: space-between; font: 10px/1 var(--mono); color: var(--muted); letter-spacing: 0.1em; padding: 8px 4px 0; text-transform: uppercase; }
-        
-            .lower-panel .lede { font: italic 15px/1.55 var(--serif-body); color: var(--muted); margin: 0; max-width: 70ch; }
-            .lower-panel .lede b { color: var(--ink); font-style: normal; font-weight: 600; }
-        
-            @media (max-width: 1100px) {
-              .layout { grid-template-columns: 1fr; }
-              aside.rail { border-right: none; border-bottom: 1px solid var(--ink); }
-              .grid { grid-template-columns: repeat(2, 1fr); gap: 18px 28px; }
-            }
+                      --paper: #f4ede0;
+                      --panel: #f9f3e7;
+                      --ink: #1f1c14;
+                      --muted: #7a7264;
+                      --rule: #d6cdb6;
+                      --accent: #c14a2b;
+                      --good: #406b3a;
+                      --bad: #b6422f;
+                      --serif-display: 'DM Serif Display', 'Iowan Old Style', Georgia, serif;
+                      --serif-body: 'DM Serif Text', 'Iowan Old Style', Georgia, serif;
+                      --mono: 'IBM Plex Mono', ui-monospace, monospace;
+                    }
+                    * { box-sizing: border-box; }
+                    body { margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.55 var(--serif-body); }
+                
+                    .ticker {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                      padding: 14px 28px;
+                      border-bottom: 1px solid var(--ink);
+                      font: 11px/1 var(--mono);
+                      color: var(--muted);
+                      letter-spacing: 0.18em;
+                      text-transform: uppercase;
+                    }
+                    .ticker .left { display: flex; align-items: center; gap: 18px; }
+                    .ticker b { color: var(--ink); font-weight: 500; }
+                
+                    .layout { display: grid; grid-template-columns: 232px 1fr; min-height: calc(100vh - 44px); }
+                    aside.rail {
+                      border-right: 1px solid var(--ink);
+                      padding: 22px 22px 22px 28px;
+                      display: flex; flex-direction: column; gap: 22px;
+                    }
+                    aside .brand { font: italic 800 30px/1 var(--serif-display); letter-spacing: -0.005em; }
+                    aside .brand .dot { color: var(--accent); }
+                    aside .user { display: flex; align-items: center; gap: 10px; }
+                    aside .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--paper); display: grid; place-items: center; font: 700 12px/1 var(--mono); letter-spacing: 0.06em; }
+                    aside .user .meta { font: 13px/1.2 var(--mono); }
+                    aside .user .meta b { display: block; color: var(--ink); font-weight: 500; }
+                    aside .user .meta span { color: var(--muted); font-size: 11px; letter-spacing: 0.06em; }
+                
+                    aside h4 { font: 11px/1 var(--mono); color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin: 0 0 10px; }
+                    aside ul { list-style: none; padding: 0; margin: 0 0 14px; display: flex; flex-direction: column; gap: 4px; }
+                    aside li { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; border-radius: 4px; font: 15.5px/1.2 var(--serif-body); color: var(--ink); cursor: default; }
+                    aside li.active { background: rgba(193,74,43,0.10); color: var(--accent); font-weight: 600; }
+                    aside li.active::before { content: '●'; color: var(--accent); margin-right: 6px; font-size: 9px; }
+                    aside li .badge { background: var(--accent); color: var(--paper); font: 10px/1 var(--mono); padding: 3px 6px; border-radius: 999px; letter-spacing: 0.06em; }
+                    aside li .badge.gray { background: var(--ink); }
+                
+                    aside .status {
+                      margin-top: auto;
+                      padding-top: 18px;
+                      border-top: 1px solid var(--rule);
+                      font: 11px/1.4 var(--mono);
+                      color: var(--muted);
+                      letter-spacing: 0.06em;
+                    }
+                    aside .status .live::before { content: '●'; color: #2f7d4a; margin-right: 6px; }
+                
+                    main { padding: 30px 36px 44px; }
+                    .grid {
+                      display: grid;
+                      grid-template-columns: repeat(3, 1fr);
+                      grid-auto-rows: minmax(120px, auto);
+                      gap: 22px 36px;
+                      margin-bottom: 36px;
+                    }
+                    .stat { padding: 4px 0 14px; border-bottom: 1px solid var(--rule); }
+                    .stat .label { font: 11px/1.4 var(--mono); color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; }
+                    .stat .value {
+                      font: 800 56px/1.05 var(--serif-display);
+                      letter-spacing: -0.01em;
+                      font-feature-settings: 'tnum';
+                      margin-bottom: 6px;
+                    }
+                    .stat .value.good { color: var(--good); }
+                    .stat .value.bad { color: var(--bad); }
+                    .stat .value em { font-style: italic; font-weight: 400; }
+                    .stat .note { font: italic 13.5px/1.4 var(--serif-body); color: var(--muted); max-width: 32ch; }
+                    .stat .arrow { font-style: normal; color: var(--good); font-size: 14px; }
+                
+                    .panel { padding: 18px 0 24px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); margin-bottom: 18px; }
+                    .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 14px; }
+                    .panel-head h3 { margin: 0; font: italic 24px/1 var(--serif-display); letter-spacing: -0.005em; }
+                    .panel-head .meta { font: 11px/1.4 var(--mono); color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; max-width: 56ch; text-align: right; }
+                    .panel svg { width: 100%; height: 220px; display: block; }
+                    .panel .axis { display: flex; justify-content: space-between; font: 10px/1 var(--mono); color: var(--muted); letter-spacing: 0.1em; padding: 8px 4px 0; text-transform: uppercase; }
+                
+                    .lower-panel .lede { font: italic 15px/1.55 var(--serif-body); color: var(--muted); margin: 0; max-width: 70ch; }
+                    .lower-panel .lede b { color: var(--ink); font-style: normal; font-weight: 600; }
+                
+                    @media (max-width: 1100px) {
+                      .layout { grid-template-columns: 1fr; }
+                      aside.rail { border-right: none; border-bottom: 1px solid var(--ink); }
+                      .grid { grid-template-columns: repeat(2, 1fr); gap: 18px 28px; }
+                    }
   </style>
 </head>
 <body>

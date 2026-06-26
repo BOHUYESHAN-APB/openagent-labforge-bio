@@ -441,3 +441,62 @@ description: `CRITICAL: You MUST use this tool to save the plan. Do NOT output t
 - Cost-sensitive scenarios (Chinese providers with token-based pricing)
 
 **Trade-off**: Child sessions = 0% cache hit initially. Main agent = 95-100% cache hit.
+
+## Plan Mode System (v1.3.5+)
+
+### Overview
+
+Plan mode allows any main orchestrator (engineer, bio-analyst, chem-analyst, deep-worker) to temporarily switch the active agent to `prometheus` (planner) for structured strategic planning. Prometheus has **read-only access** — it cannot edit files, run commands, or call sub-agents.
+
+### Tools
+
+| Tool | Available to | Effect |
+|------|-------------|--------|
+| `plan_enter` | engineer, deep-worker, bio-orchestrator, chem-orchestrator | Enters plan mode: saves `returnAgent`, activates plan overlay, sets `output.message.agent` to `prometheus` |
+| `plan_exit` | prometheus ONLY | Exits plan mode: clears plan overlay, restores `returnAgent` via `output.message.agent` |
+
+### Agent Switching — Three-Layer Mechanism
+
+The overlay system uses three hook layers to switch the effective agent:
+
+```
+1. tool.execute.before / command.execute.before
+   → Sets output.message.agent to target agent
+   → OpenCode reads lastUser.agent → UI agent display switches
+
+2. experimental.chat.system.transform
+   → Detects active overlay → early-returns for prometheus
+   → Keeps prometheus system prompt stack isolated from main orchestrator prompt
+
+3. tool.execute.before (deny logic)
+   → When plan overlay is active, denies: write, edit, bash, exec,
+     execute_command, powershell, shell, task, subtask
+   → Prometheus itself cannot call plan_enter (no nested plan mode)
+```
+
+### Plan Mode Lifecycle
+
+```
+Main agent calls plan_enter
+  ↓
+tool.execute.before: saves returnAgent, activates plan overlay
+  ↓
+system.transform: injects PLAN_MODE_INSTRUCTIONS on top of prometheus prompt
+  ↓
+Prometheus works through 5-phase workflow:
+  Phase 1: Analyze requirements
+  Phase 2: Research context
+  Phase 3: Design solution
+  Phase 4: Write structured plan
+  Phase 5: Call save_plan then plan_exit
+  ↓
+plan_exit → clears overlay, restores original agent
+  ↓
+Original agent receives the saved plan and begins execution
+```
+
+### Plan Mode Restrictions
+
+- **Prometheus CAN**: read, glob, grep, webfetch, Question, save_plan, plan_exit
+- **Prometheus CANNOT**: write, edit, bash, task, subtask, plan_enter
+- The `plan_exit` tool is **mandatory** — if prometheus stops without calling it, the session stays in read-only plan mode

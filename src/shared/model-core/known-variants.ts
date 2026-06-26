@@ -4,13 +4,13 @@
  * flattenToFallbackModelStrings (inline-variant stripping).
  */
 export const KNOWN_VARIANTS = new Set([
-  "low",
-  "medium",
-  "high",
-  "xhigh",
-  "max",
-  "minimal",
-  "none",
-  "auto",
-  "thinking",
-])
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+  'max',
+  'minimal',
+  'none',
+  'auto',
+  'thinking',
+]);

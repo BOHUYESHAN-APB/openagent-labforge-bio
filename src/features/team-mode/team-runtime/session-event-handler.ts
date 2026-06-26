@@ -7,22 +7,25 @@
  * Inspired by OMO's team-member-status-handler.
  */
 
-import type { TeamModeConfig } from '../../../config/schema/team-mode'
-import { log } from '../../../shared/logger'
-import type { PluginInput } from '@opencode-ai/plugin'
-import { loadRuntimeState, transitionRuntimeState } from '../team-state-store/store'
-import type { RuntimeStateMember } from '../types'
-import { onMemberIdle } from '../tools/inbox-injector'
-import { lookupTeamSession } from './session-to-team-registry'
+import type { PluginInput } from '@opencode-ai/plugin';
+import type { TeamModeConfig } from '../../../config/schema/team-mode';
+import { log } from '../../../shared/logger';
+import {
+  loadRuntimeState,
+  transitionRuntimeState,
+} from '../team-state-store/store';
+import { onMemberIdle } from '../tools/inbox-injector';
+import type { RuntimeStateMember } from '../types';
+import { lookupTeamSession } from './session-to-team-registry';
 
-type MemberStatus = RuntimeStateMember['status']
+type MemberStatus = RuntimeStateMember['status'];
 
-const IDLE_TRANSITION_SOURCE_STATUSES: ReadonlySet<MemberStatus> = new Set(['running'])
-const COMPLETED_TRANSITION_SOURCE_STATUSES: ReadonlySet<MemberStatus> = new Set([
+const IDLE_TRANSITION_SOURCE_STATUSES: ReadonlySet<MemberStatus> = new Set([
   'running',
-  'idle',
-  'pending',
-])
+]);
+const COMPLETED_TRANSITION_SOURCE_STATUSES: ReadonlySet<MemberStatus> = new Set(
+  ['running', 'idle', 'pending'],
+);
 
 /**
  * Transition a team member's status.
@@ -35,20 +38,23 @@ async function transitionMemberStatus(
   sessionID: string,
   eventLabel: string,
   deps?: {
-    loadRuntimeState?: typeof loadRuntimeState
-    transitionRuntimeState?: typeof transitionRuntimeState
+    loadRuntimeState?: typeof loadRuntimeState;
+    transitionRuntimeState?: typeof transitionRuntimeState;
   },
 ): Promise<void> {
-  const loadRuntimeStateImpl = deps?.loadRuntimeState ?? loadRuntimeState
+  const loadRuntimeStateImpl = deps?.loadRuntimeState ?? loadRuntimeState;
   const transitionRuntimeStateImpl =
-    deps?.transitionRuntimeState ?? transitionRuntimeState
+    deps?.transitionRuntimeState ?? transitionRuntimeState;
 
-  const runtimeState = await loadRuntimeStateImpl(runtimeMember.teamRunId, config)
+  const runtimeState = await loadRuntimeStateImpl(
+    runtimeMember.teamRunId,
+    config,
+  );
   const currentEntry = runtimeState.members.find(
     (member) => member.name === runtimeMember.memberName,
-  )
-  if (currentEntry === undefined) return
-  if (!allowedSources.has(currentEntry.status)) return
+  );
+  if (currentEntry === undefined) return;
+  if (!allowedSources.has(currentEntry.status)) return;
 
   await transitionRuntimeStateImpl(
     runtimeState.teamRunId,
@@ -61,7 +67,7 @@ async function transitionMemberStatus(
       ),
     }),
     config,
-  )
+  );
 
   log(`team member ${eventLabel}`, {
     event: `team-mode-member-${eventLabel}`,
@@ -71,7 +77,7 @@ async function transitionMemberStatus(
     sessionID,
     previousStatus: currentEntry.status,
     nextStatus,
-  })
+  });
 }
 
 /**
@@ -82,24 +88,27 @@ export function createTeamSessionEventHandler(
   config: TeamModeConfig,
   client?: PluginInput['client'],
   deps?: {
-    lookupTeamSession?: typeof lookupTeamSession
-    loadRuntimeState?: typeof loadRuntimeState
-    transitionRuntimeState?: typeof transitionRuntimeState
-    onMemberIdle?: typeof onMemberIdle
+    lookupTeamSession?: typeof lookupTeamSession;
+    loadRuntimeState?: typeof loadRuntimeState;
+    transitionRuntimeState?: typeof transitionRuntimeState;
+    onMemberIdle?: typeof onMemberIdle;
   },
 ) {
-  const lookupTeamSessionImpl = deps?.lookupTeamSession ?? lookupTeamSession
-  const onMemberIdleImpl = deps?.onMemberIdle ?? onMemberIdle
+  const lookupTeamSessionImpl = deps?.lookupTeamSession ?? lookupTeamSession;
+  const onMemberIdleImpl = deps?.onMemberIdle ?? onMemberIdle;
 
-  return async (event: { type: string; properties?: unknown }): Promise<void> => {
+  return async (event: {
+    type: string;
+    properties?: unknown;
+  }): Promise<void> => {
     // Handle session.idle → member becomes idle
     if (event.type === 'session.idle') {
-      const sessionID = resolveSessionID(event.properties)
-      if (!sessionID) return
+      const sessionID = resolveSessionID(event.properties);
+      if (!sessionID) return;
 
       try {
-        const teamSession = lookupTeamSessionImpl(sessionID)
-        if (!teamSession) return
+        const teamSession = lookupTeamSessionImpl(sessionID);
+        if (!teamSession) return;
 
         await transitionMemberStatus(
           teamSession,
@@ -109,29 +118,33 @@ export function createTeamSessionEventHandler(
           sessionID,
           'idled',
           deps,
-        )
+        );
 
         if (client) {
-          await onMemberIdleImpl(teamSession.teamRunId, teamSession.memberName, client)
+          await onMemberIdleImpl(
+            teamSession.teamRunId,
+            teamSession.memberName,
+            client,
+          );
         }
       } catch (error) {
         log('team session event handler failed on session.idle', {
           event: 'team-mode-session-event-error',
           sessionID,
           error: error instanceof Error ? error.message : String(error),
-        })
+        });
       }
-      return
+      return;
     }
 
     // Handle session.deleted → member completed
     if (event.type === 'session.deleted') {
-      const sessionID = resolveSessionID(event.properties)
-      if (!sessionID) return
+      const sessionID = resolveSessionID(event.properties);
+      if (!sessionID) return;
 
       try {
-        const teamSession = lookupTeamSessionImpl(sessionID)
-        if (!teamSession) return
+        const teamSession = lookupTeamSessionImpl(sessionID);
+        if (!teamSession) return;
 
         await transitionMemberStatus(
           teamSession,
@@ -141,33 +154,33 @@ export function createTeamSessionEventHandler(
           sessionID,
           'completed',
           deps,
-        )
+        );
       } catch (error) {
         log('team session event handler failed on session.deleted', {
           event: 'team-mode-session-event-error',
           sessionID,
           error: error instanceof Error ? error.message : String(error),
-        })
+        });
       }
     }
-  }
+  };
 }
 
 /**
  * Extract session ID from event properties.
  */
 function resolveSessionID(properties: unknown): string | undefined {
-  if (!properties || typeof properties !== 'object') return undefined
-  const props = properties as Record<string, unknown>
+  if (!properties || typeof properties !== 'object') return undefined;
+  const props = properties as Record<string, unknown>;
 
   // Try direct sessionID
-  if (typeof props.sessionID === 'string') return props.sessionID
+  if (typeof props.sessionID === 'string') return props.sessionID;
 
   // Try info.id (for session.created/deleted)
   if (props.info && typeof props.info === 'object') {
-    const info = props.info as Record<string, unknown>
-    if (typeof info.id === 'string') return info.id
+    const info = props.info as Record<string, unknown>;
+    if (typeof info.id === 'string') return info.id;
   }
 
-  return undefined
+  return undefined;
 }

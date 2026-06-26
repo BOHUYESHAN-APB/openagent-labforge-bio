@@ -2,22 +2,31 @@
   "_comment": "Custom preset template - Fill in your own model IDs",
   "_format": "provider/model-id or [primary-model, fallback-model]",
   "_docs": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
-  
+
   "orchestrator": ["YOUR_PROVIDER/YOUR_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
   "deep-worker": ["YOUR_PROVIDER/YOUR_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
   "prometheus": ["YOUR_PROVIDER/YOUR_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
   "atlas": ["YOUR_PROVIDER/YOUR_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
-  "bio-orchestrator": ["YOUR_PROVIDER/YOUR_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
+  "bio-orchestrator": [
+    "YOUR_PROVIDER/YOUR_MODEL",
+    "YOUR_PROVIDER/YOUR_FALLBACK"
+  ],
   "explorer": ["YOUR_PROVIDER/YOUR_FAST_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
   "librarian": ["YOUR_PROVIDER/YOUR_FAST_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
   "oracle": ["YOUR_PROVIDER/YOUR_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
   "designer": ["YOUR_PROVIDER/YOUR_FAST_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
   "fixer": ["YOUR_PROVIDER/YOUR_FAST_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
   "council": ["YOUR_PROVIDER/YOUR_FAST_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
-  "councillor": ["YOUR_PROVIDER/YOUR_FAST_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
+  "councillor": [
+    "YOUR_PROVIDER/YOUR_FAST_MODEL",
+    "YOUR_PROVIDER/YOUR_FALLBACK"
+  ],
   "metis": ["YOUR_PROVIDER/YOUR_FAST_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
   "momus": ["YOUR_PROVIDER/YOUR_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
-  "multimodal-looker": ["YOUR_PROVIDER/YOUR_FAST_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
+  "multimodal-looker": [
+    "YOUR_PROVIDER/YOUR_FAST_MODEL",
+    "YOUR_PROVIDER/YOUR_FALLBACK"
+  ],
   "reviewer": ["YOUR_PROVIDER/YOUR_MODEL", "YOUR_PROVIDER/YOUR_FALLBACK"],
   "team_mode": {
     "enabled": false,

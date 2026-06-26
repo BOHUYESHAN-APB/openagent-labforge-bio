@@ -1,6 +1,6 @@
-import { type ToolDefinition, tool } from '@opencode-ai/plugin';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { type ToolDefinition, tool } from '@opencode-ai/plugin';
 
 const z = tool.schema;
 
@@ -25,13 +25,13 @@ CRITICAL WORKFLOW:
         .describe(
           'Topic name (e.g., "auth-approaches", "performance-optimization"). Will be normalized to kebab-case.',
         ),
-      notes: z
-        .string()
-        .describe('Research notes, findings, observations.'),
+      notes: z.string().describe('Research notes, findings, observations.'),
       tags: z
         .array(z.string())
         .optional()
-        .describe('Tags for categorization (e.g., ["architecture", "security"]).'),
+        .describe(
+          'Tags for categorization (e.g., ["architecture", "security"]).',
+        ),
       sessionId: z
         .string()
         .optional()
@@ -46,7 +46,12 @@ CRITICAL WORKFLOW:
 
       const date = new Date().toISOString().split('T')[0];
       const folderName = `${date}-${topic}`;
-      const exploreDir = join(workspaceRoot, '.opencode', 'extendai-lab', 'explore');
+      const exploreDir = join(
+        workspaceRoot,
+        '.opencode',
+        'extendai-lab',
+        'explore',
+      );
       const topicDir = join(exploreDir, folderName);
 
       try {
@@ -64,7 +69,11 @@ CRITICAL WORKFLOW:
           related_change: null,
           tags: args.tags || [],
         };
-        writeFileSync(join(topicDir, 'context.json'), JSON.stringify(context, null, 2), 'utf8');
+        writeFileSync(
+          join(topicDir, 'context.json'),
+          JSON.stringify(context, null, 2),
+          'utf8',
+        );
 
         const relativePath = `.opencode/extendai-lab/explore/${folderName}`;
 
