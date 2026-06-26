@@ -9,28 +9,28 @@ import { type ToolDefinition, tool } from '@opencode-ai/plugin';
  */
 export function createEnterPlanModeTool(): ToolDefinition {
   return tool({
-    description: `Enter plan mode — switch the active agent to prometheus (planner) for strategic planning.
+    description: `Enter plan mode — switch to prometheus (planner) for structured planning.
 
-Use this when the current task is complex enough to need a structured plan before execution.
+Any primary executor (engineer, bio-analyst, chem-analyst) can call this when
+they need to make a plan before executing. The planner creates the plan, saves
+it via save_plan, then auto-exits plan mode.
 
 Effects:
-- The active agent switches to prometheus (planner), who works through a 5-phase planning workflow
-- prometheus has read-only access (read/glob/grep/webfetch/Question/save_plan)
-- prometheus CANNOT edit files, run commands, or call sub-agents
-- Call /ol-plan-exit to return to the original agent with the completed plan
+- Switches to prometheus (planner) — read-only, can write plan files
+- prometheus explores, creates a plan, and calls save_plan
+- save_plan auto-exits plan mode and returns to the calling executor
+- After exit, the system injects a user message telling the executor to start work
 
-Usage: call this tool with no arguments. The current session's active agent is automatically saved for return.`,
+Usage: engineeer/bio-analyst/chem-analyst call this when they need a plan.
+No arguments needed — the planner will explore the current context.`,
     args: {},
     async execute() {
       return [
         '## Plan Mode Activated — prometheus (planner) is now active',
         '',
-        'Your first task is to gather requirements.',
-        '',
-        '- If the user already typed what they want: use that as requirements',
-        '- If unclear: use the Question tool or just reply in chat',
-        '- Keep asking until all requirements are clear',
-        '- Do NOT skip to research or planning without confirmed requirements',
+        'Explore the codebase and gather requirements autonomously.',
+        'Create the plan, call save_plan to persist it, then auto-exit.',
+        'Do NOT wait for user confirmation — plan, save, and continue.',
       ].join('\n');
     },
   });

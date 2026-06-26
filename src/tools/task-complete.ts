@@ -13,14 +13,23 @@ const z = tool.schema;
  */
 export function createTaskCompleteTool(): ToolDefinition {
   return tool({
-    description: `Declare that the current batch of work is complete and ready for review.
+    description: `Declare work complete and request review.
 
-CRITICAL: You MUST call this tool when you finish executing all planned todos.
-This triggers the review phase (reviewer agent inspects your work).
+CRITICAL: Call this when you finish executing all planned todos.
+The system activates the reviewer agent and injects a user message
+telling the reviewer to inspect your work.
 
-- If in loop mode (/ol-loop-start): the reviewer will produce a verdict
-  ([APPROVED] / [REJECT: scope=executor] / [REJECT: scope=planner]).
-- If in auto-continue mode: the system will auto-review.
+Routing (what happens after you call this):
+- In Loop mode: reviewer activates → uses review_approve / request_fix /
+  request_redesign to route the verdict
+- In auto-continue mode: auto-review triggers via session.idle
+- No loop/auto: nothing happens (work is just marked complete)
+
+After routing:
+  APPROVED  → review_approve → done
+  MINOR FIX → request_fix → back to executor with fix instructions
+  MAJOR REWORK → request_redesign → internal planner (autonomous)
+                 → redesign_complete → back to executor
 
 DO NOT stop without calling this tool when work is done.`,
     args: {

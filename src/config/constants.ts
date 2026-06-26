@@ -24,13 +24,14 @@ export const SUBAGENT_NAMES = [
   'metis',
   'momus',
   'multimodal-looker',
-  'reviewer',
 ] as const;
 
 export const ORCHESTRATOR_NAME = 'orchestrator' as const;
 export const DEFAULT_VISIBLE_AGENT_NAME = 'engineer' as const;
 
-// Primary agents (visible in UI)
+// Primary agents (visible in UI) — includes loop-managed agents
+// (reviewer, internal-planner) which are hidden from manual selection
+// but shown as primary when activated by the system.
 export const PRIMARY_AGENT_NAMES = [
   'orchestrator',
   'deep-worker',
@@ -38,6 +39,8 @@ export const PRIMARY_AGENT_NAMES = [
   'atlas',
   'bio-orchestrator',
   'chem-orchestrator',
+  'reviewer',
+  'internal-planner',
 ] as const;
 
 export const ALL_AGENT_NAMES = [
@@ -118,6 +121,7 @@ export const SUBAGENT_DELEGATION_RULES: Record<AgentName, readonly string[]> = {
   momus: [],
   'multimodal-looker': [],
   reviewer: [],
+  'internal-planner': ORCHESTRATABLE_AGENTS,
 };
 
 /**
@@ -171,6 +175,7 @@ export const DEFAULT_MODELS: Record<AgentName, string | undefined> = {
   momus: undefined,
   'multimodal-looker': undefined,
   reviewer: undefined,
+  'internal-planner': undefined,
 };
 
 // Polling configuration

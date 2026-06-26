@@ -136,6 +136,10 @@ import {
   createMcpToggleTool,
   createMediaInventoryTool,
   createPresetManager,
+  createRedesignCompleteTool,
+  createRequestFixTool,
+  createRequestRedesignTool,
+  createReviewApproveTool,
   createSavePlanTool,
   createSubtaskTool,
   createSwitchAgentTool,
@@ -898,6 +902,10 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
       exit_plan_mode: createExitPlanModeTool(),
       task_complete: createTaskCompleteTool(),
       switch_agent: createSwitchAgentTool(),
+      review_approve: createReviewApproveTool(),
+      request_fix: createRequestFixTool(),
+      request_redesign: createRequestRedesignTool(),
+      redesign_complete: createRedesignCompleteTool(),
       cancel_task: createCancelTaskTool({
         client: ctx.client,
         backgroundJobBoard: taskSessionManagerHook.backgroundJobBoard,
@@ -1673,16 +1681,18 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           think: 'max',
           extras: { returnAgent },
         });
-        // Inject context about plan mode — balanced: Question tool + direct input
+        // Inject context about plan mode — autonomous exploration
         typedOutput.parts.push({
           type: 'text',
           text: `## Plan Mode Activated — prometheus (planner) is now active
 
-**Gather requirements before planning.**
+**Explore autonomously — do NOT stop to ask for confirmation.**
 
-- If the user already said what they want: use that
-- If unclear: ask with Question tool or reply in chat
-- Proceed to research/planning only after requirements are confirmed
+- Use read, glob, grep to find everything you need from the codebase/docs
+- If you must clarify something, use the Question tool (non-blocking, continue working)
+- Create the plan directly based on your findings — no need to preview it for approval
+- Call save_plan to persist, then call /ol-plan-exit immediately
+- Do NOT wait for the user to say "proceed" — you are in autonomous mode
 
 **Allowed tools**: read, glob, grep, webfetch, Question, save_plan, /ol-plan-exit
 **Denied tools**: write, edit, bash, task, subtask, /ol-plan-enter`,

@@ -290,6 +290,22 @@ export class LoopStateMachine {
     this.state.needs_kickstart = false;
     this.persist();
 
+    if (this.state.phase === 'interview') {
+      return `## Loop: Interview Phase
+
+You are prometheus (planner) in an autonomous Loop. **Do NOT stop to ask the user for confirmation.**
+
+Your task:
+1. Explore the codebase using read, glob, grep — find all needed information yourself
+2. If you absolutely need clarification, use the Question tool (non-blocking, keep working)
+3. Create a detailed, structured plan based on your findings
+4. Call save_plan to persist it
+5. Call /ol-plan-exit immediately — the loop handles the transition to execute
+
+**CRITICAL**: Do NOT present findings to the user and wait for approval. Just plan, save, and exit.
+Loop ID: ${this.state.loop_id} | Iteration: ${this.state.iteration}/${this.state.max_iterations}`;
+    }
+
     if (this.state.phase === 'execute') {
       return `## Loop: Execute Phase
 

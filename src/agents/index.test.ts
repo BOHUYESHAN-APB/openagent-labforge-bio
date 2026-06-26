@@ -382,7 +382,7 @@ describe('createAgents', () => {
 
   test('creates all built-in agents by default except disabled observer', () => {
     const agents = createAgents();
-    expect(agents.length).toBe(17);
+    expect(agents.length).toBe(18);
   });
 });
 
@@ -402,11 +402,11 @@ describe('getAgentConfigs', () => {
     expect(configs.explorer.description).toBeDefined();
   });
 
-  test('reviewer is visible (hidden: false) but not primary', () => {
+  test('reviewer is loop-managed primary (hidden: true)', () => {
     const configs = getAgentConfigs({ disabled_agents: [] });
     expect(configs.reviewer).toBeDefined();
-    expect(configs.reviewer.mode).toBe('subagent');
-    expect(configs.reviewer.hidden).toBe(false);
+    expect(configs.reviewer.mode).toBe('primary');
+    expect(configs.reviewer.hidden).toBe(true);
   });
 
   test('councillor is hidden (hidden: true) internal agent', () => {
@@ -907,13 +907,13 @@ describe('disabled_agents', () => {
 
   test('agent count decreases when agents are disabled', () => {
     const agents = createAgents();
-    expect(agents.length).toBe(17); // 6 primary + 11 subagents, observer disabled by default
+    expect(agents.length).toBe(18); // 8 primary + 10 subagents, observer disabled by default
 
     const disabledConfig: PluginConfig = {
       disabled_agents: ['observer', 'designer'],
     };
     const disabledAgents = createAgents(disabledConfig);
-    expect(disabledAgents.length).toBe(16); // observer disabled by default, designer explicitly disabled
+    expect(disabledAgents.length).toBe(17); // observer disabled by default, designer explicitly disabled
   });
 
   test('getDisabledAgents respects protection rules', () => {
@@ -957,7 +957,7 @@ describe('disabled_agents', () => {
       disabled_agents: [],
     };
     const agents = createAgents(config);
-    expect(agents.length).toBe(18); // observer becomes enabled when not explicitly disabled
+    expect(agents.length).toBe(19); // observer becomes enabled when not explicitly disabled
     expect(agents.map((a) => a.name)).toContain('observer');
   });
 
@@ -966,7 +966,7 @@ describe('disabled_agents', () => {
       disabled_agents: [],
     };
     const agents = createAgents(config);
-    expect(agents.length).toBe(18); // 6 primary + 12 subagents
+    expect(agents.length).toBe(19); // 8 primary + 10 subagents + observer
     expect(agents.map((a) => a.name)).toContain('observer');
   });
 });

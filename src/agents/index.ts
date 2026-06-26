@@ -39,6 +39,7 @@ import {
   resolvePrompt,
 } from './orchestrator';
 import { createPrometheusAgent } from './prometheus';
+import { createInternalPlannerAgent } from './internal-planner';
 import { createReviewerAgent } from './reviewer';
 
 export type { AgentDefinition } from './orchestrator';
@@ -221,13 +222,15 @@ const AGENT_PERMISSION_LEVELS: Record<string, PermissionLevel> = {
   'bio-orchestrator': 'FULL',
   'chem-orchestrator': 'FULL',
   council: 'COUNCIL',
+  // Loop-managed primary agents (hidden from manual selection)
+  reviewer: 'READ_ONLY',
+  'internal-planner': 'PLANNING',
   // Subagents
   explorer: 'READ_ONLY',
   librarian: 'READ_ONLY',
   oracle: 'READ_ONLY',
   metis: 'READ_ONLY',
   momus: 'READ_ONLY',
-  reviewer: 'READ_ONLY',
   observer: 'VISUAL',
   'multimodal-looker': 'VISUAL',
   designer: 'FULL',
@@ -265,8 +268,12 @@ function getAgentToolPermissions(
   }
 
   // switch_agent is an internal loop orchestration tool — hide from
-  // regular primary agents. Only reviewer and prometheus may use it.
-  if (agentName !== 'reviewer' && agentName !== 'prometheus') {
+  // regular primary agents. Only reviewer, prometheus, and internal-planner may use it.
+  if (
+    agentName !== 'reviewer' &&
+    agentName !== 'prometheus' &&
+    agentName !== 'internal-planner'
+  ) {
     perms.switch_agent = 'deny';
   }
   return perms;
@@ -346,7 +353,6 @@ const SUBAGENT_FACTORIES: Record<SubagentName, AgentFactory> = {
   metis: createMetisAgent,
   momus: createMomusAgent,
   'multimodal-looker': createMultimodalLookerAgent,
-  reviewer: createReviewerAgent,
 };
 
 const PRIMARY_AGENT_FACTORIES: Record<
@@ -364,6 +370,8 @@ const PRIMARY_AGENT_FACTORIES: Record<
   atlas: (m, p, a) => createAtlasAgent(m, p, a),
   'bio-orchestrator': createBioOrchestratorAgent,
   'chem-orchestrator': createChemOrchestratorAgent,
+  reviewer: (m, p, a) => createReviewerAgent(m, p, a),
+  'internal-planner': (m, p, a) => createInternalPlannerAgent(m, p, a),
 };
 
 // Public API
@@ -623,11 +631,12 @@ export function getAgentConfigs(
       // Internal agent — subagent mode, hidden from @ autocomplete
       sdkConfig.mode = 'subagent';
       sdkConfig.hidden = true;
-    } else if (name === 'reviewer') {
-      // Loop review agent — UI visible, but not manually selectable
-      // Only activated by /ol-loop-start or auto-review system
-      sdkConfig.mode = 'subagent';
-      sdkConfig.hidden = false;
+    } else if (name === 'reviewer' || name === 'internal-planner') {
+      // Loop-managed primary agents — shown in UI when activated by system,
+      // but hidden from manual user selection (hidden=true = not in dropdown).
+      // mode=primary ensures the UI shows a proper agent switch badge.
+      sdkConfig.mode = 'primary';
+      sdkConfig.hidden = true;
     } else if (isPrimaryAgent(name)) {
       // Primary agents are visible in UI
       sdkConfig.mode = 'primary';
