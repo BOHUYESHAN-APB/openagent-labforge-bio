@@ -47,8 +47,12 @@ graph TB
 | Subagents | 3 | 12 |
 | Prompt System | Fixed | Heavy / Light / Turbo (runtime switch) |
 | Auto-Continue | — | Multi-session with structured auto-review |
+| Loop Engineering | — | Plan → Execute → Review cycles with configurable iterations |
+| Goal System | — | `/goal` with independent judge LLM evaluation |
 | Persistent Plans | — | `save_plan` → `/ol-start-work` |
 | Subagent Read Tool | — | `load_agent_instructions` |
+| User Preferences | — | Long-term memory (coding style, workflow habits) |
+| MiMo Code Compatible | — | Auto-detects MiMo Code, disables duplicate features |
 | Thinking Language | — | Provider-aware (CN→中文, EN→English) |
 | Checkpoints | — | Light (same-session) + Heavy (cross-session) |
 | Context Pressure | — | L1/L2/L3 monitoring, adaptive thresholds, hysteresis |
@@ -56,9 +60,10 @@ graph TB
 
 ### Key Numbers
 
-- **1221** tests passing, **101** test files, **0** failures
+- **204** tests passing across new features
 - **6** primary orchestrators + **12** subagents = **18** total agents
 - **617** bioinformatics skills, **88** categories
+- **3** memory tiers (user preferences, project memory, global memory)
 
 ### Release Policy
 

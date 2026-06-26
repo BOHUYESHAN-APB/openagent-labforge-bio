@@ -321,6 +321,121 @@ The plugin uses a **dual-trigger command system**:
 
 **Key insight**: Commands are detected correctly. If a command "doesn't work," the issue is usually in the injected context or template content, not the detection mechanism.
 
+### Loop Engineering Commands
+
+#### `/ol-loop-start [task] [N]`
+
+Starts a Loop Engineering session with automatic plan → execute → review cycles.
+
+- **Default max iterations**: 12 (configurable via `loop.defaultMaxIterations`)
+- **Per-command override**: bare number at end, `-n N`, or `--iterations N` (range 1-100)
+- **Examples**:
+  - `/ol-loop-start "Implement auth system"` — 12 iterations (default)
+  - `/ol-loop-start "Implement auth system" 20` — 20 iterations
+  - `/ol-loop-start "Implement auth system" -n 5` — 5 iterations
+
+Flow:
+1. Prometheus gathers requirements (interview phase)
+2. Saves plan → auto-transitions to executor
+3. Executor works through tasks (auto-continue)
+4. Task complete → reviewer evaluates
+5. Approve → done; Reject → fix/redesign → repeat
+
+#### `/goal [condition]`
+
+Sets a stopping condition evaluated by an independent judge model.
+
+- **Usage**: `/goal "All tests pass and lint is clean"`
+- **Clear**: `/goal clear` or `/goal` (no args)
+- **Judge model**: Uses the session's model (or configured `todoContinuation.autoReviewModel`)
+- **Re-entry cap**: 12 attempts before forced stop
+- **Fail-open**: Judge errors allow stop (don't trap the agent)
+
+Example:
+```
+/goal "All tests in test/auth pass and typecheck has zero errors"
+```
+
+### System-Spawned Agents
+
+Some agents are registered as `SYSTEM_SPAWNED_AGENTS`:
+
+| Agent | Role | Behavior |
+|-------|------|----------|
+| `reviewer` | Code review | `question: deny` (no permission prompts), hidden from dropdown |
+| `internal-planner` | Autonomous redesign | `question: deny`, hidden from dropdown |
+
+These agents are infrastructure-managed and should never prompt for user input during autonomous operation.
+
+### Task Stop-Gate
+
+When enabled in loop mode, the task stop-gate prevents the agent from stopping when there are incomplete tasks:
+
+- **Main session**: 3 re-entry attempts before forcing stop
+- **Subagent**: 2 re-entry attempts
+- **Blocked tasks**: Excluded (agent genuinely cannot proceed)
+- **Fail-open**: Gate errors allow stop
+
+The gate is implemented in `src/hooks/task-gate/index.ts` as a pure decision function.
+
+### MiMo Code Compatibility
+
+The plugin detects whether it's running on MiMo Code (Xiaomi's OpenCode fork) or original OpenCode:
+
+**Detection methods** (in order of reliability):
+1. Build-time global: `typeof MIMOCODE_VERSION !== "undefined"`
+2. Config fields: `dream`, `distill`, `voice`, `model_groups`
+3. Filesystem: `.mimocode/` directory
+4. Environment: `MIMOCODE_CLIENT`, `MIMOCODE_*` vars
+
+**When running on MiMo Code**, duplicate features are automatically disabled:
+- `goal` — MiMo has built-in /goal
+- `dream` — MiMo has auto-dream
+- `distill` — MiMo has auto-distill
+- `memory` — MiMo has FTS5 memory
+- `checkpoint` — MiMo has enhanced checkpoint
+- `voice` — MiMo has voice input
+- `workflow` — MiMo has workflow runtime
+
+**Features unique to our plugin** (always enabled):
+- Auto-continue + auto-review
+- Loop Engineering (LoopStateMachine)
+- Team Mode
+- Council (multi-LLM consensus)
+- Plan Mode
+- Interview (/ol-grill)
+- User Preferences
+
+### User Preferences (Long-Term Memory)
+
+The plugin maintains a three-tier memory system with environment-aware paths:
+
+| Memory Type | OpenCode Path | MiMo Code Path |
+|-------------|---------------|----------------|
+| User Preferences | `.opencode/extendai-lab/preferences.md` | `.mimocode/extendai-lab/preferences.md` |
+| Project Memory | `.opencode/extendai-lab/MEMORY.md` | `.mimocode/extendai-lab/MEMORY.md` |
+| Global Memory | `~/.local/share/mimocode/memory/global/MEMORY.md` | Same |
+
+**Available via `user_preferences` tool:**
+- `read` — View current preferences
+- `append` — Add a preference to a section
+- `update` — Replace a section's content
+
+**Sections:**
+- Coding Style
+- Workflow Preferences
+- Tool Preferences
+- Communication Style
+- Lessons Learned
+
+**Dynamic injection:** Memory files are read and injected into the system prompt on **every LLM request** via the `experimental.chat.system.transform` hook. Changes take effect immediately — no restart required.
+
+**How it works:**
+1. Agent calls `user_preferences` tool to write/update preferences
+2. File is written to disk
+3. On next LLM request, `system.transform` reads the file and injects it
+4. Agent sees updated preferences in its system prompt
+
 ### Tool Description Best Practices
 
 Tool descriptions are the **only** way LLMs decide when and how to use tools. Follow these rules:

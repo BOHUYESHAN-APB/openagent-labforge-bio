@@ -274,6 +274,30 @@ export type TodoContinuationConfig = z.infer<
   typeof TodoContinuationConfigSchema
 >;
 
+// Loop Engineering configuration
+export const LoopConfigSchema = z.object({
+  defaultMaxIterations: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(12)
+    .describe(
+      'Default maximum iterations for /ol-loop-start (default 12). Can be overridden per-command with --iterations N.',
+    ),
+  taskGateReentryCap: z
+    .number()
+    .int()
+    .min(1)
+    .max(20)
+    .default(3)
+    .describe(
+      'Maximum re-entries allowed by the task stop-gate before forcing stop (default 3 for main session).',
+    ),
+});
+
+export type LoopConfig = z.infer<typeof LoopConfigSchema>;
+
 // Checkpoint cleanup configuration
 export const CheckpointCleanupConfigSchema = z.object({
   enabled: z
@@ -663,6 +687,7 @@ export const PluginConfigSchema = z
     runtimeTargets: RuntimeTargetsConfigSchema.optional(),
     compatProviders: CompatProvidersConfigSchema.optional(),
     todoContinuation: TodoContinuationConfigSchema.optional(),
+    loop: LoopConfigSchema.optional(),
     checkpoint: CheckpointCleanupConfigSchema.optional(),
     bioSkills: BioSkillsConfigSchema.optional(),
     compression: CompressionConfigSchema.optional(),

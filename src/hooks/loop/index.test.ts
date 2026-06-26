@@ -55,7 +55,7 @@ describe('LoopStateMachine: create / get / transition', () => {
     expect(fsm.state.return_agent).toBe('engineer');
     expect(fsm.state.phase).toBe('interview');
     expect(fsm.state.iteration).toBe(1);
-    expect(fsm.state.max_iterations).toBe(3);
+    expect(fsm.state.max_iterations).toBe(12);
     expect(fsm.state.transition_seq).toBe(1); // idle→interview
     expect(fsm.effectiveAgent).toBe('prometheus');
   });
@@ -159,6 +159,9 @@ describe('LoopStateMachine: kickstart', () => {
 
   test('consumeKickstart returns redesign prompt', () => {
     const fsm = createLoop('Test', 'engineer', 'engineer');
+    // Follow valid transition path: idle → interview → execute → review → redesign
+    fsm.transition('execute');
+    fsm.transition('review');
     fsm.transition('redesign');
     const prompt = fsm.consumeKickstart();
     expect(prompt).toContain('Redesign Phase');
@@ -220,14 +223,17 @@ describe('routeVerdict', () => {
   });
 
   test('reject scope=planner → redesign, increments iteration', () => {
-    createLoop('Test', 'engineer', 'engineer');
+    const fsm = createLoop('Test', 'engineer', 'engineer');
+    // Must be in review phase to reject to redesign
+    fsm.transition('execute');
+    fsm.transition('review');
     const result = routeVerdict('reject', 'planner', 'design needs work');
+    const fsm2 = getLoop();
     expect(result!.phase).toBe('redesign');
     expect(result!.agent).toBe('prometheus');
 
-    const fsm = getLoop();
-    expect(fsm!.state.phase).toBe('redesign');
-    expect(fsm!.state.iteration).toBe(2);
+    expect(fsm2.state.phase).toBe('redesign');
+    expect(fsm2.state.iteration).toBe(2);
   });
 
   test('reject scope=executor → execute', () => {
@@ -246,7 +252,7 @@ describe('routeVerdict', () => {
 
   test('reject scope=planner beyond max_iterations → done', () => {
     const fsm = createLoop('Test', 'engineer', 'engineer');
-    fsm.state.iteration = 3;
+    fsm.state.iteration = 12;
     fsm.persist();
 
     const result = routeVerdict('reject', 'planner', 'still not good');

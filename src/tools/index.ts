@@ -18,3 +18,4 @@ export { createWebfetchTool } from './smartfetch';
 export { createSubtaskTool } from './subtask';
 export { createSwitchAgentTool } from './switch-agent';
 export { createTaskCompleteTool } from './task-complete';
+export { createUserPreferencesTool } from './user-preferences';

@@ -124,6 +124,7 @@ export class LoopStateMachine {
     executor_type: string,
     return_agent: string,
     workspaceRoot?: string,
+    max_iterations?: number,
   ): LoopStateMachine {
     const root = workspaceRoot ?? findWorkspaceRoot();
     const now = Date.now();
@@ -134,7 +135,7 @@ export class LoopStateMachine {
       executor_type,
       return_agent,
       iteration: 1,
-      max_iterations: 3,
+      max_iterations: max_iterations ?? 12,
       verdict_history: [],
       created_at: now,
       updated_at: now,
@@ -442,11 +443,14 @@ export function createLoop(
   description: string,
   executor_type: string,
   return_agent: string,
+  max_iterations?: number,
 ): LoopStateMachine {
   _activeFsm = LoopStateMachine.create(
     description,
     executor_type,
     return_agent,
+    undefined,
+    max_iterations,
   );
   return _activeFsm;
 }

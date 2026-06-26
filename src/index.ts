@@ -99,7 +99,7 @@ import {
   ForegroundFallbackManager,
 } from './hooks';
 import { processImageAttachments } from './hooks/image-hook';
-import { classifyTaskExecutor, createLoop } from './hooks/loop';
+import { classifyTaskExecutor, createLoop, getLoop } from './hooks/loop';
 import {
   buildPhaseSwitchText,
   getThinkLevel,
@@ -145,6 +145,7 @@ import {
   createSwitchAgentTool,
   createTaskCompleteTool,
   createWebfetchTool,
+  createUserPreferencesTool,
   loadAgentInstructionsTool,
 } from './tools';
 import { detectBioTaskTool } from './tools/detect-bio-task.js';
@@ -367,6 +368,10 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   let multiplexerConfig: MultiplexerConfig;
   let multiplexerEnabled: boolean;
   let depthTracker: SubagentDepthTracker;
+  let runtimeEnv: { isMimoCode: boolean; duplicateFeatures: string[] } = {
+    isMimoCode: false,
+    duplicateFeatures: [],
+  };
   let multiplexerSessionManager: MultiplexerSessionManager;
   let autoUpdateChecker: ReturnType<typeof createAutoUpdateCheckerHook>;
   let phaseReminderHook: ReturnType<typeof createPhaseReminderHook>;
@@ -425,6 +430,21 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
   try {
     ensureGlobalPluginConfigFile();
     config = loadPluginConfig(ctx.directory);
+
+    // Detect runtime environment (MiMo Code vs original OpenCode)
+    const { detectEnvironment } = await import(
+      './utils/environment-detect'
+    );
+    runtimeEnv = detectEnvironment(
+      config as unknown as Record<string, unknown>,
+      ctx.directory,
+    );
+    if (runtimeEnv.isMimoCode) {
+      console.log(
+        `[extendai-lab] Detected MiMo Code. ` +
+          `Disabling duplicate features: ${runtimeEnv.duplicateFeatures.join(', ')}`,
+      );
+    }
 
     // Safety net: if a runtime preset was set via /ol-preset command and
     // OpenCode ever fully re-runs the plugin function (not just the
@@ -924,6 +944,7 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           }
         : {}),
       mcp_toggle: createMcpToggleTool(ctx.client),
+      user_preferences: createUserPreferencesTool(ctx.directory, runtimeEnv.isMimoCode),
       // Team Mode tools (only registered when team_mode.enabled)
       ...(config.team_mode?.enabled
         ? {
@@ -1497,7 +1518,15 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           template: '',
           description:
             'Start a loop session — plan → execute → review → cycle until approved',
-          argumentHint: '[task description]',
+          argumentHint: '[task] [N]  (N = max iterations, default 12)',
+        };
+      }
+      if (!configCommand?.['goal']) {
+        (opencodeConfig.command as Record<string, unknown>)['goal'] = {
+          template: '',
+          description:
+            'Set a stopping condition — judge evaluates completion via independent LLM',
+          argumentHint: '[condition] or "clear"',
         };
       }
     },
@@ -1531,6 +1560,25 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
 
       // Todo-continuation: auto-continue orchestrator on incomplete todos
       await todoContinuationHook.handleEvent(input);
+
+      // Goal gate: evaluate completion via judge when goal is set
+      // Skip if MiMo Code provides its own goal system
+      if (
+        !runtimeEnv.duplicateFeatures.includes('goal') &&
+        (event.type === 'session.idle' ||
+          (event.type === 'session.status' &&
+            (event.properties?.status as { type?: string } | undefined)?.type === 'idle'))
+      ) {
+        const goalSessionId = event.properties?.sessionID as string;
+        if (goalSessionId) {
+          try {
+            const { handleGoalGateIdle } = await import('./hooks/goal/gate');
+            await handleGoalGateIdle({ ctx }, goalSessionId);
+          } catch {
+            // Goal gate errors are non-fatal
+          }
+        }
+      }
 
       // Handle auto-update checking
       await autoUpdateChecker.event(input);
@@ -1726,13 +1774,40 @@ Returning to the original agent (${returnAgent}). The plan has been saved.`,
         });
         return;
       } else if (typedInput.command === LOOP_START_COMMAND) {
-        const description = typedInput.arguments || 'Untitled loop task';
+        const rawArgs = typedInput.arguments || 'Untitled loop task';
+
+        // Parse iterations from arguments
+        // Supports: --iterations N, -n N, or bare number at end
+        const defaultMaxIter = config.loop?.defaultMaxIterations ?? 12;
+        let maxIterations: number | undefined;
+        let description = rawArgs;
+
+        // Try --iterations N or -n N
+        const iterMatch = rawArgs.match(/(?:--iterations|-n)\s+(\d+)/i);
+        if (iterMatch) {
+          maxIterations = Math.max(1, Math.min(100, Number(iterMatch[1])));
+          description = rawArgs
+            .replace(/(?:--iterations|-n)\s+\d+/i, '')
+            .trim();
+        } else {
+          // Try bare number at end: "task description 20"
+          const bareMatch = description.match(/\s+(\d{1,3})\s*$/);
+          if (bareMatch) {
+            const num = Number(bareMatch[1]);
+            if (num >= 1 && num <= 100) {
+              maxIterations = num;
+              description = description.slice(0, -bareMatch[0].length).trim();
+            }
+          }
+        }
+        if (!description) description = 'Untitled loop task';
+
         const returnAgent =
           sessionAgentMap.get(typedInput.sessionID) ?? 'orchestrator';
         const executorType = classifyTaskExecutor(description);
 
         // Create loop state
-        createLoop(description, executorType, returnAgent);
+        createLoop(description, executorType, returnAgent, maxIterations ?? defaultMaxIter);
 
         // Activate overlay so system.transform injects prometheus prompt
         // and chat.message forces the agent to prometheus on next user turn.
@@ -1757,12 +1832,15 @@ Returning to the original agent (${returnAgent}). The plan has been saved.`,
 
         // Inject context into command output.
         // Next user message triggers the actual planner response.
+        const fsm = getLoop();
+        const iterDisplay = fsm?.state.max_iterations ?? 12;
         typedOutput.parts.push({
           type: 'text',
           text: `## Loop Started — prometheus (planner) is now active
 
 **Task:** ${description}
 **Executor:** ${executorType}
+**Max iterations:** ${iterDisplay}
 
 Gather requirements by asking the user questions with the Question tool.
 After requirements are confirmed:
@@ -1773,6 +1851,21 @@ After requirements are confirmed:
 **Allowed tools:** read, glob, grep, webfetch, Question, save_plan
 **Denied tools:** write, edit, bash, task, subtask`,
         });
+        return;
+      } else if (typedInput.command === 'goal') {
+        if (runtimeEnv.duplicateFeatures.includes('goal')) {
+          typedOutput.parts.push({
+            type: 'text',
+            text: 'Goal system is provided by MiMo Code. Use the built-in /goal command instead.',
+          });
+        } else {
+          const { handleGoalCommand } = await import('./hooks/goal/command');
+          const result = handleGoalCommand(
+            typedInput.arguments || '',
+            typedInput.sessionID,
+          );
+          typedOutput.parts.push({ type: 'text', text: result.message });
+        }
         return;
       }
 
@@ -2063,6 +2156,31 @@ After requirements are confirmed:
       );
 
       await contextPressureHook.handleSystemTransform(input, output);
+
+      // Inject memory (preferences, project memory, global memory) into system prompt
+      // Dynamic — reads files on every LLM request, no restart needed
+      try {
+        const { buildMemoryInjection } = await import('./hooks/memory');
+        const dataDir =
+          process.env.MIMOCODE_HOME ||
+          process.env.XDG_DATA_HOME ||
+          join(
+            process.env.HOME || process.env.USERPROFILE || '',
+            '.local',
+            'share',
+            'mimocode',
+          );
+        const memoryResult = buildMemoryInjection({
+          workspaceRoot: ctx.directory,
+          dataDir,
+          isMimoCode: runtimeEnv.isMimoCode,
+        });
+        for (const section of memoryResult.sections) {
+          output.system.push(section);
+        }
+      } catch {
+        // Memory injection is non-fatal
+      }
 
       // Inject mode-specific prompt variants for primary agents
       if (input.sessionID) {

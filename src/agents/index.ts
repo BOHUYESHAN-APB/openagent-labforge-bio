@@ -13,6 +13,7 @@ import {
   PRIMARY_AGENT_NAMES,
   PROTECTED_AGENTS,
   SUBAGENT_NAMES,
+  SYSTEM_SPAWNED_AGENTS,
 } from '../config';
 import { getAgentMcpList } from '../config/agent-mcps';
 
@@ -307,7 +308,11 @@ function applyDefaultPermissions(
   const toolRestrictions = getAgentToolPermissions(agent.name);
 
   // Respect explicit deny on question (councillor)
-  const questionPerm = existing.question === 'deny' ? 'deny' : 'allow';
+  // System-spawned agents (reviewer, internal-planner) also get deny
+  // to prevent hanging on permission prompts during autonomous operation.
+  const isSystemSpawned = SYSTEM_SPAWNED_AGENTS.has(agent.name);
+  const questionPerm =
+    existing.question === 'deny' || isSystemSpawned ? 'deny' : 'allow';
   const councilSessionPerm = COUNCIL_TOOL_ALLOWED_AGENTS.has(agent.name)
     ? (existing.council_session ?? 'allow')
     : 'deny';

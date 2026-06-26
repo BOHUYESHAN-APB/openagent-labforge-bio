@@ -48,6 +48,15 @@ export const ALL_AGENT_NAMES = [
   ...SUBAGENT_NAMES,
 ] as const;
 
+// System-spawned agents: infrastructure-managed agents that should not
+// prompt for interactive permissions (would hang if no user is present).
+// These agents receive implicit deny-all on permission requests and are
+// skipped by prune/bootstrap/memory scans.
+export const SYSTEM_SPAWNED_AGENTS: ReadonlySet<string> = new Set([
+  'reviewer',
+  'internal-planner',
+]);
+
 // Agent name type (for use in DEFAULT_MODELS)
 export type AgentName = (typeof ALL_AGENT_NAMES)[number];
 
