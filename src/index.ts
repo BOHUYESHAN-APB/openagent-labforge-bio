@@ -1631,6 +1631,10 @@ const OhMyOpenCodeLite: Plugin = async (ctx) => {
           effectiveAgentOverlayManager.clear(sessionID);
           sessionAgentMap.delete(sessionID);
           checkpointManager.cleanupSession(sessionID);
+          // Reset memory turn counter for deleted session
+          import('./hooks/memory').then(({ resetTurnCounter }) =>
+            resetTurnCounter(sessionID),
+          );
         }
       }
     },
@@ -2158,7 +2162,7 @@ After requirements are confirmed:
       await contextPressureHook.handleSystemTransform(input, output);
 
       // Inject memory (preferences, project memory, global memory) into system prompt
-      // Dynamic — reads files on every LLM request, no restart needed
+      // Optimized: only injects on first turn or every 5 turns to save tokens
       try {
         const { buildMemoryInjection } = await import('./hooks/memory');
         const dataDir =
@@ -2174,6 +2178,7 @@ After requirements are confirmed:
           workspaceRoot: ctx.directory,
           dataDir,
           isMimoCode: runtimeEnv.isMimoCode,
+          sessionID: input.sessionID,
         });
         for (const section of memoryResult.sections) {
           output.system.push(section);

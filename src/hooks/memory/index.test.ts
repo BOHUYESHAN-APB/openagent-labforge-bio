@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   buildMemoryInjection,
+  clearFileCache,
   getPreferencesPath,
   getProjectMemoryPath,
   getGlobalMemoryPath,
@@ -15,6 +16,7 @@ const TEST_DIR = '.opencode-test-memory';
 const MIMO_TEST_DIR = '.mimocode-test-memory';
 
 beforeEach(() => {
+  clearFileCache();
   for (const dir of [TEST_DIR, MIMO_TEST_DIR]) {
     const extendaiDir = join(dir, '.opencode', 'extendai-lab');
     const mimoExtendaiDir = join(dir, '.mimocode', 'extendai-lab');

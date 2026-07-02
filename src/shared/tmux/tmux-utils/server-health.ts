@@ -2,7 +2,7 @@ let serverAvailable: boolean | null = null;
 let serverCheckUrl: string | null = null;
 
 const SERVER_RUNNING_KEY = Symbol.for(
-  'oh-my-opencode:server-running-in-process',
+  'extendai-lab:server-running-in-process',
 );
 
 export type ServerHealthState = {

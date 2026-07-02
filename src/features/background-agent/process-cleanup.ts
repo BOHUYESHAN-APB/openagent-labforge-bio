@@ -19,7 +19,7 @@ type ProcessCleanupErrorEvent = 'uncaughtException' | 'unhandledRejection';
  * because they are the real shutdown path and run `cleanupAll()` before the
  * host actually terminates.
  */
-const PROCESS_CLEANUP_DISABLE_ENV = 'OMO_DISABLE_PROCESS_CLEANUP';
+const PROCESS_CLEANUP_DISABLE_ENV = 'EAI_DISABLE_PROCESS_CLEANUP';
 const TRUTHY_ENV_VALUES = new Set(['1', 'true', 'yes', 'on']);
 
 function isProcessCleanupErrorHandlersDisabled(): boolean {

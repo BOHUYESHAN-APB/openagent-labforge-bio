@@ -77,7 +77,7 @@ export async function replaceTmuxPane(
     return { success: false };
   }
 
-  const title = `omo-subagent-${description.slice(0, 20)}`;
+  const title = `eai-subagent-${description.slice(0, 20)}`;
   const titleResult = await runTmuxCommand(tmux, [
     'select-pane',
     '-t',

@@ -6,7 +6,7 @@ import { isInsideTmux } from './environment';
 import { buildTmuxPlaceholderCommand } from './pane-command';
 import { isServerRunning } from './server-health';
 
-const ISOLATED_SESSION_NAME_PREFIX = 'omo-agents';
+const ISOLATED_SESSION_NAME_PREFIX = 'eai-agents';
 
 type SpawnTmuxSessionDeps = {
   log: (message: string, data?: unknown) => void;
@@ -171,7 +171,7 @@ export async function spawnTmuxSession(
     return { success: false };
   }
 
-  const title = `omo-subagent-${description.slice(0, 20)}`;
+  const title = `eai-subagent-${description.slice(0, 20)}`;
   const titleResult = await runTmuxCommand(tmux, [
     'select-pane',
     '-t',

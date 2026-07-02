@@ -1,9 +1,5 @@
 #!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
-import {
-  installDeepSeekAdapter,
-  uninstallDeepSeekAdapter,
-} from '../adapters/deepseek-tui';
 import { PHASE_ONE_RUNTIME_IDS } from '../compat/types';
 import { PACKAGE_NAME, PRODUCT_DISPLAY_NAME } from '../config/product';
 import {
@@ -29,9 +25,7 @@ function parseArgs(args: string[]): InstallArgs {
   };
 
   for (const arg of args) {
-    if (arg === 'dstui' || arg === 'deepseek-tui') {
-      result.target = 'dstui';
-    } else if (arg === 'openclaude') {
+    if (arg === 'openclaude') {
       result.target = 'openclaude';
     } else if (arg === 'codex') {
       result.target = 'codex';
@@ -99,8 +93,6 @@ ${PRODUCT_DISPLAY_NAME} installer
 Usage: bunx ${PACKAGE_NAME} install [OPTIONS]
        bunx ${PACKAGE_NAME} doctor
        bunx ${PACKAGE_NAME} status
-       bunx ${PACKAGE_NAME} install dstui [OPTIONS]
-       bunx ${PACKAGE_NAME} uninstall dstui [OPTIONS]
 
 Options:
   --skills=yes|no        Install recommended and bundled skills (default: yes)
@@ -109,7 +101,6 @@ Options:
   --dry-run              Simulate install without writing files
   --reset                Force overwrite of existing configuration
   --force                Force replacement/removal of managed adapter files
-  --target-root=<path>   Override DeepSeek-TUI root (default: ~/.deepseek)
   -h, --help             Show this help message
 
 Available presets: ${getGeneratedPresetNames().join(', ')}
@@ -118,17 +109,12 @@ The installer generates OpenAI and OpenCode Go presets by default.
 OpenAI is active unless --preset selects another generated preset.
 For the full config reference, see docs/configuration.md.
 
-Note: OpenClaude/Codex compatibility features are on hold indefinitely.
-      Focus is on OpenCode core functionality (todo-continuation, auto-review, etc.)
-
 Examples:
   bunx ${PACKAGE_NAME} install
   bunx ${PACKAGE_NAME} doctor
   bunx ${PACKAGE_NAME} status
   bunx ${PACKAGE_NAME} install --no-tui --skills=yes
   bunx ${PACKAGE_NAME} install --preset=opencode-go
-  bunx ${PACKAGE_NAME} install dstui --dry-run
-  bunx ${PACKAGE_NAME} uninstall dstui
   bunx ${PACKAGE_NAME} install --reset
 `);
 }
@@ -147,39 +133,11 @@ async function readCurrentPackageVersion(): Promise<string> {
 }
 
 function printDeepSeekActionSummary(
-  action: 'install' | 'uninstall',
-  result: Awaited<ReturnType<typeof installDeepSeekAdapter>>,
+  _action: 'install' | 'uninstall',
+  _result: unknown,
 ): void {
-  console.log();
-  console.log(
-    `${PRODUCT_DISPLAY_NAME} DeepSeek-TUI ${action === 'install' ? 'Install' : 'Uninstall'}`,
-  );
-  console.log('='.repeat(38));
-  console.log(`Target root: ${result.targetRoot}`);
-  console.log(`Manifest: ${result.manifestPath}`);
-  console.log(`Manifest retained: ${result.manifestRetained ? 'yes' : 'no'}`);
-  console.log(`Dry run: ${result.dryRun ? 'yes' : 'no'}`);
-  console.log();
-
-  const sections: Array<[string, string[]]> = [
-    ['Written', result.writtenFiles],
-    ['Removed', result.removedFiles],
-    ['Preserved', result.preservedFiles],
-    ['Skipped', result.skippedFiles],
-    ['Backups', result.backupFiles],
-  ];
-
-  for (const [label, entries] of sections) {
-    console.log(`${label}: ${entries.length}`);
-    for (const entry of entries) {
-      console.log(`  - ${entry}`);
-    }
-  }
-
-  console.log();
-  console.log(
-    'Current scope: minimal command pack plus a small rigor/research-design skill pack. MCP/hooks/runtime integration are planned later.',
-  );
+  // DeepSeek-TUI adapter removed — this function is a stub for compatibility
+  console.log('DeepSeek-TUI adapter is no longer supported.');
 }
 
 function isCompatRuntimeTarget(
@@ -335,16 +293,8 @@ async function runCli(args: string[]): Promise<number> {
     }
 
     if (installTarget === 'dstui') {
-      const packageVersion = await readCurrentPackageVersion();
-      const result = await installDeepSeekAdapter({
-        targetRoot: installArgs.targetRoot,
-        packageVersion,
-        installSkills: installArgs.skills !== 'no',
-        dryRun: installArgs.dryRun,
-        force: installArgs.force,
-      });
-      printDeepSeekActionSummary('install', result);
-      return 0;
+      console.error('DeepSeek-TUI adapter is no longer supported.');
+      return 1;
     }
 
     return install({
@@ -402,17 +352,12 @@ async function runCli(args: string[]): Promise<number> {
     const uninstallArgs = parseArgs(args.slice(1));
 
     if (uninstallArgs.target !== 'dstui') {
-      console.error('Only `uninstall dstui` is currently supported.');
+      console.error('DeepSeek-TUI adapter is no longer supported.');
       return 1;
     }
 
-    const result = await uninstallDeepSeekAdapter({
-      targetRoot: uninstallArgs.targetRoot,
-      dryRun: uninstallArgs.dryRun,
-      force: uninstallArgs.force,
-    });
-    printDeepSeekActionSummary('uninstall', result);
-    return 0;
+    console.error('Only `uninstall dstui` was supported, and it has been removed.');
+    return 1;
   } else if (args[0] === '-h' || args[0] === '--help') {
     printHelp();
     return 0;

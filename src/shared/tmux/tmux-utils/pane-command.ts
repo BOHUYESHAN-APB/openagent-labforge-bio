@@ -17,5 +17,5 @@ export function buildTmuxAttachCommand(
 
 export function buildTmuxPlaceholderCommand(description: string): string {
   const escapedDescription = shellEscapeForDoubleQuotedCommand(description);
-  return `${TMUX_COMMAND_SHELL} -c "printf '%s\\n%s\\n' "OMO subagent pane ready: ${escapedDescription}" "Focus this pane to attach."; exec tail -f /dev/null"`;
+  return `${TMUX_COMMAND_SHELL} -c "printf '%s\\n%s\\n' "EAI subagent pane ready: ${escapedDescription}" "Focus this pane to attach."; exec tail -f /dev/null"`;
 }

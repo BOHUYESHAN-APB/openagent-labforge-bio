@@ -2,7 +2,10 @@
  * Memory System
  *
  * Dynamic memory injection via system.transform hook.
- * No restart required — reads files on every LLM request.
+ * Optimized for token efficiency:
+ * - First turn: always inject
+ * - Subsequent turns: inject every N turns (default 5)
+ * - Cache file reads to avoid redundant I/O
  *
  * Three memory tiers:
  * 1. User Preferences — coding style, workflow habits (per-project)
@@ -14,27 +17,28 @@
  * - MiMo Code: .mimocode/extendai-lab/
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { log as baseLog } from '../../utils/logger';
 
 const HOOK_NAME = 'memory';
 const log = (...args: unknown[]) => baseLog(`[${HOOK_NAME}]`, ...args);
 
+// ── Configuration ────────────────────────────────────────────────
+
+/** How many turns between memory re-injections */
+export const REINJECTION_INTERVAL = 5;
+
+/** Maximum age (ms) for cached file content before re-reading */
+const CACHE_TTL_MS = 30_000; // 30 seconds
+
 // ── Path Resolution ──────────────────────────────────────────────
 
-/**
- * Get the base directory for plugin storage.
- * Detects MiMo Code vs OpenCode and uses the correct path.
- */
 export function getStorageDir(workspaceRoot: string, isMimoCode: boolean): string {
   const configDir = isMimoCode ? '.mimocode' : '.opencode';
   return join(workspaceRoot, configDir, 'extendai-lab');
 }
 
-/**
- * Get user preferences file path.
- */
 export function getPreferencesPath(
   workspaceRoot: string,
   isMimoCode: boolean,
@@ -42,9 +46,6 @@ export function getPreferencesPath(
   return join(getStorageDir(workspaceRoot, isMimoCode), 'preferences.md');
 }
 
-/**
- * Get project memory file path.
- */
 export function getProjectMemoryPath(
   workspaceRoot: string,
   isMimoCode: boolean,
@@ -52,45 +53,97 @@ export function getProjectMemoryPath(
   return join(getStorageDir(workspaceRoot, isMimoCode), 'MEMORY.md');
 }
 
-/**
- * Get global memory file path (user-level, not project-level).
- * Uses the same path regardless of OpenCode/MiMo since it's user-level.
- */
 export function getGlobalMemoryPath(dataDir: string): string {
   return join(dataDir, 'memory', 'global', 'MEMORY.md');
 }
 
-// ── File Reading ─────────────────────────────────────────────────
+// ── Cached File Reading ──────────────────────────────────────────
 
-function readFileSafe(path: string): string | null {
+interface CachedFile {
+  content: string | null;
+  mtime: number;
+  lastRead: number;
+}
+
+const fileCache = new Map<string, CachedFile>();
+
+/**
+ * Clear the file cache (for testing).
+ */
+export function clearFileCache(): void {
+  fileCache.clear();
+}
+
+function readFileCached(path: string): string | null {
+  const now = Date.now();
+  const cached = fileCache.get(path);
+
+  // Check cache validity
+  if (cached && now - cached.lastRead < CACHE_TTL_MS) {
+    return cached.content;
+  }
+
+  // Read from disk
   try {
     if (existsSync(path)) {
-      return readFileSync(path, 'utf-8');
+      const stat = statSync(path);
+      const content = readFileSync(path, 'utf-8');
+      fileCache.set(path, { content, mtime: stat.mtimeMs, lastRead: now });
+      return content;
     }
   } catch (err) {
     log('Error reading file', { path, error: String(err) });
   }
+
+  fileCache.set(path, { content: null, mtime: 0, lastRead: now });
   return null;
 }
 
-/**
- * Check if content has actual user-written entries (not just template headers).
- */
 function hasUserContent(content: string): boolean {
   return content
     .split('\n')
     .some(
       (line) =>
-        line.startsWith('-') || line.startsWith('*') || line.match(/^\w+:/),
+        (line.startsWith('-') || line.startsWith('*')) &&
+        !line.startsWith('##'),
     );
 }
 
-/**
- * Truncate content to a token budget (rough estimate: 4 chars per token).
- */
 function truncateToBudget(content: string, maxChars: number): string {
   if (content.length <= maxChars) return content;
   return content.slice(0, maxChars) + '\n\n[truncated]';
+}
+
+// ── Turn Counter ─────────────────────────────────────────────────
+
+const turnCount = new Map<string, number>();
+const lastInjectionTurn = new Map<string, number>();
+
+/**
+ * Check if memory should be injected for this turn.
+ * Returns true on first turn or every REINJECTION_INTERVAL turns.
+ */
+export function shouldInjectMemory(sessionID: string): boolean {
+  const turns = (turnCount.get(sessionID) ?? 0) + 1;
+  turnCount.set(sessionID, turns);
+
+  const last = lastInjectionTurn.get(sessionID) ?? 0;
+  const gap = turns - last;
+
+  if (gap >= REINJECTION_INTERVAL) {
+    lastInjectionTurn.set(sessionID, turns);
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Reset turn counter for a session (e.g., on session deleted).
+ */
+export function resetTurnCounter(sessionID: string): void {
+  turnCount.delete(sessionID);
+  lastInjectionTurn.delete(sessionID);
 }
 
 // ── Memory Injection ─────────────────────────────────────────────
@@ -99,7 +152,7 @@ export interface MemoryInjectionConfig {
   workspaceRoot: string;
   dataDir: string;
   isMimoCode: boolean;
-  /** Maximum characters for each memory section */
+  sessionID?: string;
   prefsBudget?: number;
   projectMemoryBudget?: number;
   globalMemoryBudget?: number;
@@ -108,17 +161,23 @@ export interface MemoryInjectionConfig {
 export interface MemoryInjectionResult {
   sections: string[];
   totalChars: number;
+  injected: boolean;
 }
 
 /**
- * Build all memory sections for system prompt injection.
- * Called on every LLM request via system.transform hook.
+ * Build memory sections for system prompt injection.
+ * Only injects on first turn or every REINJECTION_INTERVAL turns.
  */
 export function buildMemoryInjection(
   config: MemoryInjectionConfig,
 ): MemoryInjectionResult {
   const sections: string[] = [];
   let totalChars = 0;
+
+  // Check if we should inject this turn
+  if (config.sessionID && !shouldInjectMemory(config.sessionID)) {
+    return { sections: [], totalChars: 0, injected: false };
+  }
 
   const prefsBudget = config.prefsBudget ?? 4000;
   const projectBudget = config.projectMemoryBudget ?? 6000;
@@ -129,14 +188,13 @@ export function buildMemoryInjection(
     config.workspaceRoot,
     config.isMimoCode,
   );
-  const prefsContent = readFileSafe(prefsPath);
+  const prefsContent = readFileCached(prefsPath);
   if (prefsContent && hasUserContent(prefsContent)) {
     const truncated = truncateToBudget(prefsContent, prefsBudget);
     sections.push(
       `## User Preferences\nLoaded from preferences.md:\n${truncated}`,
     );
     totalChars += truncated.length;
-    log('Injected user preferences', { chars: truncated.length });
   }
 
   // 2. Project Memory
@@ -144,32 +202,38 @@ export function buildMemoryInjection(
     config.workspaceRoot,
     config.isMimoCode,
   );
-  const projectContent = readFileSafe(projectPath);
+  const projectContent = readFileCached(projectPath);
   if (projectContent && hasUserContent(projectContent)) {
     const truncated = truncateToBudget(projectContent, projectBudget);
     sections.push(
       `## Project Memory\nLoaded from MEMORY.md:\n${truncated}`,
     );
     totalChars += truncated.length;
-    log('Injected project memory', { chars: truncated.length });
   }
 
   // 3. Global Memory
   const globalPath = getGlobalMemoryPath(config.dataDir);
-  const globalContent = readFileSafe(globalPath);
+  const globalContent = readFileCached(globalPath);
   if (globalContent && hasUserContent(globalContent)) {
     const truncated = truncateToBudget(globalContent, globalBudget);
     sections.push(
       `## Global Memory\nCross-project user preferences:\n${truncated}`,
     );
     totalChars += truncated.length;
-    log('Injected global memory', { chars: truncated.length });
   }
 
-  return { sections, totalChars };
+  if (sections.length > 0) {
+    log('Memory injected', {
+      sections: sections.length,
+      totalChars,
+      sessionID: config.sessionID,
+    });
+  }
+
+  return { sections, totalChars, injected: sections.length > 0 };
 }
 
-// ── Preferences Template ─────────────────────────────────────────
+// ── Templates ────────────────────────────────────────────────────
 
 export const PREFS_TEMPLATE = `# User Preferences
 _Long-term memory for coding style, workflow habits, and tool preferences._

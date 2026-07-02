@@ -6,7 +6,7 @@ import { isInsideTmux } from './environment';
 import { buildTmuxPlaceholderCommand } from './pane-command';
 import { isServerRunning } from './server-health';
 
-const ISOLATED_WINDOW_NAME = 'omo-agents';
+const ISOLATED_WINDOW_NAME = 'eai-agents';
 
 type SpawnTmuxWindowDeps = {
   log: (message: string, data?: unknown) => void;
@@ -99,7 +99,7 @@ export async function spawnTmuxWindow(
     return { success: false };
   }
 
-  const title = `omo-subagent-${description.slice(0, 20)}`;
+  const title = `eai-subagent-${description.slice(0, 20)}`;
   const titleResult = await runTmuxCommand(tmux, [
     'select-pane',
     '-t',
