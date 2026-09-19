@@ -132,6 +132,22 @@ This plugin is designed for academic and research workflows. While we have built
 
 ---
 
+## Agent Harness at a Glance
+
+This plugin is a full **Agent Harness layer** on top of the OpenCode runtime (a Claude Code-class coding agent). Mapping standard Agent-Infra concerns to what ships here:
+
+| Harness concern | Shipped here |
+|---|---|
+| Tool Calling & tool registry | Agent instruction loading, template skills, MCP integrations (see [Core Features](#core-features)) |
+| Permission layering | Per-agent permission model via layered plugin config (see [Agent Architecture](#agent-architecture)) |
+| Long-task execution | [Plan Persistence](#1-plan-persistence) + [Auto-Continue](#2-auto-continue--auto-review) — resumable delegated sessions |
+| State management | [Checkpoints](#6-checkpoints) — session state capture and restore |
+| Error recovery | Auto-Review loop: failed steps get re-planned and re-executed |
+| Multi-model access | [Model Presets](#7-model-presets) — multiple LLM providers behind one interface |
+| Deterministic workflows | [Three-Tier Prompts](#5-three-tier-prompts) + [Plan Mode & Agent Switching](#8-plan-mode--agent-switching-v135) |
+
+Beyond the agent layer, this repo also ships a **bioinformatics workflow pack** (CWL / Nextflow / WDL support with R & Python analysis backends) — see [Bioinformatics](#bioinformatics).
+
 ## Quick Start
 
 ### AI Agent Installation
