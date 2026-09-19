@@ -146,6 +146,9 @@ This plugin is a full **Agent Harness layer** on top of the OpenCode runtime (a 
 | Multi-model access | [Model Presets](#7-model-presets) — multiple LLM providers behind one interface |
 | Deterministic workflows | [Three-Tier Prompts](#5-three-tier-prompts) + [Plan Mode & Agent Switching](#8-plan-mode--agent-switching-v135) |
 
+
+**Ecosystem note:** the skill layer and the agent runtime are separate first-party releases under the [Linxira-OS](https://github.com/Linxira-OS) organization — [linxira-skills](https://github.com/Linxira-OS/linxira-skills) (npm: `linxira-skills`, layered skill profiles: core → bioinformatics-core → biology-research-core, cross-runtime via `.agents/skills/` + `AGENTS.md`) and [Linxira Zeta](https://github.com/Linxira-OS/linxira-zeta) (Bun + Rust agent distribution, v1.1.15, OMP mainline).
+
 Beyond the agent layer, this repo also ships a **bioinformatics workflow pack** (CWL / Nextflow / WDL support with R & Python analysis backends) — see [Bioinformatics](#bioinformatics).
 
 ## Quick Start
