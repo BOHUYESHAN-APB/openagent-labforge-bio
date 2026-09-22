@@ -1,6 +1,6 @@
 # ExtendAI Lab
 
-> OpenCode 的生产级 Agent 编排系统 — 6 个主编排器 · 12 个专有子代理 · 三层提示词 · 自动续跑与审查 · 生物信息学 · 成本优化
+> OpenCode 的生产级 Agent 编排系统 — 8 个主编排器 · 11 个专有子代理 · 三层提示词 · 自动续跑与审查 · 生物信息学 · 成本优化
 
 [![Version](https://img.shields.io/github/v/release/BOHUYESHAN-APB/openagent-labforge-bio?label=release)](https://github.com/BOHUYESHAN-APB/openagent-labforge-bio/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
@@ -23,13 +23,15 @@ ExtendAI Lab 是 OpenCode 的轻量级 Agent 编排插件，在原生 OpenCode �
 graph TB
     U((用户)) --> P
 
-    subgraph P[主编排器 6 个]
+    subgraph P[主编排器 8 个]
         O["engineer<br/>(orchestrator)"]
         DW["deep-worker"]
         PL["planner<br/>(prometheus)"]
         AT["executor<br/>(atlas)"]
         BO["bio-analyst<br/>(bio-orchestrator)"]
         CO["chem-analyst<br/>(chem-orchestrator)"]
+        RE["reviewer"]
+        IP["internal-planner"]
     end
 
     O -->|读取提示词| SG[专有子代理]
@@ -52,13 +54,13 @@ graph TB
 | 思考语言优化 | — | 国模→中文，海外→英文 |
 | 检查点系统 | — | 轻量（同会话）+ 重量（跨会话） |
 | 上下文压力监测 | — | L1/L2/L3 三级自动响应 |
-| 生物信息学 | — | 617 个领域技能，88 大类，3 个 MCP |
+| 生物信息学 | — | 617 个领域技能，87 大类，3 个 MCP |
 
 ### 关键数据
 
 - **1221** 个测试通过，**101** 个测试文件，**0** 失败
-- **6** 个主编排器 + **12** 个子代理 = **18** 个总代理
-- **617** 个生物信息学技能，**88** 个类别
+- **8** 个主编排器 + **11** 个子代理 = **19** 个总代理
+- **617** 个生物信息学技能，**87** 个类别
 - **14** 个斜杠命令，**10** 个自定义工具
 
 ### 发布策略
@@ -310,7 +312,7 @@ load_agent_instructions({ agent: 'reviewer' })  // 返回 reviewer 的完整系�
 
 ## 生物信息学
 
-**442 个技能，64 个类别**，按需加载：
+**617 个技能，87 个类别**，按需加载：
 
 | 类别 | 技能数 | 典型工具 |
 |------|--------|---------|
