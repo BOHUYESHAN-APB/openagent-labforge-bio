@@ -1,6 +1,6 @@
 # ExtendAI Lab
 
-> Lightweight Agent Orchestration for [OpenCode](https://github.com/anomalyco/opencode) — 6 orchestrators · 12 specialists · 3-tier prompts · Bioinformatics · Academic Paper Mode · Auto-review
+> Lightweight Agent Orchestration for [OpenCode](https://github.com/anomalyco/opencode) — 8 orchestrators · 11 specialists · 3-tier prompts · Bioinformatics · Academic Paper Mode · Auto-review
 
 [![Version](https://img.shields.io/github/v/release/BOHUYESHAN-APB/openagent-labforge-bio?label=release)](https://github.com/BOHUYESHAN-APB/openagent-labforge-bio/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
@@ -15,7 +15,7 @@
 
 ## Overview
 
-ExtendAI Lab extends OpenCode with production-grade agent orchestration — 6 primary orchestrators, 12 specialist subagents, a three-tier prompt system, a checkpoint-based memory architecture, main-agent-first cost optimization, and optional bioinformatics domain support.
+ExtendAI Lab extends OpenCode with production-grade agent orchestration — 8 primary orchestrators, 11 specialist subagents, a three-tier prompt system, a checkpoint-based memory architecture, main-agent-first cost optimization, and optional bioinformatics domain support.
 
 **The philosophy**: main-agent-first. Most work happens in the primary orchestrator. Subagents are read as instruction checklists (`load_agent_instructions`) rather than spawned as child sessions. This keeps cache hit rates high and token costs low — critical for Chinese providers with token-based pricing.
 
@@ -23,13 +23,15 @@ ExtendAI Lab extends OpenCode with production-grade agent orchestration — 6 pr
 graph TB
     U((User)) --> P
 
-    subgraph P[Primary Orchestrators — 6]
+    subgraph P[Primary Orchestrators — 8]
         O["engineer<br/>(orchestrator)"]
         DW["deep-worker"]
         PL["planner<br/>(prometheus)"]
         AT["executor<br/>(atlas)"]
         BO["bio-analyst<br/>(bio-orchestrator)"]
         CO["chem-analyst<br/>(chem-orchestrator)"]
+        RE["reviewer"]
+        IP["internal-planner"]
     end
 
     O --> |read instructions| SG[Specialist Agents]
@@ -43,8 +45,8 @@ graph TB
 
 | Feature | Base OpenCode | ExtendAI Lab |
 |---------|--------------|--------------|
-| Orchestrators | 1 | 6 |
-| Subagents | 3 | 12 |
+| Orchestrators | 1 | 8 |
+| Subagents | 3 | 11 |
 | Prompt System | Fixed | Heavy / Light / Turbo (runtime switch) |
 | Auto-Continue | — | Multi-session with structured auto-review |
 | Loop Engineering | — | Plan → Execute → Review cycles with configurable iterations |
@@ -61,8 +63,8 @@ graph TB
 ### Key Numbers
 
 - **204** tests passing across new features
-- **6** primary orchestrators + **12** subagents = **18** total agents
-- **617** bioinformatics skills, **88** categories
+- **8** primary orchestrators + **11** subagents = **19** total agents
+- **617** bioinformatics skills, **87** categories
 - **3** memory tiers (user preferences, project memory, global memory)
 
 ### Release Policy
@@ -395,7 +397,7 @@ See [`extendai-lab.example.jsonc`](extendai-lab.example.jsonc) for full referenc
 
 ## Bioinformatics
 
-**442 skills across 64 categories**, loaded on-demand:
+**617 skills across 87 categories**, loaded on-demand:
 
 ```typescript
 load_bio_skills({ categories: ["rna-seq"] })  // RNA sequencing skills
